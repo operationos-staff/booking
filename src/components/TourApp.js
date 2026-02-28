@@ -6,21 +6,21 @@ import { loadFromLS, saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
 
-import LoginPage      from './LoginPage'
-import Header         from './Header'
+import LoginPage from './LoginPage'
+import Header from './Header'
 import CalculatorPage from './CalculatorPage'
-import BookingPage    from './BookingPage'
-import ClientPage     from './ClientPage'
+import ClientPage from './ClientPage'
+import CharterPage from './CharterPage'
 import ToastContainer from './ToastContainer'
 
 export default function TourApp() {
-  const [user,       setUser]       = useState(null)
-  const [role,       setRole]       = useState(null)
-  const [page,       setPage]       = useState('calculator')
-  const [packages,   setPackages]   = useState(() => JSON.parse(JSON.stringify(DEF_PACKAGES)))
-  const [options,    setOptions]    = useState(() => JSON.parse(JSON.stringify(DEF_OPTIONS)))
+  const [user, setUser] = useState(null)
+  const [role, setRole] = useState(null)
+  const [page, setPage] = useState('calculator')
+  const [packages, setPackages] = useState(() => JSON.parse(JSON.stringify(DEF_PACKAGES)))
+  const [options, setOptions] = useState(() => JSON.parse(JSON.stringify(DEF_OPTIONS)))
   const [clientData, setClientData] = useState(null)
-  const [ready,      setReady]      = useState(false)
+  const [ready, setReady] = useState(false)
 
   const { toasts, toast } = useToast()
 
@@ -44,11 +44,11 @@ export default function TourApp() {
       // 1. LocalStorage fallback
       const ls = loadFromLS()
       if (ls.packages?.length) setPackages(ls.packages)
-      if (ls.options?.length)  setOptions(ls.options)
+      if (ls.options?.length) setOptions(ls.options)
 
       // 2. Client link ?tour=...
-      const params  = new URLSearchParams(window.location.search)
-      const tourId  = params.get('tour')
+      const params = new URLSearchParams(window.location.search)
+      const tourId = params.get('tour')
       if (tourId) {
         // UUID from Supabase
         if (/^[0-9a-f-]{36}$/i.test(tourId)) {
@@ -67,7 +67,7 @@ export default function TourApp() {
           setPage('client')
           setReady(true)
           return
-        } catch {}
+        } catch { }
       }
 
       // 3. Restore Supabase session
@@ -146,23 +146,19 @@ export default function TourApp() {
           role={role}
           user={user}
           toast={toast}
+          onPackagesChange={p => { setPackages(p); saveToLS({ packages: p, options }) }}
+          onOptionsChange={o => { setOptions(o); saveToLS({ packages, options: o }) }}
         />
       )}
 
-      {page === 'booking' && role === 'booking' && (
-        <BookingPage
-          packages={packages}
-          options={options}
-          onPackagesChange={p => { setPackages(p); saveToLS({ packages: p, options }) }}
-          onOptionsChange={o => { setOptions(o);  saveToLS({ packages, options: o }) }}
-          onPageChange={setPage}
-          role={role}
-          toast={toast}
-        />
-      )}
+
 
       {page === 'client' && (
         <ClientPage data={clientData} />
+      )}
+
+      {page === 'charter' && user && (
+        <CharterPage role={role} />
       )}
 
       {/* Print target — populated by doPrint() in utils.js */}

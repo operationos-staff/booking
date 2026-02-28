@@ -7,7 +7,7 @@ import { savePackagesToDB, saveOptionsToDB } from '@/lib/db'
 const EMPTY_OPT = { name: '', mgrA: 0, mgrC: 0, netA: 0, netC: 0, cat: 'Достопримечательности', only8h: false }
 
 export default function BookingPage({ packages, options, onPackagesChange, onOptionsChange, onPageChange, role, toast }) {
-  const [tab,    setTab]    = useState('calc')
+  const [tab, setTab] = useState('calc')
   const [saving, setSaving] = useState(false)
   const [newOpt, setNewOpt] = useState(EMPTY_OPT)
   const nextId = useRef(Date.now())
@@ -48,41 +48,29 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
   }
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', paddingBottom: '20px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h1 style={{ fontSize: '18px', fontWeight: '900' }}>📋 Операционный отдел</h1>
-          <p style={{ fontSize: '11px', color: 'var(--txl)' }}>Управление ценами, пакетами и опциями</p>
+          <h1 style={{ fontSize: '18px', fontWeight: '900' }}>Настройка базы туров</h1>
+          <p style={{ fontSize: '11px', color: 'var(--txl)' }}>Управление ценами, пакетами и опциями. Изменения сохраняются глобально.</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-p" onClick={saveAll} disabled={saving} style={{ width: 'auto', padding: '9px 18px' }}>
-            {saving ? '⏳ Сохранение...' : '💾 Сохранить всё'}
+          <button className="btn btn-p" onClick={saveAll} disabled={saving} style={{ width: 'auto', padding: '9px 18px', background: 'var(--pr)' }}>
+            {saving ? '⏳ Сохранение...' : '💾 Сохранить в Базу'}
           </button>
-          <button className="btn btn-g" onClick={() => onPageChange('calculator')} style={{ width: 'auto', padding: '9px 18px' }}>← Калькулятор</button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bk-tabs">
-        {[['calc','🧮 Калькулятор'],['pkgs','🚐 Пакеты'],['opts','🎯 Опции'],['addrem','➕ Добавить / Удалить']].map(([id, label]) => (
+      <div className="bk-tabs" style={{ marginBottom: '16px' }}>
+        {[['pkgs', '🚐 Пакеты'], ['opts', '🎯 Опции'], ['addrem', '➕ Добавить / Удалить']].map(([id, label]) => (
           <button key={id} className={`bk-tab ${tab === id ? 'on' : ''}`} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
 
-      {/* ── TAB: CALC ── */}
-      {tab === 'calc' && (
-        <div className="card">
-          <div className="card-b" style={{ textAlign: 'center', padding: '40px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🧮</div>
-            <h2 style={{ marginBottom: '8px' }}>Перейти к калькулятору</h2>
-            <p style={{ color: 'var(--txl)', marginBottom: '16px', fontSize: '13px' }}>Калькулятор с нетто-ценами и наценками доступен на главной странице</p>
-            <button className="btn btn-p" onClick={() => onPageChange('calculator')} style={{ width: 'auto', padding: '12px 28px', margin: '0 auto' }}>🧮 Открыть калькулятор</button>
-          </div>
-        </div>
-      )}
-
       {/* ── TAB: PACKAGES ── */}
+      {tab === 'calc' && setTab('pkgs')}
       {tab === 'pkgs' && (
         <div className="card">
           <div className="card-h">

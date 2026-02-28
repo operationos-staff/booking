@@ -12,8 +12,7 @@ export default function Header({ role, page, onPage, onLogout }) {
         <div className="logo" onClick={() => !isClient && onPage('calculator')}>
           <div className="logo-icon">🌴</div>
           <div>
-            <div className="logo-title">Пханг Нга Туры</div>
-            <div className="logo-sub">Калькулятор туров</div>
+            <div className="logo-title">Портал бронирования</div>
           </div>
         </div>
 
@@ -25,14 +24,12 @@ export default function Header({ role, page, onPage, onLogout }) {
               <span className={`rbadge ${role === 'booking' ? 'rb' : 'rm'}`}>
                 {ROLE_ICONS[role]} {ROLE_NAMES[role]}
               </span>
-              <button className="btn-nav btn-nav-o" onClick={() => onPage('calculator')}>
-                🧮 Калькулятор
+              <button className={`btn-nav ${page === 'calculator' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculator')}>
+                🚐 Групповые туры
               </button>
-              {role === 'booking' && (
-                <button className="btn-nav btn-nav-o" onClick={() => onPage('booking')}>
-                  📋 Операционный отдел
-                </button>
-              )}
+              <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} style={{ border: '1px solid #0ea5e9', color: '#0ea5e9' }} onClick={() => onPage('charter')}>
+                🚤 Чартерные яхты
+              </button>
               <button className="btn-nav btn-nav-a" onClick={onLogout}>
                 🚪 Выйти
               </button>

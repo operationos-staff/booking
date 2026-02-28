@@ -1,0 +1,535 @@
+/*!****************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[7].use[3]!./src/components/Portal.module.css ***!
+  \****************************************************************************************************************************************************************************************************************************************************************************/
+.Portal_container__k8wpv {
+    display: flex;
+    height: calc(100vh - 65px);
+    /* Header is typically ~60-65px */
+    background: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+    --pri: #0f172a;
+    --acc: #d4af37;
+    --acc-hover: #c5a028;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #334155;
+    --text-dark: #0f172a;
+    --muted: #94a3b8;
+    --border: #e2e8f0;
+    --ok: #10b981;
+    --err: #ef4444;
+    --warn: #f59e0b;
+    --shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+    box-sizing: border-box;
+}
+
+.Portal_container__k8wpv *,
+.Portal_container__k8wpv *::before,
+.Portal_container__k8wpv *::after {
+    box-sizing: border-box;
+}
+
+.Portal_sidebar__WvSUw {
+    width: 380px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.Portal_panelHeader__e9p8j {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.Portal_panelTitle__de8C_ {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--pri);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.Portal_searchInput__JezS1 {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.Portal_searchInput__JezS1:focus {
+    border-color: var(--acc);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    background: #fff;
+}
+
+.Portal_tourList__MPVRT {
+    flex: 1 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.Portal_tourItem__HWwJG {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.Portal_tourItem__HWwJG:hover {
+    background: var(--bg);
+}
+
+.Portal_tourItem__HWwJG.Portal_active__OxljT {
+    background: #fffcf0;
+    border-color: var(--acc);
+}
+
+.Portal_tourIcon__GjYot {
+    font-size: 1.5rem;
+    background: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+
+.Portal_tourInfo__1vzPG {
+    flex: 1 1;
+    min-width: 0;
+}
+
+.Portal_tourName__PzlZk {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.Portal_tourPrice__AgoZ4 {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 4px;
+    display: flex;
+    gap: 8px;
+}
+
+.Portal_tourPrice__AgoZ4 span {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.Portal_mainPanel__6AMRs {
+    flex: 1 1;
+    padding: 32px 40px;
+    overflow-y: auto;
+    height: 100%;
+    background: var(--bg);
+}
+
+.Portal_mainLayout__DFZ4X {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-gap: 24px;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.Portal_card__Z3tYm {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.Portal_cardTitle__RxuAF {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.Portal_cardTitleFlex__4UvyZ {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.Portal_fg__1HONT {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.Portal_fg__1HONT label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.Portal_fg__1HONT input,
+.Portal_fg__1HONT select {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: var(--bg);
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.Portal_fg__1HONT input:focus,
+.Portal_fg__1HONT select:focus {
+    outline: none;
+    border-color: var(--acc);
+    background: #fff;
+}
+
+.Portal_optList__irDrf {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.Portal_optRow__BJhLw {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.Portal_optRow__BJhLw:hover {
+    border-color: var(--acc);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.Portal_optName__f2p1g {
+    flex: 1 1;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.Portal_optBadge__UNNhR {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.Portal_optPrice__HxcAV {
+    width: 100px;
+    text-align: right;
+    font-weight: 700;
+    color: var(--pri);
+}
+
+.Portal_optQty__tvdzP {
+    width: 60px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-align: center;
+}
+
+/* Quote Box */
+.Portal_resBox__QOv5f {
+    background: var(--pri);
+    color: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.15);
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+}
+
+.Portal_resHeader__TLBd4 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.Portal_rr__P5jem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+.Portal_rr__P5jem:last-child {
+    border: none;
+}
+
+.Portal_rrName__kVNOz {
+    font-weight: 500;
+}
+
+.Portal_rrMeta__9szVP {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.Portal_rrVal___CLw1 {
+    font-weight: 700;
+}
+
+.Portal_rrTot__Sn3wt {
+    padding-top: 20px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    border-top: 2px solid rgba(212, 175, 55, 0.5);
+    border-bottom: none;
+    color: var(--acc);
+}
+
+/* Buttons & Elements */
+.Portal_btn__VEr64 {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.Portal_btnPri__MxrO5 {
+    background: var(--pri);
+    color: #fff;
+}
+
+.Portal_btnPri__MxrO5:hover {
+    background: #1e293b;
+}
+
+.Portal_btnAcc__WuJ14 {
+    background: var(--acc);
+    color: #fff;
+}
+
+.Portal_btnAcc__WuJ14:hover {
+    background: var(--acc-hover);
+}
+
+.Portal_btnGh__3QT2H {
+    background: #fff;
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.Portal_btnGh__3QT2H:hover {
+    background: var(--bg);
+}
+
+.Portal_btnSm__xayjg {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+.Portal_btnErr__kxCLC {
+    background: var(--err);
+    color: #fff;
+}
+
+.Portal_btnOk__wEp38 {
+    background: var(--ok);
+    color: #fff;
+}
+
+.Portal_emptyState__cDV_n {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    text-align: center;
+    gap: 16px;
+}
+
+.Portal_emptyStateIco__2GX2u {
+    font-size: 4rem;
+    opacity: 0.5;
+}
+
+/* Admin View */
+.Portal_adminView__vv3q9 {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.Portal_tblWrapper__bDVTK {
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.Portal_tbl__J5F3x {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.Portal_tbl__J5F3x th {
+    background: var(--bg);
+    color: var(--text-dark);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.Portal_tbl__J5F3x td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.Portal_tbl__J5F3x input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+/* Modal */
+.Portal_modalOv__IpypT {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.Portal_modalBox__HcJTz {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 32px;
+    width: min(550px, 95vw);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.Portal_modalBox__HcJTz h3 {
+    margin-bottom: 20px;
+    color: var(--pri);
+}
+
+.Portal_btnGrp__jcU10 {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.Portal_tglWrap__I_K3T {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.Portal_tgl__b7p3M {
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 20px;
+    position: relative;
+    transition: 0.3s;
+    flex-shrink: 0;
+}
+
+.Portal_tgl__b7p3M::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+input:checked+.Portal_tgl__b7p3M {
+    background: var(--ok);
+}
+
+input:checked+.Portal_tgl__b7p3M::after {
+    transform: translateX(20px);
+}
+
+.Portal_srOnly__w_K0z {
+    opacity: 0;
+    position: absolute;
+}

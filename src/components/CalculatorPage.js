@@ -4,131 +4,116 @@ import { CAT_ICONS, CAT_COLORS } from '@/lib/constants'
 import { fmt, fmtDate, todayISO, computeCalc, buildClientData, doPrint, clipCopy } from '@/lib/utils'
 import { saveCalculation } from '@/lib/db'
 import { TextModal, LinkModal, AddOptModal } from './Modals'
-
-// ─── PACKAGE CARD ─────────────────────────────────────────────
-function PkgCard({ pkg, selected, isBk, onClick }) {
-  const price  = isBk ? pkg.nettoPrice : pkg.mgrPrice
-  const icon   = pkg.type === 'vip' ? '⭐' : pkg.hours >= 8 ? '🕗' : '🕐'
-  const isVip  = pkg.type === 'vip'
-  const selCls = selected ? (isVip ? 'sel-vip' : 'sel') : ''
-
-  return (
-    <div className={`pkg-card ${selCls}`} onClick={onClick}>
-      {selected && <div className={`pkg-check ${isVip ? 'pkg-check-vip' : ''}`}>✓</div>}
-      <div className="pkg-icon">{icon}</div>
-      <div className="pkg-name">{pkg.name}</div>
-      <div className="pkg-note">{pkg.note}<br />Доп. час: {fmt(pkg.extraHour || 1000)} ฿</div>
-      <div className="pkg-price">{fmt(price)} <span>฿</span></div>
-      {isBk && <div className="pkg-netto">НЕТТО: {pkg.nettoDetail}</div>}
-    </div>
-  )
-}
+import BookingPage from './BookingPage'
+import styles from './Portal.module.css'
 
 // ─── OPTIONS TABLE ─────────────────────────────────────────────
 function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
   return (
-    <table className="otbl">
-      <thead>
-        <tr>
-          <th style={{ textAlign: 'left' }}>Опция</th>
-          <th>Взр.</th>
-          <th>Дет.</th>
-          {isBk ? (
-            <>
-              <th>Нетто взр.</th><th className="mk">+Нац.</th>
-              <th>Нетто дет.</th><th className="mk">+Нац.</th>
-              <th>Себест.</th><th className="fn">Клиент</th>
-            </>
-          ) : (
-            <>
-              <th>Цена взр.</th><th>Цена дет.</th><th>Сумма</th>
-            </>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {options.map(o => {
-          const key = String(o.id)
-          if (!avIds.has(key)) return null
-          const q   = qty[key]   || { a: 0, c: 0 }
-          const mk  = optMk[key] || { a: 0, c: 0 }
-          const has = (q.a || 0) + (q.c || 0) > 0
-          const [bg, fg] = CAT_COLORS[o.cat] || ['#F1F5F9', '#64748B']
-          const costA = (q.a || 0) * o.netA
-          const costC = (q.c || 0) * o.netC
-          const costSum   = costA + costC
-          const clientSum = (q.a || 0) * (o.netA + (mk.a || 0)) + (q.c || 0) * (o.netC + (mk.c || 0))
-          const mgrSum    = (q.a || 0) * o.mgrA + (q.c || 0) * o.mgrC
+    <div className={styles.tblWrapper}>
+      <table className={styles.tbl}>
+        <thead>
+          <tr>
+            <th>Опция</th>
+            <th style={{ textAlign: 'center', width: '60px' }}>Взр.</th>
+            <th style={{ textAlign: 'center', width: '60px' }}>Дет.</th>
+            {isBk ? (
+              <>
+                <th style={{ textAlign: 'right' }}>Нетто В/Д</th>
+                <th className="mk" style={{ background: '#FEF3C7', color: '#92400E', textAlign: 'center' }}>+Нац.</th>
+                <th style={{ textAlign: 'right' }}>Себест.</th>
+                <th className="fn" style={{ background: '#F0FDF4', color: '#065F46', textAlign: 'right' }}>Клиент</th>
+              </>
+            ) : (
+              <>
+                <th style={{ textAlign: 'right' }}>Цена В/Д</th>
+                <th style={{ textAlign: 'right' }}>Сумма</th>
+              </>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {options.map(o => {
+            const key = String(o.id)
+            if (!avIds.has(key)) return null
+            const q = qty[key] || { a: 0, c: 0 }
+            const mk = optMk[key] || { a: 0, c: 0 }
+            const has = (q.a || 0) + (q.c || 0) > 0
+            const [bg, fg] = CAT_COLORS[o.cat] || ['#f1f5f9', '#64748b']
+            const costA = (q.a || 0) * o.netA
+            const costC = (q.c || 0) * o.netC
+            const costSum = costA + costC
+            const clientSum = (q.a || 0) * (o.netA + (mk.a || 0)) + (q.c || 0) * (o.netC + (mk.c || 0))
+            const mgrSum = (q.a || 0) * o.mgrA + (q.c || 0) * o.mgrC
 
-          return (
-            <tr key={o.id} className={`orow ${has ? 'has' : ''}`}>
-              <td>
-                <div className="oname">{o.name}</div>
-                <span className="ocat" style={{ background: bg, color: fg }}>
-                  {CAT_ICONS[o.cat] || ''} {o.cat}
-                </span>
-                {o.special && <div style={{ fontSize: '9px', color: 'var(--wn)', marginTop: '1px' }}>⚠️ {o.special}</div>}
-              </td>
-              <td>
-                <input className="qi" type="number" min="0" max="99"
-                  value={q.a || ''} placeholder="0"
-                  onChange={e => onSetQ(key, 'a', e.target.value)} />
-              </td>
-              <td>
-                <input className="qi" type="number" min="0" max="99"
-                  value={q.c || ''} placeholder="0"
-                  onChange={e => onSetQ(key, 'c', e.target.value)} />
-              </td>
-              {isBk ? (
-                <>
-                  <td className={`pc ${o.netA === 0 ? 'fr' : ''}`}>{o.netA > 0 ? fmt(o.netA) : 'FREE'}</td>
-                  <td style={{ background: '#FFFBEB' }}>
-                    <input className="mi" type="number" min="0"
-                      value={mk.a || ''} placeholder="0"
-                      onChange={e => onSetMk(key, 'a', e.target.value)} />
-                  </td>
-                  <td className={`pc ${o.netC === 0 ? 'fr' : ''}`}>{o.netC > 0 ? fmt(o.netC) : 'FREE'}</td>
-                  <td style={{ background: '#FFFBEB' }}>
-                    <input className="mi" type="number" min="0"
-                      value={mk.c || ''} placeholder="0"
-                      onChange={e => onSetMk(key, 'c', e.target.value)} />
-                  </td>
-                  <td className={`sc ${costSum === 0 ? 'z' : ''}`}>{costSum > 0 ? fmt(costSum) : '—'}</td>
-                  <td className="fc" style={{ background: '#F0FDF4' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
-                </>
-              ) : (
-                <>
-                  <td className={`pc ${o.mgrA === 0 ? (o.special ? 'sp' : 'fr') : ''}`}>
-                    {o.special ? '⚠️' : o.mgrA > 0 ? fmt(o.mgrA) + ' ฿' : 'FREE'}
-                  </td>
-                  <td className={`pc ${o.mgrC === 0 ? (o.special ? 'sp' : 'fr') : ''}`}>
-                    {o.special ? '' : o.mgrC > 0 ? fmt(o.mgrC) + ' ฿' : 'FREE'}
-                  </td>
-                  <td className={`sc ${mgrSum === 0 ? 'z' : ''}`}>
-                    {mgrSum > 0 ? fmt(mgrSum) + ' ฿' : '—'}
-                  </td>
-                </>
-              )}
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
+            return (
+              <tr key={o.id} style={{ background: has ? '#F0FDF4' : 'transparent', transition: 'all 0.2s' }}>
+                <td>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-dark)' }}>{o.name}</div>
+                  <span style={{ background: bg, color: fg, display: 'inline-block', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 700, marginTop: '4px', textTransform: 'uppercase' }}>
+                    {CAT_ICONS[o.cat] || ''} {o.cat}
+                  </span>
+                  {o.special && <div style={{ fontSize: '0.75rem', color: 'var(--warn)', marginTop: '4px' }}>⚠️ {o.special}</div>}
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <input type="number" min="0" max="99" style={{ width: '48px', padding: '6px', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center', outline: 'none' }}
+                    value={q.a || ''} placeholder="0"
+                    onChange={e => onSetQ(key, 'a', e.target.value)} />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <input type="number" min="0" max="99" style={{ width: '48px', padding: '6px', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center', outline: 'none' }}
+                    value={q.c || ''} placeholder="0"
+                    onChange={e => onSetQ(key, 'c', e.target.value)} />
+                </td>
+                {isBk ? (
+                  <>
+                    <td style={{ textAlign: 'right', fontSize: '0.85rem' }}>
+                      <div style={{ color: o.netA === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700 }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>взр:</span> {o.netA > 0 ? fmt(o.netA) : 'FREE'}</div>
+                      <div style={{ color: o.netC === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700, marginTop: '4px' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>дет:</span> {o.netC > 0 ? fmt(o.netC) : 'FREE'}</div>
+                    </td>
+                    <td style={{ background: '#FFFBEB', textAlign: 'center', verticalAlign: 'middle' }}>
+                      <input type="number" min="0" style={{ width: '50px', padding: '6px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700, marginBottom: '4px' }}
+                        value={mk.a || ''} placeholder="0"
+                        onChange={e => onSetMk(key, 'a', e.target.value)} />
+                      <input type="number" min="0" style={{ width: '50px', padding: '6px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700 }}
+                        value={mk.c || ''} placeholder="0"
+                        onChange={e => onSetMk(key, 'c', e.target.value)} />
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: costSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{costSum > 0 ? fmt(costSum) : '—'}</td>
+                    <td style={{ background: '#F0FDF4', textAlign: 'right', fontWeight: 800, color: clientSum === 0 ? 'var(--muted)' : 'var(--ok)' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
+                  </>
+                ) : (
+                  <>
+                    <td style={{ textAlign: 'right', fontSize: '0.85rem' }}>
+                      <div style={{ color: o.mgrA === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700 }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>взр:</span> {o.special ? '⚠️' : (o.mgrA > 0 ? fmt(o.mgrA) : 'FREE')}</div>
+                      <div style={{ color: o.mgrC === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700, marginTop: '4px' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>дет:</span> {o.special ? '' : (o.mgrC > 0 ? fmt(o.mgrC) : 'FREE')}</div>
+                    </td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: mgrSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}</td>
+                  </>
+                )}
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────
-export default function CalculatorPage({ packages, options, role, user, toast }) {
+export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange }) {
   const isBk = role === 'booking'
+  const [activeTab, setActiveTab] = useState('calc')
 
   const [selBase, setSelBase] = useState(null)
-  const [qty,     setQty]     = useState({})
-  const [optMk,   setOptMk]   = useState({})
-  const [cat,     setCat]     = useState('all')
-  const [pkgMkB,  setPkgMkB]  = useState(0)
-  const [pkgMkP,  setPkgMkP]  = useState(0)
-  const [client,  setClient]  = useState({ name: '', date: todayISO(), phone: '', note: '' })
-  const [modal,   setModal]   = useState(null) // 'text' | 'link' | 'addOpt'
+  const [qty, setQty] = useState({})
+  const [optMk, setOptMk] = useState({})
+  const [cat, setCat] = useState('all')
+  const [pkgMkB, setPkgMkB] = useState(0)
+  const [pkgMkP, setPkgMkP] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [client, setClient] = useState({ name: '', date: todayISO(), phone: '', note: '' })
+  const [modal, setModal] = useState(null) // 'text' | 'link' | 'addOpt'
   const [shareUrl, setShareUrl] = useState('')
 
   const calc = useMemo(() =>
@@ -154,13 +139,8 @@ export default function CalculatorPage({ packages, options, role, user, toast })
     }
   }
 
-  const setQ  = useCallback((key, t, v) => {
-    setQty(q => ({ ...q, [key]: { ...(q[key] || { a: 0, c: 0 }), [t]: Math.max(0, parseInt(v) || 0) } }))
-  }, [])
-
-  const setMk = useCallback((key, t, v) => {
-    setOptMk(m => ({ ...m, [key]: { ...(m[key] || { a: 0, c: 0 }), [t]: Math.max(0, parseInt(v) || 0) } }))
-  }, [])
+  const setQ = useCallback((key, t, v) => setQty(q => ({ ...q, [key]: { ...(q[key] || { a: 0, c: 0 }), [t]: Math.max(0, parseInt(v) || 0) } })), [])
+  const setMk = useCallback((key, t, v) => setOptMk(m => ({ ...m, [key]: { ...(m[key] || { a: 0, c: 0 }), [t]: Math.max(0, parseInt(v) || 0) } })), [])
 
   const resetAll = () => {
     setSelBase(null); setQty({}); setOptMk({})
@@ -185,205 +165,247 @@ export default function CalculatorPage({ packages, options, role, user, toast })
     clipCopy(url).then(() => toast('Ссылка скопирована!', 'ok'))
   }
 
-  const cats       = ['all', ...new Set(options.map(o => o.cat))]
-  const avOpts     = options.filter(o => calc.avIds.has(String(o.id)))
+  const cats = ['all', ...new Set(options.map(o => o.cat))]
+  const avOpts = options.filter(o => calc.avIds.has(String(o.id)))
   const filteredOpts = cat === 'all' ? avOpts : avOpts.filter(o => o.cat === cat)
-  const is5        = selBase !== null && calc.act && calc.act.hours < 8
-  const bases      = packages.filter(p => p.type === 'base')
-  const vips       = packages.filter(p => p.type === 'vip')
+  const is5 = selBase !== null && calc.act && calc.act.hours < 8
+
+  // Filter packages based on search
+  const filteredPackages = packages.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.type.toLowerCase().includes(searchQuery.toLowerCase()))
+  const bases = filteredPackages.filter(p => p.type === 'base')
+  const vips = filteredPackages.filter(p => p.type === 'vip')
 
   return (
-    <div className="main">
-      {/* ── LEFT COLUMN ── */}
-      <div>
-        {/* PACKAGES */}
-        <div className="card">
-          <div className="card-h">
-            <div className="card-h-icon">🚐</div>
-            <div><h2>Пакет тура</h2><p>Выберите один пакет (обязательно)</p></div>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* ── TOP NAV FOR ADMINS ── */}
+      {isBk && (
+        <div style={{ padding: '20px 24px 0', borderBottom: '2px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className={`${styles.tabBtn} ${activeTab === 'calc' ? styles.tabBtnActive : ''}`}
+              onClick={() => setActiveTab('calc')}
+              style={{
+                padding: '10px 20px', borderRadius: '12px 12px 0 0', border: '1px solid var(--border)', borderBottom: 'none', background: activeTab === 'calc' ? 'var(--card)' : 'transparent', fontWeight: 800, color: activeTab === 'calc' ? 'var(--pri)' : 'var(--txl)', cursor: 'pointer', transition: 'all 0.2s', borderBottom: activeTab === 'calc' ? '2px solid var(--card)' : 'none', marginBottom: activeTab === 'calc' ? '-2px' : '0'
+              }}
+            >
+              🧮 Расчет туров
+            </button>
+            <button
+              className={`${styles.tabBtn} ${activeTab === 'admin' ? styles.tabBtnActive : ''}`}
+              onClick={() => setActiveTab('admin')}
+              style={{
+                padding: '10px 20px', borderRadius: '12px 12px 0 0', border: '1px solid var(--border)', borderBottom: 'none', background: activeTab === 'admin' ? 'var(--card)' : 'transparent', fontWeight: 800, color: activeTab === 'admin' ? 'var(--pri)' : 'var(--txl)', cursor: 'pointer', transition: 'all 0.2s', borderBottom: activeTab === 'admin' ? '2px solid var(--card)' : 'none', marginBottom: activeTab === 'admin' ? '-2px' : '0'
+              }}
+            >
+              ⚙️ Настройка туров
+            </button>
           </div>
-          <div className="card-b">
-            <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--txl)', marginBottom: '6px', textTransform: 'uppercase' }}>🚐 Минивэн</div>
-            <div className="pkg-grid">
-              {bases.map(p => (
-                <PkgCard key={p.id} pkg={p} isBk={isBk}
-                  selected={selBase !== null && String(p.id) === String(selBase)}
-                  onClick={() => selPkg(p.id)} />
-              ))}
+        </div>
+      )}
+
+      {activeTab === 'admin' ? (
+        <div style={{ padding: '20px', minHeight: 'calc(100vh - 120px)' }}>
+          <BookingPage
+            packages={packages} options={options}
+            onPackagesChange={onPackagesChange} onOptionsChange={onOptionsChange}
+            onPageChange={() => setActiveTab('calc')}
+            role={role} toast={toast}
+          />
+        </div>
+      ) : (
+        <div className={styles.container}>
+          {/* ── LEFT SIDEBAR (Master) ── */}
+          <aside className={styles.sidebar}>
+            <div className={styles.panelHeader}>
+              <div className={styles.panelTitle}><span>🚐</span> Пакеты туров</div>
+              <input type="text" className={styles.searchInput} placeholder="Поиск пакета..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             </div>
-
-            <div style={{ fontSize: '11px', fontWeight: '800', color: '#92400E', marginBottom: '6px', marginTop: '14px', textTransform: 'uppercase' }}>⭐ VIP Тойота Альфард</div>
-            <div className="pkg-grid">
-              {vips.map(p => (
-                <PkgCard key={p.id} pkg={p} isBk={isBk}
-                  selected={selBase !== null && String(p.id) === String(selBase)}
-                  onClick={() => selPkg(p.id)} />
-              ))}
-            </div>
-
-            {isBk && calc.act && (
-              <div className="netto-info">
-                <b>📊 Нетто-расклад пакета:</b><br />
-                {calc.act.nettoDetail} = <b>{fmt(calc.act.nettoPrice)} ฿</b><br />
-                Продажная цена менеджера: <b>{fmt(calc.act.mgrPrice)} ฿</b><br />
-                Встроенная маржа: <b>{fmt(calc.act.mgrPrice - calc.act.nettoPrice)} ฿</b>
-              </div>
-            )}
-
-            {isBk && (
-              <div className="mksec">
-                <div className="mkt">💰 Наценка на пакет</div>
-                <div className="mkrow">
-                  <div>
-                    <div className="mkl">Фикс. ฿</div>
-                    <div className="mkf">
-                      <input type="number" value={pkgMkB} min="0"
-                        onChange={e => setPkgMkB(parseInt(e.target.value) || 0)} />
-                      <span className="su">฿</span>
+            <div className={styles.tourList}>
+              {bases.length > 0 && <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', margin: '8px 0 4px 8px' }}>Стандарт (Минивэн)</div>}
+              {bases.map(p => {
+                const isSel = String(selBase) === String(p.id)
+                const price = isBk ? p.nettoPrice : p.mgrPrice
+                return (
+                  <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)}>
+                    <div className={styles.tourIcon}>{p.hours >= 8 ? '🕗' : '🕐'}</div>
+                    <div className={styles.tourInfo}>
+                      <div className={styles.tourName}>{p.name}</div>
+                      <div className={styles.tourPrice}>От: <span>{fmt(price)} ฿</span></div>
                     </div>
                   </div>
-                  <div>
-                    <div className="mkl">Процент %</div>
-                    <div className="mkf">
-                      <input type="number" value={pkgMkP} min="0" max="200"
-                        onChange={e => setPkgMkP(parseInt(e.target.value) || 0)} />
-                      <span className="su">%</span>
+                )
+              })}
+
+              {vips.length > 0 && <div style={{ fontSize: '10px', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', margin: '16px 0 4px 8px' }}>VIP Тойота Альфард</div>}
+              {vips.map(p => {
+                const isSel = String(selBase) === String(p.id)
+                const price = isBk ? p.nettoPrice : p.mgrPrice
+                return (
+                  <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)} style={isSel ? { borderColor: '#d4af37', background: '#fffcf0' } : {}}>
+                    <div className={styles.tourIcon}>⭐</div>
+                    <div className={styles.tourInfo}>
+                      <div className={styles.tourName}>{p.name}</div>
+                      <div className={styles.tourPrice}>От: <span>{fmt(price)} ฿</span></div>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {filteredPackages.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px' }}>Не найдено</div>}
+            </div>
+          </aside>
+
+          {/* ── MAIN PANEL (Detail) ── */}
+          <main className={styles.mainPanel}>
+            {!calc.act ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyStateIco}>🚐</div>
+                <h3>Пакет не выбран</h3>
+                <p>Пожалуйста, выберите групповой пакет из боковой панели для кастомизации.</p>
+              </div>
+            ) : (
+              <div className={styles.mainLayout}>
+                {/* Left Column in Main: Client Info & Options */}
+                <div>
+                  {/* CLIENT INFO */}
+                  <div className={styles.card}>
+                    <div className={styles.cardTitle}><span>👤</span> Информация о клиенте</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className={styles.fg}><label>Имя</label><input type="text" value={client.name} placeholder="Иван Иванов" onChange={e => setClient(c => ({ ...c, name: e.target.value }))} /></div>
+                      <div className={styles.fg}><label>Дата тура</label><input type="date" value={client.date} onChange={e => setClient(c => ({ ...c, date: e.target.value }))} /></div>
+                      <div className={styles.fg}><label>Телефон / WhatsApp</label><input type="text" value={client.phone} placeholder="+66 XX XXX XXXX" onChange={e => setClient(c => ({ ...c, phone: e.target.value }))} /></div>
+                      <div className={styles.fg}><label>Примечание</label><input type="text" value={client.note} placeholder="Пожелания..." onChange={e => setClient(c => ({ ...c, note: e.target.value }))} /></div>
+                    </div>
+                  </div>
+
+                  {/* PACKAGE DETAILS FOR BOOKING (MARKUPS) */}
+                  {isBk && (
+                    <div className={styles.card} style={{ borderColor: 'var(--warn)', background: '#fffcf0' }}>
+                      <div className={styles.cardTitle}><span>💰</span> Настройка наценки на пакет</div>
+                      <div style={{ display: 'flex', gap: '16px' }}>
+                        <div className={styles.fg} style={{ flex: 1 }}>
+                          <label>Фиксированная: ฿</label>
+                          <input type="number" value={pkgMkB} min="0" onChange={e => setPkgMkB(parseInt(e.target.value) || 0)} />
+                        </div>
+                        <div className={styles.fg} style={{ flex: 1 }}>
+                          <label>Процентная: %</label>
+                          <input type="number" value={pkgMkP} min="0" max="200" onChange={e => setPkgMkP(parseInt(e.target.value) || 0)} />
+                        </div>
+                      </div>
+                      <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#92400E', padding: '12px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                        <b>📊 Расклад базы:</b> {calc.act.nettoDetail} = <b>{fmt(calc.act.nettoPrice)} ฿</b><br />
+                        РПЦ менеджера: {fmt(calc.act.mgrPrice)} ฿ (встроено {fmt(calc.act.mgrPrice - calc.act.nettoPrice)} ฿ маржи)
+                      </div>
+                    </div>
+                  )}
+
+                  {/* OPTIONS MATRIX */}
+                  <div className={styles.card}>
+                    <div className={styles.cardTitleFlex}>
+                      <div className={styles.cardTitle} style={{ borderBottom: 'none', marginBottom: 0 }}>
+                        <span>🎯</span> Дополнительные опции
+                      </div>
+                    </div>
+                    <div style={{ color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
+                      {isBk ? <span>Установите количество и желтую наценку.</span> : <span>Укажите количество взрослых и детей</span>}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                      {cats.map(c => (
+                        <button key={c} onClick={() => setCat(c)} className={`${styles.btn} ${styles.btnSm}`} style={{ background: cat === c ? 'var(--pri)' : '#fff', color: cat === c ? '#fff' : 'var(--txl)', border: '1px solid var(--border)', borderRadius: '20px' }}>
+                          {c === 'all' ? '🌐 Все' : (CAT_ICONS[c] || '') + ' ' + c}
+                        </button>
+                      ))}
+                    </div>
+
+                    <OptionsTable options={filteredOpts} isBk={isBk} qty={qty} optMk={optMk} avIds={calc.avIds} onSetQ={setQ} onSetMk={setMk} />
+
+                    {is5 && (
+                      <div style={{ marginTop: '16px', padding: '12px', background: '#FEF3C7', borderRadius: '10px', fontSize: '0.85rem', color: '#92400E', border: '1px solid #FDE68A' }}>
+                        ⏱️ <b>Пакет 5 часов:</b> Некоторые опции исключены из списка. Выберите 8 часов для полного списка.
+                      </div>
+                    )}
+                    {isBk && (
+                      <div style={{ marginTop: '20px' }}>
+                        <button className={`${styles.btn} ${styles.btnOk} ${styles.btnSm}`} onClick={() => setModal('addOpt')}>➕ Добавить кастомную опцию</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column in Main: Sticky Quote */}
+                <div>
+                  <div className={styles.resBox}>
+                    <div className={styles.resHeader}>
+                      <span>🧾 Смета: {calc.act.name}</span>
+                    </div>
+
+                    {/* Internal Bookings view */}
+                    {isBk ? (
+                      <>
+                        <div className={styles.rr}><div>Пакет нетто</div><div className={styles.rrVal}>{fmt(calc.pkgNet)} ฿</div></div>
+                        {calc.pkgMkCalc > 0 && <div className={styles.rr}><div>Наценка на пакет</div><div className={styles.rrVal} style={{ color: 'var(--warn)' }}>+{fmt(calc.pkgMkCalc)} ฿</div></div>}
+                        <div className={styles.rr}><div>Опции нетто</div><div className={styles.rrVal}>{fmt(calc.optNet)} ฿</div></div>
+                        {calc.optMkT > 0 && <div className={styles.rr}><div>Наценка на опции</div><div className={styles.rrVal} style={{ color: 'var(--warn)' }}>+{fmt(calc.optMkT)} ฿</div></div>}
+                        <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.2)', margin: '10px 0' }}></div>
+                        <div className={styles.rr}><div>Общая Себестоимость</div><div className={styles.rrVal}>{fmt(calc.pkgNet + calc.optNet)} ฿</div></div>
+                        <div className={styles.rr}><div>Общая Доп. Наценка</div><div className={styles.rrVal} style={{ color: 'var(--warn)' }}>+{fmt(calc.pkgMkCalc + calc.optMkT)} ฿</div></div>
+                        <div className={styles.rr} style={{ color: 'var(--ok)', fontWeight: 800 }}><div>Базовая маржа пакета</div><div className={styles.rrVal}>+{fmt(calc.pkgMgr - calc.pkgNet)} ฿</div></div>
+                      </>
+                    ) : (
+                      /* Manager View */
+                      <>
+                        <div className={styles.rr}><div>{calc.act.type === 'vip' ? '⭐' : '🚐'} Пакет аренды</div><div className={styles.rrVal}>{fmt(calc.pkgMgr)} ฿</div></div>
+                        {calc.optMgrT > 0 && <div className={styles.rr}><div>🎯 Выбранные опции</div><div className={styles.rrVal}>+ {fmt(calc.optMgrT)} ฿</div></div>}
+                      </>
+                    )}
+
+                    <div className={`${styles.rr} ${styles.rrTot}`}>
+                      <div>К ОПЛАТЕ:</div>
+                      <div>{fmt(calc.totalClient)} ฿</div>
+                    </div>
+
+                    {/* Selected options list for quick preview */}
+                    <div style={{ marginTop: '24px', background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ fontWeight: 600 }}>{calc.act.type === 'vip' ? '⭐' : '🚐'} {calc.act.name}</div>
+                        <div style={{ fontWeight: 700 }}>{fmt(isBk ? calc.pkgNet + calc.pkgMkCalc : calc.pkgMgr)} ฿</div>
+                      </div>
+                      {(calc.selOpts || []).map(o => {
+                        const det = [o.q.a > 0 ? o.q.a + ' взр.' : '', o.q.c > 0 ? o.q.c + ' дет.' : ''].filter(Boolean).join(', ')
+                        return (
+                          <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingTop: '8px' }}>
+                            <div>
+                              <div style={{ fontWeight: 600 }}>{CAT_ICONS[o.cat] || '•'} {o.name}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{det}</div>
+                            </div>
+                            <div style={{ fontWeight: 700 }}>{fmt(isBk ? o.client : o.mgr)} ฿</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
+                      <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)' }} onClick={() => doPrint(getClientData())}>🖨️ Печать PDF</button>
+                      <button className={`${styles.btn} ${styles.btnAcc}`} onClick={() => setModal('text')}>📱 Текст / Мессенджер</button>
+                      <button className={`${styles.btn} ${styles.btnOk}`} onClick={genLink}>🔗 Создать ссылку</button>
+                      <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'rgba(255,255,255,0.6)', marginTop: '8px', fontWeight: 600 }} onClick={resetAll}>🔄 Сбросить форму</button>
                     </div>
                   </div>
                 </div>
               </div>
             )}
-          </div>
+          </main>
+
+          {/* MODALS */}
+          {modal === 'text' && <TextModal data={getClientData()} onClose={() => setModal(null)} onToast={toast} />}
+          {modal === 'link' && <LinkModal url={shareUrl} onClose={() => setModal(null)} onToast={toast} />}
+          {modal === 'addOpt' && <AddOptModal onClose={() => setModal(null)} onToast={toast}
+            onAdd={f => toast('Для добавления используйте вкладку "Настройка туров"')} />}
         </div>
-
-        {/* OPTIONS */}
-        <div className="card">
-          <div className="card-h">
-            <div className="card-h-icon">🎯</div>
-            <div>
-              <h2>Дополнительные опции</h2>
-              <p>
-                {isBk
-                  ? <span>Нетто-цены. <span style={{ color: '#92400E', fontWeight: '700' }}>Жёлтые = наценка</span></span>
-                  : 'Укажите количество взрослых и детей'}
-              </p>
-            </div>
-          </div>
-          <div className="card-b" style={{ padding: '10px 14px' }}>
-            <div className="cats">
-              {cats.map(c => (
-                <button key={c} className={`cat-btn ${cat === c ? 'on' : ''}`} onClick={() => setCat(c)}>
-                  {c === 'all' ? '🌐 Все' : (CAT_ICONS[c] || '') + ' ' + c}
-                </button>
-              ))}
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <OptionsTable
-                options={filteredOpts} isBk={isBk}
-                qty={qty} optMk={optMk} avIds={calc.avIds}
-                onSetQ={setQ} onSetMk={setMk}
-              />
-            </div>
-            {is5 && (
-              <div style={{ marginTop: '10px', padding: '10px', background: '#FEF3C7', borderRadius: '8px', fontSize: '11px', color: '#92400E', border: '1px solid #FDE68A' }}>
-                ⏱️ <b>Пакет 5 часов:</b> Некоторые опции недоступны. Переключитесь на 8 часов для полного списка.
-              </div>
-            )}
-            {isBk && (
-              <div style={{ marginTop: '12px' }}>
-                <button className="btn-add" onClick={() => setModal('addOpt')}>➕ Добавить новую опцию</button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── SIDEBAR ── */}
-      <div className="sidebar">
-        {/* CLIENT */}
-        <div className="card">
-          <div className="card-h"><div className="card-h-icon">👤</div><div><h2>Клиент</h2></div></div>
-          <div className="card-b">
-            <div className="field"><label>Имя</label><input type="text" value={client.name} placeholder="Иван Иванов" onChange={e => setClient(c => ({ ...c, name: e.target.value }))} /></div>
-            <div className="field"><label>Дата тура</label><input type="date" value={client.date} onChange={e => setClient(c => ({ ...c, date: e.target.value }))} /></div>
-            <div className="field"><label>Телефон / WhatsApp</label><input type="text" value={client.phone} placeholder="+66 XX XXX XXXX" onChange={e => setClient(c => ({ ...c, phone: e.target.value }))} /></div>
-            <div className="field"><label>Примечание</label><textarea value={client.note} placeholder="Пожелания..." onChange={e => setClient(c => ({ ...c, note: e.target.value }))} /></div>
-          </div>
-        </div>
-
-        {/* TOTALS */}
-        <div className="card">
-          <div className="card-h">
-            <div className="card-h-icon" style={{ background: 'linear-gradient(135deg,#10B981,#059669)' }}>💳</div>
-            <div><h2>Итого</h2><p>Обновляется автоматически</p></div>
-          </div>
-          <div className="card-b">
-            {/* Summary lines */}
-            {isBk ? (
-              <>
-                <div className="sline"><span className="sl">🚐 Пакет нетто</span><span className="sv">{fmt(calc.pkgNet)} ฿</span></div>
-                {calc.pkgMkCalc > 0 && <div className="sline"><span className="sl">💰 Наценка пакет</span><span className="sv" style={{ color: '#92400E' }}>+{fmt(calc.pkgMkCalc)} ฿</span></div>}
-                <div className="sline"><span className="sl">🎯 Опции нетто</span><span className="sv">{fmt(calc.optNet)} ฿</span></div>
-                {calc.optMkT > 0 && <div className="sline"><span className="sl">💰 Наценка опции</span><span className="sv" style={{ color: '#92400E' }}>+{fmt(calc.optMkT)} ฿</span></div>}
-                <div style={{ height: '1px', background: 'var(--brd)', margin: '6px 0' }} />
-                <div className="sline"><span className="sl">📦 Себестоимость</span><span className="sv">{fmt(calc.pkgNet + calc.optNet)} ฿</span></div>
-                <div className="sline"><span className="sl">💰 Общая наценка</span><span className="sv" style={{ color: '#92400E' }}>+{fmt(calc.pkgMkCalc + calc.optMkT)} ฿</span></div>
-                <div className="sline"><span className="sl">📊 Маржа пакета (встр.)</span><span className="sv" style={{ color: 'var(--ok)' }}>{fmt(calc.pkgMgr - calc.pkgNet)} ฿</span></div>
-              </>
-            ) : (
-              <>
-                {calc.act   && <div className="sline"><span className="sl">🚐 Пакет</span><span className="sv">{fmt(calc.pkgMgr)} ฿</span></div>}
-                {calc.optMgrT > 0 && <div className="sline"><span className="sl">🎯 Опции</span><span className="sv">{fmt(calc.optMgrT)} ฿</span></div>}
-              </>
-            )}
-
-            <div className="stotal">
-              <div><div className="tl">К ОПЛАТЕ</div><div className="tc">THB (бат)</div></div>
-              <div className="ta">{fmt(calc.totalClient)} ฿</div>
-            </div>
-
-            {/* Selected list */}
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--txl)', marginBottom: '6px' }}>ВЫБРАННЫЕ ПОЗИЦИИ</div>
-              {!calc.act ? (
-                <div className="empty"><div className="ei">🎯</div><p>Выберите пакет</p></div>
-              ) : (
-                <>
-                  <div className="sopt">
-                    <div>
-                      <div className="sopt-n">{calc.act.type === 'vip' ? '⭐' : '🚐'} {calc.act.name}</div>
-                      <div className="sopt-d">{calc.act.note || ''}</div>
-                    </div>
-                    <div className="sopt-p">{fmt(isBk ? calc.pkgNet + calc.pkgMkCalc : calc.pkgMgr)} ฿</div>
-                  </div>
-                  {(calc.selOpts || []).map(o => {
-                    const det = [o.q.a > 0 ? o.q.a + ' взр.' : '', o.q.c > 0 ? o.q.c + ' дет.' : ''].filter(Boolean).join(', ')
-                    return (
-                      <div key={o.id} className="sopt">
-                        <div><div className="sopt-n">{CAT_ICONS[o.cat] || '•'} {o.name}</div><div className="sopt-d">{det}</div></div>
-                        <div className="sopt-p">{fmt(isBk ? o.client : o.mgr)} ฿</div>
-                      </div>
-                    )
-                  })}
-                </>
-              )}
-            </div>
-
-            <div className="abtns">
-              <button className="btn btn-p"  onClick={() => doPrint(getClientData())}>🖨️ Печать / PDF</button>
-              <button className="btn btn-ac" onClick={() => { if (!calc.act) { toast('Выберите пакет', 'err'); return } setModal('text') }}>📱 Текст</button>
-              <button className="btn btn-s"  onClick={genLink}>🔗 Ссылка клиенту</button>
-              <button className="btn btn-g"  onClick={resetAll}>🔄 Сбросить</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* MODALS */}
-      {modal === 'text'   && <TextModal   data={getClientData()} onClose={() => setModal(null)} onToast={toast} />}
-      {modal === 'link'   && <LinkModal   url={shareUrl}         onClose={() => setModal(null)} onToast={toast} />}
-      {modal === 'addOpt' && <AddOptModal                        onClose={() => setModal(null)} onToast={toast}
-        onAdd={f => toast('Для добавления используйте Операционный отдел')} />}
+      )}
     </div>
   )
 }
