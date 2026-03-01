@@ -31,8 +31,22 @@ export default function TourApp() {
         loadPackagesFromDB(),
         loadOptionsFromDB(),
       ])
-      if (dbPkgs?.length) setPackages(dbPkgs)
-      if (dbOpts?.length) setOptions(dbOpts)
+
+      const mergeById = (source, defaults) => {
+        if (!source || !source.length) return defaults;
+
+        // Deduplicate standard packages that got random UUIDs from Supabase
+        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id));
+
+        const currentIds = new Set(cleanSource.map(item => String(item.id)));
+        const missing = defaults.filter(d => !currentIds.has(String(d.id)));
+        return [...cleanSource, ...missing];
+      }
+
+      setPackages(mergeById(dbPkgs, DEF_PACKAGES))
+      const finalOpts = mergeById(dbOpts, DEF_OPTIONS)
+      finalOpts.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+      setOptions(finalOpts)
     } catch (e) {
       console.warn('DB load error, using local data:', e.message)
     }
@@ -43,8 +57,30 @@ export default function TourApp() {
     const init = async () => {
       // 1. LocalStorage fallback
       const ls = loadFromLS()
-      if (ls.packages?.length) setPackages(ls.packages)
-      if (ls.options?.length) setOptions(ls.options)
+
+      const mergeById = (source, defaults) => {
+        if (!source || !source.length) return defaults;
+
+        // Deduplicate standard packages that got random UUIDs
+        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id));
+
+        const currentIds = new Set(cleanSource.map(item => String(item.id)));
+        const missing = defaults.filter(d => !currentIds.has(String(d.id)));
+        return [...cleanSource, ...missing];
+      }
+
+      if (ls.packages?.length) {
+        const mergedPkgs = mergeById(ls.packages, DEF_PACKAGES);
+        setPackages(mergedPkgs)
+        saveToLS({ packages: mergedPkgs, options: ls.options || DEF_OPTIONS })
+      }
+      if (ls.options?.length) {
+        const sortedOpts = [...ls.options].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+        setOptions(sortedOpts)
+      } else {
+        const sortedDefs = [...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+        setOptions(sortedDefs)
+      }
 
       // 2. Client link ?tour=...
       const params = new URLSearchParams(window.location.search)

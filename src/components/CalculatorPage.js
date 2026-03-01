@@ -67,26 +67,30 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
                 </td>
                 {isBk ? (
                   <>
-                    <td style={{ textAlign: 'right', fontSize: '0.85rem' }}>
-                      <div style={{ color: o.netA === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700 }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>взр:</span> {o.netA > 0 ? fmt(o.netA) : 'FREE'}</div>
-                      <div style={{ color: o.netC === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700, marginTop: '4px' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>дет:</span> {o.netC > 0 ? fmt(o.netC) : 'FREE'}</div>
+                    <td style={{ textAlign: 'right', fontSize: '0.81rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                        <div style={{ display: 'flex', gap: '8px', color: 'var(--pri)', fontWeight: 700 }}>
+                          <span style={{ color: o.netA === 0 ? 'var(--ok)' : 'inherit' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '2px' }}>взр:</span>{o.netA > 0 ? fmt(o.netA) : 'FREE'}</span>
+                          <span style={{ color: o.netC === 0 ? 'var(--ok)' : 'inherit' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '2px' }}>дет:</span>{o.netC > 0 ? fmt(o.netC) : 'FREE'}</span>
+                        </div>
+                      </div>
                     </td>
                     <td style={{ background: '#FFFBEB', textAlign: 'center', verticalAlign: 'middle' }}>
-                      <input type="number" min="0" style={{ width: '50px', padding: '6px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700, marginBottom: '4px' }}
-                        value={mk.a || ''} placeholder="0"
-                        onChange={e => onSetMk(key, 'a', e.target.value)} />
-                      <input type="number" min="0" style={{ width: '50px', padding: '6px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700 }}
-                        value={mk.c || ''} placeholder="0"
-                        onChange={e => onSetMk(key, 'c', e.target.value)} />
+                      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                        <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700, fontSize: '0.85rem' }} value={mk.a || ''} placeholder="0" onChange={e => onSetMk(key, 'a', e.target.value)} />
+                        <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700, fontSize: '0.85rem' }} value={mk.c || ''} placeholder="0" onChange={e => onSetMk(key, 'c', e.target.value)} />
+                      </div>
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: costSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{costSum > 0 ? fmt(costSum) : '—'}</td>
                     <td style={{ background: '#F0FDF4', textAlign: 'right', fontWeight: 800, color: clientSum === 0 ? 'var(--muted)' : 'var(--ok)' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
                   </>
                 ) : (
                   <>
-                    <td style={{ textAlign: 'right', fontSize: '0.85rem' }}>
-                      <div style={{ color: o.mgrA === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700 }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>взр:</span> {o.special ? '⚠️' : (o.mgrA > 0 ? fmt(o.mgrA) : 'FREE')}</div>
-                      <div style={{ color: o.mgrC === 0 ? 'var(--ok)' : 'var(--pri)', fontWeight: 700, marginTop: '4px' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '4px' }}>дет:</span> {o.special ? '' : (o.mgrC > 0 ? fmt(o.mgrC) : 'FREE')}</div>
+                    <td style={{ textAlign: 'right', fontSize: '0.81rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', color: 'var(--pri)', fontWeight: 700 }}>
+                        <span style={{ color: o.mgrA === 0 ? 'var(--ok)' : 'inherit' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '2px' }}>взр:</span>{o.special ? '⚠️' : (o.mgrA > 0 ? fmt(o.mgrA) : 'FREE')}</span>
+                        <span style={{ color: o.mgrC === 0 ? 'var(--ok)' : 'inherit' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '2px' }}>дет:</span>{o.special ? '' : (o.mgrC > 0 ? fmt(o.mgrC) : 'FREE')}</span>
+                      </div>
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: mgrSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}</td>
                   </>
@@ -167,7 +171,8 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
 
   const cats = ['all', ...new Set(options.map(o => o.cat))]
   const avOpts = options.filter(o => calc.avIds.has(String(o.id)))
-  const filteredOpts = cat === 'all' ? avOpts : avOpts.filter(o => o.cat === cat)
+  const filteredOpts = (cat === 'all' ? [...avOpts] : avOpts.filter(o => o.cat === cat))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   const is5 = selBase !== null && calc.act && calc.act.hours < 8
 
   // Filter packages based on search

@@ -27,7 +27,7 @@ export default function Header({ role, page, onPage, onLogout }) {
               <button className={`btn-nav ${page === 'calculator' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculator')}>
                 🚐 Групповые туры
               </button>
-              <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} style={{ border: '1px solid #0ea5e9', color: '#0ea5e9' }} onClick={() => onPage('charter')}>
+              <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('charter')}>
                 🚤 Чартерные яхты
               </button>
               <button className="btn-nav btn-nav-a" onClick={onLogout}>
