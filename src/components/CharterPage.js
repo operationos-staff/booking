@@ -504,6 +504,10 @@ export default function CharterPage({ role }) {
     const [editItem, setEditItem] = useState(null);
     const [adminSelTour, setAdminSelTour] = useState('');
 
+    // Drag & Drop State
+    const [dragTIdx, setDragTIdx] = useState(null);
+    const [dragIIdx, setDragIIdx] = useState(null);
+
     // Load from LS
     useEffect(() => {
         const saved = localStorage.getItem('charter_db');
@@ -834,16 +838,33 @@ export default function CharterPage({ role }) {
                             <div className={styles.cardTitleFlex}>
                                 <div className={styles.cardTitle} style={{ borderBottom: 'none', marginBottom: 0, flex: 1 }}><span>🚤</span> Управление маршрутами ({db.tours.length} шт.)</div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} style={{ whiteSpace: 'nowrap', flexShrink: 0 }} onClick={resetDB}>⚠️ Сброс БД</button>
-                                    <button className={`${styles.btn} ${styles.btnPri} ${styles.btnSm}`} style={{ whiteSpace: 'nowrap', flexShrink: 0 }} onClick={addTour}>➕ Добавить чартер</button>
+                                    <button className={`${styles.btn} ${styles.btnErr}`} onClick={resetDB}>Сброс БД</button>
+                                    <button className={`${styles.btn} ${styles.btnPri}`} onClick={addTour}>Добавить чартер</button>
                                 </div>
                             </div>
                             <div className={styles.tblWrapper}>
                                 <table className={styles.tbl}>
                                     <thead><tr><th>Маршрут</th><th>Нетто ฿</th><th>Продажа ฿</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
                                     <tbody>
-                                        {db.tours.map(t => (
-                                            <tr key={t.id} style={{ background: t.color || '' }}>
+                                        {db.tours.map((t, idx) => (
+                                            <tr key={t.id}
+                                                style={{ background: t.color || '', cursor: 'move' }}
+                                                draggable
+                                                onDragStart={(e) => {
+                                                    setDragTIdx(idx);
+                                                    if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
+                                                }}
+                                                onDragOver={e => e.preventDefault()}
+                                                onDrop={e => {
+                                                    e.preventDefault();
+                                                    if (dragTIdx === null || dragTIdx === idx) return;
+                                                    const newTours = [...db.tours];
+                                                    const [moved] = newTours.splice(dragTIdx, 1);
+                                                    newTours.splice(idx, 0, moved);
+                                                    saveDB({ ...db, tours: newTours });
+                                                    setDragTIdx(null);
+                                                }}
+                                            >
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '6px' }}>
                                                         <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
@@ -872,7 +893,7 @@ export default function CharterPage({ role }) {
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                 <div style={{ fontWeight: 700, color: 'var(--pri)', flex: 1 }}>Список доплат</div>
-                                <button className={`${styles.btn} ${styles.btnAcc} ${styles.btnSm}`} style={{ whiteSpace: 'nowrap', flexShrink: 0 }} onClick={openAddItem}>➕ Добавить доплату</button>
+                                <button className={`${styles.btn} ${styles.btnAcc}`} onClick={openAddItem}>Добавить доплату</button>
                             </div>
 
                             <div className={styles.tblWrapper}>
@@ -883,7 +904,25 @@ export default function CharterPage({ role }) {
                                             <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--muted)' }}>Нет доплат</td></tr>
                                         ) : (
                                             db.items.filter(i => i.tId === adminSelTour).map(i => (
-                                                <tr key={i.id}>
+                                                <tr key={i.id} style={{ cursor: 'move' }}
+                                                    draggable
+                                                    onDragStart={(e) => {
+                                                        const globalIdx = db.items.findIndex(x => x.id === i.id);
+                                                        setDragIIdx(globalIdx);
+                                                        if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
+                                                    }}
+                                                    onDragOver={e => e.preventDefault()}
+                                                    onDrop={e => {
+                                                        e.preventDefault();
+                                                        const targetGlobalIdx = db.items.findIndex(x => x.id === i.id);
+                                                        if (dragIIdx === null || dragIIdx === targetGlobalIdx) return;
+                                                        const newItems = [...db.items];
+                                                        const [moved] = newItems.splice(dragIIdx, 1);
+                                                        newItems.splice(targetGlobalIdx, 0, moved);
+                                                        saveDB({ ...db, items: newItems });
+                                                        setDragIIdx(null);
+                                                    }}
+                                                >
                                                     <td><span style={{ fontSize: '1.2rem' }}>{i.icon}</span> <b>{i.name}</b></td>
                                                     <td><span className={styles.optBadge}>{i.type === 'per_pax' ? '👤 На человека' : '🔒 На группу (шт.)'}</span></td>
                                                     <td style={{ color: 'var(--err)', fontWeight: 700 }}>{FMT(i.net)}</td>
