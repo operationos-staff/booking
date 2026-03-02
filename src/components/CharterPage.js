@@ -678,7 +678,7 @@ export default function CharterPage({ role }) {
     const filteredTours = db.tours.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className={styles.theme} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg)' }}>
             {/* LOCAL TABS BAR (just to switch between Calc and Admin if Admin) */}
             {isAdmin && (
                 <div style={{ padding: '20px 24px 0', borderBottom: '2px solid var(--border)' }}>

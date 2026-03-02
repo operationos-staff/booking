@@ -527,3 +527,19 @@ input:checked+.tgl::after {
     opacity: 0;
     position: absolute;
 }
+.theme {
+    --pri: #0f172a;
+    --acc: #d4af37;
+    --acc-hover: #c5a028;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #334155;
+    --text-dark: #0f172a;
+    --muted: #94a3b8;
+    --border: #e2e8f0;
+    --ok: #10b981;
+    --err: #ef4444;
+    --warn: #f59e0b;
+    --shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+    color: var(--text);
+}
