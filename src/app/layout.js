@@ -1,7 +1,14 @@
 import './globals.css'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata = {
-  title: 'Портал бронирования — Пханг Нга',
+  title: 'Остров Сокровищ — Portal Operation',
   description: 'Индивидуальные туры · Тайланд',
 }
 
