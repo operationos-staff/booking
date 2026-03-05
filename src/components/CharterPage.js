@@ -569,6 +569,7 @@ export default function CharterPage({ role }) {
     const [dragTIdx, setDragTIdx] = useState(null);
     const [dragIIdx, setDragIIdx] = useState(null);
     const [dragMode, setDragMode] = useState(null); // Fix text selection by only enabling drag on handle
+    const [openGroups, setOpenGroups] = useState({ '2 eng boat': false, '3 eng boat': false, '3 eng Luxury': false, 'Catamaran Milan': false });
 
     // Load from LS
     useEffect(() => {
@@ -852,19 +853,93 @@ export default function CharterPage({ role }) {
                             <input type="text" className={styles.searchInput} placeholder="Поиск (из 50+ маршрутов)..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
                         <div className={styles.tourList}>
-                            {filteredTours.map(t => {
-                                const isSel = sTour === t.id;
-                                return (
-                                    <div key={t.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} style={{ background: t.color || '', border: t.color ? 'none' : '' }} onClick={() => handleTourSelect(t.id)}>
-                                        <div className={styles.tourIcon}>{t.icon}</div>
-                                        <div className={styles.tourInfo}>
-                                            <div className={styles.tourName}>{t.name}</div>
-                                            <div className={styles.tourPrice}>База: <span>{FMT(t.sell)}</span></div>
+                            {filteredTours.length === 0 ? (
+                                <div style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>
+                            ) : (() => {
+                                const groups = {};
+                                const groupOrder = [];
+                                filteredTours.forEach(t => {
+                                    const g = t.bType || 'Другие';
+                                    if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
+                                    groups[g].push(t);
+                                });
+                                const gIcons = {
+                                    '2 eng boat': '🚤',
+                                    '3 eng boat': '🚢',
+                                    '3 eng Luxury': '✨',
+                                    'Catamaran Milan': '⛵',
+                                };
+                                return groupOrder.map(gName => {
+                                    const isOpen = openGroups[gName] !== false;
+                                    return (
+                                        <div key={gName} style={{ marginBottom: '4px' }}>
+                                            <button
+                                                onClick={() => setOpenGroups(prev => ({ ...prev, [gName]: !isOpen }))}
+                                                style={{
+                                                    width: '100%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    padding: '9px 12px',
+                                                    background: isOpen ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.03)',
+                                                    border: '1px solid ' + (isOpen ? 'rgba(245,158,11,0.35)' : 'rgba(245,158,11,0.1)'),
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    color: isOpen ? '#f59e0b' : '#a3a3a3',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.82rem',
+                                                    fontFamily: 'inherit',
+                                                    letterSpacing: '0.02em',
+                                                    marginBottom: '2px',
+                                                }}>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span>{gIcons[gName] || '🚤'}</span>
+                                                    <span>{gName}</span>
+                                                    <span style={{
+                                                        fontSize: '0.65rem',
+                                                        padding: '1px 6px',
+                                                        borderRadius: '99px',
+                                                        background: isOpen ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.07)',
+                                                        color: isOpen ? '#f59e0b' : '#737373',
+                                                        fontWeight: 700,
+                                                    }}>{groups[gName].length}</span>
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '0.7rem',
+                                                    transition: 'transform 0.2s',
+                                                    transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                                                    display: 'inline-block',
+                                                    opacity: 0.7,
+                                                }}>▼</span>
+                                            </button>
+                                            {isOpen && (
+                                                <div style={{ paddingLeft: '4px', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '4px' }}>
+                                                    {groups[gName].map(t => {
+                                                        const isSel = sTour === t.id;
+                                                        return (
+                                                            <div
+                                                                key={t.id}
+                                                                className={`${styles.tourItem} ${isSel ? styles.active : ''}`}
+                                                                style={{
+                                                                    background: isSel ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.02)',
+                                                                    border: '1px solid ' + (isSel ? 'rgba(245,158,11,0.5)' : 'rgba(245,158,11,0.08)'),
+                                                                }}
+                                                                onClick={() => handleTourSelect(t.id)}>
+                                                                <div className={styles.tourIcon}>{t.icon}</div>
+                                                                <div className={styles.tourInfo}>
+                                                                    <div className={styles.tourName}>{t.name}</div>
+                                                                    <div className={styles.tourPrice}>База: <span>{FMT(t.sell)}</span></div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                )
-                            })}
-                            {filteredTours.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>}
+                                    );
+                                });
+                            })()}
                         </div>
                     </aside>
 
