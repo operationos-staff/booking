@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './Portal.module.css';
 import { todayISO, doPrintCharter, clipCopy } from '@/lib/utils';
 import { saveCalculation } from '@/lib/db';
-import { LinkModal } from './Modals';
+import { LinkModal, TextModal } from './Modals';
 
 const DEFAULT_DB = {
     tours: [
@@ -555,15 +555,20 @@ export default function CharterPage({ role }) {
     const [modal, setModal] = useState(null);
     const [shareUrl, setShareUrl] = useState('');
     const [mgrSelections, setMgrSelections] = useState({});
+    const [mgrPricesOverrides, setMgrPricesOverrides] = useState({}); // New State for Admin Pricing Override
 
     // Admin Item Modal State
     const [showItemModal, setShowItemModal] = useState(false);
+
+    // Track unsaved inline edits for items
+    const [unsavedItems, setUnsavedItems] = useState({});
     const [editItem, setEditItem] = useState(null);
     const [adminSelTour, setAdminSelTour] = useState('');
 
     // Drag & Drop State
     const [dragTIdx, setDragTIdx] = useState(null);
     const [dragIIdx, setDragIIdx] = useState(null);
+    const [dragMode, setDragMode] = useState(null); // Fix text selection by only enabling drag on handle
 
     // Load from LS
     useEffect(() => {
@@ -666,11 +671,13 @@ export default function CharterPage({ role }) {
                 netTot += cNet;
                 mgrTot += cMgr;
 
-                calcRowsC.push({ key: i.id, name: `${i.icon} ${i.name}`, meta: labelMeta, val: cSell });
+                const rowLabelMeta = i.type === 'per_pax' ? `${totalPax} гост. × ${FMT(i.sell)}` : `${qty} шт × ${FMT(i.sell)}`;
+
+                calcRowsC.push({ key: i.id, name: `${i.icon} ${i.name}`, meta: i.mgr ? rowLabelMeta : labelMeta, val: cSell });
                 calcRowsA.push({ key: i.id + '-a', name: `${i.icon} ${i.name}`, meta: i.type === 'per_pax' ? `${totalPax} чел × ${FMT(i.net)}` : `${qty} шт × ${FMT(i.net)}`, val: cNet });
                 calcRowsM.push({ key: i.id + '-m', name: `${i.icon} ${i.name}`, meta: i.type === 'per_pax' ? `${totalPax} чел × ${FMT(i.mgrPrice || i.sell)}` : `${qty} шт × ${FMT(i.mgrPrice || i.sell)}`, val: cMgr });
 
-                selOptsList.push({ ...i, meta: labelMeta, val: cSell, qty });
+                selOptsList.push({ ...i, meta: i.mgr ? rowLabelMeta : labelMeta, val: cSell, qty });
             }
         });
     }
@@ -681,25 +688,7 @@ export default function CharterPage({ role }) {
 
     const handlePublish = () => {
         if (!sTour) return;
-        let txt = `🏝 Остров Сокровищ\nАренда яхт и катеров · Пхукет\n\n📍 Маршрут: ${currentTourObj.icon} ${currentTourObj.name}\n👥 Гостей: ${pax.adults} взр. + ${pax.children} дет.\n\n`;
-        if (client.date && client.date !== '') txt += `📅 Дата: ${client.date.split('-').reverse().join('-')}\n\n`;
-        txt += `Что включено:\n`;
-        txt += `• 🚤 Аренда катера по маршруту\n`;
-
-        // Items
-        currentItems.forEach(i => {
-            let qty = 0;
-            if (i.mgr && mgrSelections[i.id]) qty = i.type === 'per_pax' ? totalPax : mgrSelections[i.id];
-            if (!i.mgr) qty = i.type === 'per_pax' ? totalPax : 1;
-            if (qty > 0) {
-                let meta = i.type === 'per_pax' ? `(${qty} чел)` : (qty > 1 ? `(${qty} шт)` : '');
-                txt += `• ${i.icon} ${i.name} ${meta}\n`;
-            }
-        });
-        txt += `\n💳 ИТОГО К ОПЛАТЕ: ${FMT(sellTot).replace(' ฿', ' THB')}\n`;
-
-        clipCopy(txt).then(() => alert("✅ Смета скопирована!"))
-            .catch(() => alert("Смета:\n\n" + txt));
+        setModal('text');
     };
 
     const getClientData = () => {
@@ -753,11 +742,14 @@ export default function CharterPage({ role }) {
         const newDb = { ...db };
         const t = newDb.tours.find(x => x.id === tId);
         if (t) {
-            if (field === 'net') t[field] = Number(value) || 0;
-            else if (field === 'mgrPrice') {
-                t.mgrPrice = Number(value) || 0;
-                t.sell = Number(value) || 0; // sell = mgrPrice (синхронизация)
-            } else t[field] = value;
+            if (field === 'sell') {
+                t.sell = Number(value) || 0;
+                t.mgrPrice = Number(value) || 0; // Sync manager price
+            } else if (['net', 'mgrPrice'].includes(field)) {
+                t[field] = Number(value) || 0;
+            } else {
+                t[field] = value;
+            }
             saveDB(newDb);
         }
     };
@@ -783,12 +775,36 @@ export default function CharterPage({ role }) {
     };
 
     const updItemInline = (iId, field, value) => {
+        setUnsavedItems(prev => {
+            const currentObj = prev[iId] || { ...db.items.find(x => x.id === iId) };
+            const val = ['net', 'mgrPrice', 'sell'].includes(field) ? (Number(value) || 0) : value;
+            return {
+                ...prev,
+                [iId]: { ...currentObj, [field]: val }
+            };
+        });
+    };
+
+    const saveAllEdits = () => {
         const newDb = { ...db };
-        const item = newDb.items.find(x => x.id === iId);
-        if (item) {
-            if (['net', 'mgrPrice', 'sell'].includes(field)) item[field] = Number(value) || 0;
-            else item[field] = value;
-            saveDB(newDb);
+        Object.keys(unsavedItems).forEach(iId => {
+            const idx = newDb.items.findIndex(x => x.id === iId);
+            if (idx !== -1) {
+                // if we updated sell, auto-sync mgrPrice just like before, unless mgrPrice was also explicitly updated in this batch
+                const itemUpdates = unsavedItems[iId];
+                if ('sell' in itemUpdates && !('mgrPrice' in itemUpdates)) {
+                    itemUpdates.mgrPrice = itemUpdates.sell;
+                }
+                newDb.items[idx] = { ...newDb.items[idx], ...itemUpdates };
+            }
+        });
+        saveDB(newDb);
+        setUnsavedItems({});
+    };
+
+    const discardAllEdits = () => {
+        if (confirm("Отменить все несохраненные изменения?")) {
+            setUnsavedItems({});
         }
     };
     const delItem = (iId) => {
@@ -901,16 +917,21 @@ export default function CharterPage({ role }) {
                                                 currentItems.filter(i => i.mgr).map(o => {
                                                     const isChecked = !!mgrSelections[o.id];
                                                     const qty = mgrSelections[o.id] || 1;
+
                                                     return (
-                                                        <div key={o.id} className={styles.optRow}>
-                                                            <input type="checkbox" style={{ width: '20px', height: '20px', accentColor: '#d4af37' }} checked={isChecked} onChange={() => handleOptToggle(o.id)} />
-                                                            <div className={styles.optName} onClick={() => handleOptToggle(o.id)}>
-                                                                {o.icon} {o.name} <span className={styles.optBadge}>{o.type === 'fixed' ? 'Шт' : 'Чел'}</span>
+                                                        <div key={o.id} className={styles.optRow} style={{ flexWrap: 'wrap', gap: '8px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '200px' }}>
+                                                                <input type="checkbox" style={{ width: '20px', height: '20px', accentColor: '#d4af37', flexShrink: 0 }} checked={isChecked} onChange={() => handleOptToggle(o.id)} />
+                                                                <div className={styles.optName} onClick={() => handleOptToggle(o.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                    <span style={{ fontSize: '1.2rem' }}>{o.icon}</span>
+                                                                    <span style={{ lineHeight: 1.2 }}>{o.name}</span>
+                                                                    <span className={styles.optBadge}>{o.type === 'fixed' ? 'Шт' : 'Чел'}</span>
+                                                                </div>
                                                             </div>
                                                             {o.type === 'fixed' && (
-                                                                <input type="number" className={styles.optQty} value={qty} min="1" disabled={!isChecked} onChange={(e) => handleOptQtyChange(o.id, e.target.value)} onClick={e => e.stopPropagation()} />
+                                                                <input type="number" className={styles.optQty} value={qty} min="1" disabled={!isChecked} onChange={(e) => handleOptQtyChange(o.id, e.target.value)} onClick={e => e.stopPropagation()} style={{ width: '50px' }} />
                                                             )}
-                                                            <div className={styles.optPrice}>+{FMT(o.sell)}</div>
+                                                            <div className={styles.optPrice} style={{ marginLeft: 'auto', paddingRight: '8px' }}>+{FMT(o.sell)} ฿</div>
                                                         </div>
                                                     );
                                                 })
@@ -925,22 +946,62 @@ export default function CharterPage({ role }) {
                                         <div className={styles.resHeader}>
                                             <span>🧾 Смета: {currentTourObj.name}</span>
                                         </div>
-                                        {calcRowsC.map((r) => (
-                                            <div key={r.key} className={styles.rr}>
-                                                <div><div className={styles.rrName}>{r.name}</div><div className={styles.rrMeta}>{r.meta}</div></div>
-                                                <div className={styles.rrVal}>{FMT(r.val)}</div>
-                                            </div>
-                                        ))}
+                                        {/* Internal Bookings / Admin View split */}
+                                        {isAdmin ? (
+                                            <>
+                                                <div className={styles.rr}>
+                                                    <div><div className={styles.rrName}>Пакет катера нетто</div><div className={styles.rrMeta}>Базовая стоимость лодки</div></div>
+                                                    <div className={styles.rrVal}>{FMT(currentTourObj.net)}</div>
+                                                </div>
+                                                <div className={styles.rr}>
+                                                    <div><div className={styles.rrName}>Опции нетто</div><div className={styles.rrMeta}>Сумма закупочных цен</div></div>
+                                                    <div className={styles.rrVal}>{FMT(netTot - currentTourObj.net)}</div>
+                                                </div>
+                                                <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.2)', margin: '10px 0' }}></div>
+                                                <div className={styles.rr}><div>Общая Себестоимость</div><div className={styles.rrVal}>{FMT(netTot)}</div></div>
+                                                <div className={styles.rr} style={{ color: 'var(--ok)', fontWeight: 800 }}><div>Базовая маржа</div><div className={styles.rrVal}>+{FMT(sellTot - netTot)}</div></div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className={styles.rr}>
+                                                    <div><div className={styles.rrName}>🚤 Аренда катера</div><div className={styles.rrMeta}>базовая стоимость</div></div>
+                                                    <div className={styles.rrVal}>{FMT(currentTourObj.sell)}</div>
+                                                </div>
+                                                <div className={styles.rr}>
+                                                    <div><div className={styles.rrName}>🎯 Выбранные опции</div><div className={styles.rrMeta}>дополнительные услуги</div></div>
+                                                    <div className={styles.rrVal}>+{FMT(sellTot - currentTourObj.sell)}</div>
+                                                </div>
+                                            </>
+                                        )}
+
                                         <div className={`${styles.rr} ${styles.rrTot}`}>
-                                            <div>ИТОГО:</div>
+                                            <div>К ОПЛАТЕ:</div>
                                             <div>{FMT(sellTot)}</div>
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '24px' }}>
-                                            <button className={`${styles.btn} ${styles.btnPri}`} onClick={handlePrint} style={{ fontSize: '0.85rem', padding: '10px 4px' }}>📄 PDF</button>
-                                            <button className={`${styles.btn} ${styles.btnAcc}`} onClick={handleLink} style={{ fontSize: '0.85rem', padding: '10px 4px' }}>🔗 Ссылка</button>
+                                        <div style={{ marginTop: '24px', background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '12px' }}>
+                                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div style={{ fontWeight: 600 }}>🚤 {currentTourObj.name}</div>
+                                                <div style={{ fontWeight: 700 }}>{FMT(currentTourObj.sell)}</div>
+                                            </div>
+                                            {selOptsList.map(o => (
+                                                <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingTop: '8px' }}>
+                                                    <div>
+                                                        <div style={{ fontWeight: 600 }}>{o.icon || '•'} {o.name}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{o.meta.split(' × ')[0].trim()}</div>
+                                                    </div>
+                                                    <div style={{ fontWeight: 700 }}>{FMT(o.val)}</div>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <button className={`${styles.btn} ${styles.btnGh}`} style={{ width: '100%', marginTop: '8px' }} onClick={handlePublish}>📤 Текст в WhatsApp</button>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
+                                            <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)' }} onClick={handlePrint}>🖨️ Печать PDF</button>
+                                            <button className={`${styles.btn} ${styles.btnAcc}`} onClick={handlePublish}>📱 Текст / Мессенджер</button>
+                                            <button className={`${styles.btn} ${styles.btnOk}`} onClick={handleLink}>🔗 Создать ссылку</button>
+                                            <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'rgba(255,255,255,0.6)', marginTop: '8px', fontWeight: 600 }} onClick={() => setSTour(null)}>🔄 Сбросить форму</button>
+                                        </div>
 
                                         <div style={{ marginTop: '32px', borderTop: '1px dashed rgba(255,255,255,0.3)', paddingTop: '20px' }}>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--warn)', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase' }}>🔒 Внутренний расчёт</div>
@@ -1002,13 +1063,13 @@ export default function CharterPage({ role }) {
                                 </div>
                             </div>
                             <div className={styles.tblWrapper}>
-                                <table className={styles.tbl}>
-                                    <thead><tr><th>Маршрут</th><th>Нетто ฿</th><th>Цена клиенту ฿</th><th style={{ width: "120px" }}>Действия</th></tr></thead>
+                                <table className={styles.tbl} style={{ width: '100%', borderCollapse: 'collapse', userSelect: 'auto' }}>
+                                    <thead><tr><th style={{ width: '24px' }}></th><th>Маршрут</th><th>Нетто ฿</th><th>Продажа ฿</th><th style={{ width: "120px" }}>Действия</th></tr></thead>
                                     <tbody>
                                         {db.tours.map((t, idx) => (
                                             <tr key={t.id}
-                                                style={{ background: t.color || '', cursor: 'move' }}
-                                                draggable
+                                                style={{ background: t.color || '', cursor: dragMode === t.id ? 'move' : 'default' }}
+                                                draggable={dragMode === t.id}
                                                 onDragStart={(e) => {
                                                     setDragTIdx(idx);
                                                     if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
@@ -1024,14 +1085,15 @@ export default function CharterPage({ role }) {
                                                     setDragTIdx(null);
                                                 }}
                                             >
+                                                <td><div onMouseEnter={() => setDragMode(t.id)} onMouseLeave={() => setDragMode(null)} style={{ cursor: 'grab', opacity: 0.5, padding: '5px' }}>⋮⋮</div></td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '6px' }}>
                                                         <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
                                                         <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} />
                                                     </div>
                                                 </td>
-                                                <td><input type="number" value={t.net} onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
-                                                <td><input type="number" value={t.mgrPrice} onChange={e => updTour(t.id, 'mgrPrice', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
+                                                <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
+                                                <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
                                                 <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>Удалить</button></td>
                                             </tr>
                                         ))}
@@ -1041,85 +1103,121 @@ export default function CharterPage({ role }) {
                         </div>
 
                         <div className={styles.card} style={{ borderColor: 'var(--warn)', marginTop: '24px' }}>
-                            <div className={styles.cardTitle}><span>⚙️</span> Настройка доплат по маршруту</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+                                <div className={styles.cardTitle} style={{ marginBottom: 0, borderBottom: 'none' }}>
+                                    <span>⚙️</span> Настройка доплат по маршруту
+                                </div>
+                                <button
+                                    onClick={() => setAdminSelTour('ALL')}
+                                    style={{
+                                        background: adminSelTour === 'ALL' ? '#fde047' : '#fff',
+                                        color: adminSelTour === 'ALL' ? '#b45309' : '#0f4c75',
+                                        border: adminSelTour === 'ALL' ? '1px solid #facc15' : '1px solid #cbd5e1',
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        boxShadow: adminSelTour === 'ALL' ? '0 4px 6px rgba(250, 204, 21, 0.2)' : 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    🌟 ОБЩИЕ ОПЦИИ (ДЛЯ ВСЕХ ТУРОВ)
+                                </button>
+                            </div>
+
                             <div className={styles.fg} style={{ maxWidth: '400px', marginBottom: '24px' }}>
                                 <label>Выберите маршрут:</label>
                                 <select value={adminSelTour} onChange={e => setAdminSelTour(e.target.value)}>
-                                    <option value="ALL">🌟 ОБЩИЕ ОПЦИИ (ДЛЯ ВСЕХ ТУРОВ)</option>
+                                    <option value="" disabled>--- Выберите маршрут ---</option>
                                     {db.tours.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
                                 </select>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                 <div style={{ fontWeight: 700, color: 'var(--pri)', flex: 1 }}>Список доплат</div>
-                                <button className={`${styles.btn} ${styles.btnAcc}`} onClick={openAddItem}>Добавить доплату</button>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {Object.keys(unsavedItems).length > 0 && (
+                                        <>
+                                            <button className={`${styles.btn} ${styles.btnPri}`} onClick={saveAllEdits} style={{ padding: '8px 16px', background: '#10b981', borderColor: '#059669', animation: 'pulse 2s infinite' }}>💾 Сохранить цены</button>
+                                            <button className={`${styles.btn} ${styles.btnGh}`} onClick={discardAllEdits} style={{ padding: '8px 16px' }}>Отменить</button>
+                                        </>
+                                    )}
+                                    <button className={`${styles.btn} ${styles.btnAcc}`} onClick={openAddItem}>Добавить доплату</button>
+                                </div>
                             </div>
 
-                            <div className={styles.tblWrapper}>
-                                <table className={styles.tbl}>
-                                    <thead><tr><th>Опция</th><th>Тип</th><th>Нетто ฿</th><th>Цена Менеджер ฿</th><th>Продажа ฿</th><th>Видимость</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
-                                    <tbody>
-                                        {db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
-                                            <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--muted)' }}>Нет доплат</td></tr>
-                                        ) : (
-                                            db.items.filter(i => i.tId === adminSelTour).map(i => (
-                                                <tr key={i.id} style={{ cursor: 'move' }}
-                                                    draggable
-                                                    onDragStart={(e) => {
-                                                        const globalIdx = db.items.findIndex(x => x.id === i.id);
-                                                        setDragIIdx(globalIdx);
-                                                        if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
-                                                    }}
-                                                    onDragOver={e => e.preventDefault()}
-                                                    onDrop={e => {
-                                                        e.preventDefault();
-                                                        const targetGlobalIdx = db.items.findIndex(x => x.id === i.id);
-                                                        if (dragIIdx === null || dragIIdx === targetGlobalIdx) return;
-                                                        const newItems = [...db.items];
-                                                        const [moved] = newItems.splice(dragIIdx, 1);
-                                                        newItems.splice(targetGlobalIdx, 0, moved);
-                                                        saveDB({ ...db, items: newItems });
-                                                        setDragIIdx(null);
-                                                    }}
-                                                >
-                                                    <td><span style={{ fontSize: '1.2rem' }}>{i.icon}</span> <b>{i.name}</b></td>
-                                                    <td><span className={styles.optBadge}>{i.type === 'per_pax' ? '👤 На человека' : '🔒 На группу (шт.)'}</span></td>
-                                                    <td style={{ width: '100px' }}>
-                                                        <input type="number" value={i.net} min="0"
-                                                            style={{ width: '100%', padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', fontWeight: 700, color: '#64748b', textAlign: 'right', outline: 'none' }}
-                                                            onChange={e => updItemInline(i.id, 'net', e.target.value)}
-                                                            onFocus={e => e.target.style.borderColor = '#0284c7'}
-                                                            onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                                                        />
-                                                    </td>
-                                                    <td style={{ width: '100px' }}>
-                                                        <input type="number" value={i.mgrPrice || i.sell} min="0"
-                                                            style={{ width: '100%', padding: '4px 6px', border: '1.5px solid #fde68a', borderRadius: '6px', fontSize: '12px', fontWeight: 700, color: '#dc2626', textAlign: 'right', outline: 'none', background: '#fffbeb' }}
-                                                            onChange={e => updItemInline(i.id, 'mgrPrice', e.target.value)}
-                                                            onFocus={e => e.target.style.borderColor = '#f59e0b'}
-                                                            onBlur={e => e.target.style.borderColor = '#fde68a'}
-                                                        />
-                                                    </td>
-                                                    <td style={{ width: '100px' }}>
-                                                        <input type="number" value={i.sell} min="0"
-                                                            style={{ width: '100%', padding: '4px 6px', border: '1.5px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', fontWeight: 700, color: '#059669', textAlign: 'right', outline: 'none', background: '#f0fdf4' }}
-                                                            onChange={e => updItemInline(i.id, 'sell', e.target.value)}
-                                                            onFocus={e => e.target.style.borderColor = '#10b981'}
-                                                            onBlur={e => e.target.style.borderColor = '#bbf7d0'}
-                                                        />
-                                                    </td>
-                                                    <td>{i.mgr ? '✔️ Менеджер' : '⚡ Авто'}</td>
-                                                    <td>
-                                                        <div style={{ display: 'flex', gap: '4px' }}>
-                                                            <button className={`${styles.btn} ${styles.btnGh} ${styles.btnSm}`} onClick={() => { setEditItem({ ...i }); setShowItemModal(true); }}>✏️</button>
-                                                            <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delItem(i.id)}>🗑</button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
+                            <div className={styles.optList} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
+                                    <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: '#fff', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>Нет доплат</div>
+                                ) : (
+                                    db.items.filter(i => i.tId === adminSelTour).map(i => {
+                                        const currentNet = unsavedItems[i.id]?.net ?? i.net;
+                                        const currentSell = unsavedItems[i.id]?.sell ?? i.sell;
+                                        const currentMgr = unsavedItems[i.id]?.mgr ?? i.mgr;
+                                        const isEdited = !!unsavedItems[i.id];
+
+                                        return (
+                                            <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? '#fefce8' : '#fff', border: isEdited ? '1px solid #fde047' : '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
+                                                draggable={dragMode === i.id}
+                                                onDragStart={(e) => {
+                                                    const globalIdx = db.items.findIndex(x => x.id === i.id);
+                                                    setDragIIdx(globalIdx);
+                                                    if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
+                                                }}
+                                                onDragOver={e => e.preventDefault()}
+                                                onDrop={e => {
+                                                    e.preventDefault();
+                                                    const targetGlobalIdx = db.items.findIndex(x => x.id === i.id);
+                                                    if (dragIIdx === null || dragIIdx === targetGlobalIdx) return;
+                                                    const newItems = [...db.items];
+                                                    const [moved] = newItems.splice(dragIIdx, 1);
+                                                    newItems.splice(targetGlobalIdx, 0, moved);
+                                                    saveDB({ ...db, items: newItems });
+                                                    setDragIIdx(null);
+                                                }}
+                                            >
+                                                <div onMouseEnter={() => setDragMode(i.id)} onMouseLeave={() => setDragMode(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', cursor: 'grab', opacity: 0.4, padding: '5px' }}>⋮⋮</div>
+
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                                                    <input type="checkbox" style={{ width: '20px', height: '20px', accentColor: '#d4af37', flexShrink: 0 }} disabled={true} />
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <span style={{ fontSize: '1.2rem' }}>{i.icon}</span>
+                                                        <span style={{ lineHeight: 1.2, fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>{i.name}</span>
+                                                        <span className={styles.optBadge}>{i.type === 'per_pax' ? 'Чел' : 'Шт'}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '80px' }}>
+                                                        <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто ฿</div>
+                                                        <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: '#fca5a5', background: '#fef2f2', color: '#dc2626', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} title="Закупочная цена (Нетто)" />
+                                                    </div>
+                                                    <div style={{ fontSize: '1.2rem', color: '#cbd5e1', padding: '0 4px', paddingTop: '14px' }}>/</div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '80px' }}>
+                                                        <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа ฿</div>
+                                                        <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: '#6ee7b7', background: '#ecfdf5', color: '#059669', textAlign: 'left', fontWeight: 800 }} value={currentSell === 0 ? '' : currentSell} placeholder="0" onChange={(e) => {
+                                                            updItemInline(i.id, 'sell', e.target.value);
+                                                        }} title="Розничная цена для клиента" />
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid #e2e8f0' }}>
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', cursor: 'pointer', color: currentMgr ? '#0f4c75' : '#94a3b8', fontWeight: 600 }}>
+                                                        <input type="checkbox" checked={currentMgr} onChange={e => updItemInline(i.id, 'mgr', e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0f4c75' }} />
+                                                        Видно Менеджеру
+                                                    </label>
+                                                    <div style={{ display: 'flex', gap: '4px', marginLeft: '10px' }}>
+                                                        <button className={`${styles.btn} ${styles.btnGh} ${styles.btnSm}`} onClick={() => { setEditItem({ ...i }); setShowItemModal(true); }} style={{ padding: '6px' }}>✏️</button>
+                                                        <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delItem(i.id)} style={{ padding: '6px' }}>🗑</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                )}
                             </div>
                         </div>
 
@@ -1129,6 +1227,7 @@ export default function CharterPage({ role }) {
 
             {/* --- LINK MODAL --- */}
             {modal === 'link' && <LinkModal url={shareUrl} onClose={() => setModal(null)} onToast={(msg) => alert(msg)} />}
+            {modal === 'text' && <TextModal data={getClientData()} onClose={() => setModal(null)} onToast={m => alert(m)} />}
 
             {/* --- ITEM MODAL --- */}
             {showItemModal && (

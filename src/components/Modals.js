@@ -20,25 +20,46 @@ export function TextModal({ data, onClose, onToast }) {
   const text = useMemo(() => {
     if (!data) return ''
     const L = ['🌴 *РАСЧЁТ ТУРА — ПХАНГ НГА*', '━━━━━━━━━━━━━━━━━━━━━━']
-    if (data.name)  L.push('👤 Клиент: ' + data.name)
-    if (data.date)  L.push('📅 Дата: '   + fmtDate(data.date))
-    if (data.phone) L.push('📱 Тел: '    + data.phone)
+    if (data.name) L.push('👤 Клиент: ' + data.name)
+    if (data.date) L.push('📅 Дата: ' + fmtDate(data.date))
+    if (data.phone) L.push('📱 Тел: ' + data.phone)
+    if (data.pax) L.push('👥 Гостей: ' + data.pax)
     L.push('')
-    const pkgs = data.items.filter(i => i.type !== 'opt')
-    const opts = data.items.filter(i => i.type === 'opt')
-    if (pkgs.length) {
-      L.push('🚐 *ПАКЕТ*')
-      pkgs.forEach(p => L.push('• ' + p.name + ' — ' + fmt(p.price) + ' ฿'))
+
+    if (data.tourName) {
+      // Charter logic
+      L.push('🚤 *МАРШРУТ*')
+      L.push('• ' + data.tourName)
       L.push('')
-    }
-    if (opts.length) {
-      L.push('🎯 *ДОПОЛНИТЕЛЬНО*')
-      opts.forEach(o => {
-        const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', ')
-        L.push('• ' + o.name + ' (' + det + ') — ' + fmt(o.sum) + ' ฿')
+
+      L.push('📋 *ЧТО ВКЛЮЧЕНО*')
+      L.push('• 🚤 Аренда катера по маршруту')
+
+      const items = data.items || []
+      items.forEach(o => {
+        let metaStr = o.meta ? ` (${o.meta.split(' × ')[0].trim()})` : '';
+        L.push(`• ${o.icon || '🎯'} ${o.name}${metaStr}`)
       })
       L.push('')
+    } else {
+      // Calculator / Group logic
+      const pkgs = (data.items || []).filter(i => i.type !== 'opt')
+      const opts = (data.items || []).filter(i => i.type === 'opt')
+      if (pkgs.length) {
+        L.push('🚐 *ПАКЕТ*')
+        pkgs.forEach(p => L.push('• ' + p.name + ' — ' + fmt(p.price) + ' ฿'))
+        L.push('')
+      }
+      if (opts.length) {
+        L.push('🎯 *ДОПОЛНИТЕЛЬНО*')
+        opts.forEach(o => {
+          const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', ')
+          L.push('• ' + o.name + (det ? ` (${det})` : '') + ' — ' + fmt(o.sum) + ' ฿')
+        })
+        L.push('')
+      }
     }
+
     L.push('━━━━━━━━━━━━━━━━━━━━━━')
     L.push('💳 *ИТОГО: ' + fmt(data.total) + ' ฿*')
     L.push(''); L.push('_Пханг Нга Туры · Тайланд_')
@@ -67,14 +88,14 @@ export function LinkModal({ url, onClose, onToast }) {
     <ModalOverlay onClose={onClose}>
       <div className="md-t">🔗 Ссылка для клиента</div>
       <div className="md-s">Красивая страница расчёта без возможности редактирования</div>
-      <div className="link-box">
-        <input type="text" className="link-in" value={url} readOnly />
-        <button className="btn-cp"
+      <div className="link-box" style={{ display: 'flex', gap: '8px' }}>
+        <input type="text" className="link-in" value={url} readOnly style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1' }} />
+        <button className="btn btn-p" style={{ padding: '0 16px' }}
           onClick={() => clipCopy(url).then(() => onToast('Ссылка скопирована!', 'ok'))}>
           📋
         </button>
       </div>
-      <div style={{ background: '#F0FDF4', borderRadius: '7px', padding: '10px', fontSize: '10px', color: '#065F46', marginTop: '10px', border: '1px solid #A7F3D0' }}>
+      <div style={{ background: '#F0FDF4', borderRadius: '7px', padding: '10px', fontSize: '10px', color: '#065F46', marginTop: '16px', border: '1px solid #A7F3D0' }}>
         ✅ Клиент увидит финальные цены. Наценки скрыты.
       </div>
     </ModalOverlay>

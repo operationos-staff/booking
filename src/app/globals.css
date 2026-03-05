@@ -1,27 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --pr: #0284c7;
-  /* Ocean Blue */
-  --prl: #0ea5e9;
-  /* Sky Blue */
-  --ac: #f97316;
-  /* Sunny Orange */
-  --acl: #fdba74;
-  /* Light Orange */
+  --pr: #0ea5e9;
+  /* Premium Ocean Blue */
+  --prl: #38bdf8;
+  /* Light Ocean Blue */
+  --ac: #f59e0b;
+  /* Premium Gold */
+  --acl: #fbbf24;
+  /* Light Gold */
   --ok: #10b981;
   --er: #ef4444;
   --wn: #f59e0b;
-  --bg: #f0f9ff;
-  /* Very light blue */
-  --card: #ffffff;
-  --txt: #334155;
+  --bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  /* Very light clean slate */
+  --card: rgba(255, 255, 255, 0.95);
+  --txt: #1e293b;
   --txl: #64748b;
-  --brd: #e0f2fe;
-  /* Light sky blue border */
-  --sh: 0 10px 30px rgba(2, 132, 199, 0.08);
-  --r: 16px;
-  --rs: 10px;
+  --brd: #e2e8f0;
+  /* Smooth Slate border */
+  --sh: 0 10px 25px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  --r: 18px;
+  --rs: 12px;
 }
 
 * {
@@ -210,10 +210,14 @@ h3,
 /* CARD */
 .card {
   background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--r);
   box-shadow: var(--sh);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   overflow: hidden;
-  margin-bottom: 16px
+  margin-bottom: 20px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
 }
 
 .card-h {
@@ -274,32 +278,34 @@ h3,
 }
 
 .pkg-card {
-  border: 2px solid var(--brd);
+  border: 1px solid var(--brd);
   border-radius: var(--rs);
-  padding: 12px 10px;
+  padding: 16px 12px;
   cursor: pointer;
-  transition: all .2s;
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   background: #fff;
   text-align: center;
-  user-select: none
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
 }
 
 .pkg-card:hover {
   border-color: var(--prl);
-  background: #F8FAFF;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 76, 117, .15)
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(14, 165, 233, 0.12)
 }
 
 .pkg-card.sel {
   border-color: var(--pr);
-  background: linear-gradient(135deg, #EFF6FF, #DBEAFE)
+  background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15)
 }
 
 .pkg-card.sel-vip {
   border-color: var(--ac);
-  background: linear-gradient(135deg, #FFFBEB, #FEF3C7)
+  background: linear-gradient(145deg, #FFFBEB, #FEF3C7);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15)
 }
 
 .pkg-check {
@@ -1263,7 +1269,9 @@ h3,
 /* PRINT */
 @media print {
   body {
-    background: #fff !important
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .header,
@@ -1277,7 +1285,7 @@ h3,
     display: block !important
   }
 
-  body.printing > *:not(#print-area) {
+  body.printing>*:not(#print-area) {
     display: none !important
   }
 }

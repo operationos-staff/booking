@@ -106,7 +106,7 @@ export function doPrint(data) {
   ]
 
   // Create watermark grid (3x4)
-  const wm = [0,1,2,3,4,5,6,7,8,9,10,11].map(i => {
+  const wm = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => {
     const col = i % 3; const row = Math.floor(i / 3);
     return `<div style="position:absolute;top:${8 + row * 25}%;left:${5 + col * 33}%;transform:translate(-50%,-50%) rotate(-35deg);font-size:32px;font-weight:900;color:rgba(15,76,117,0.05);white-space:nowrap;pointer-events:none;letter-spacing:2px;font-family:sans-serif;">ОСТРОВ СОКРОВИЩ</div>`
   }).join('')
@@ -177,11 +177,11 @@ export function doPrintCharter(data) {
   el.innerHTML = `<div style="font-family:sans-serif;padding:20px;max-width:680px;margin:0 auto;color:#1E293B;position:relative;overflow:hidden">
     
     <!-- Водяной знак -->
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%) rotate(-30deg);font-size:100px;font-weight:900;color:rgba(15, 76, 117, 0.04);white-space:nowrap;pointer-events:none;z-index:0">ОСТРОВ СОКРОВИЩ</div>
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;pointer-events:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'250\\' height=\\'150\\'><text x=\\'50%\\' y=\\'50%\\' transform=\\'rotate(-35 125 75)\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\' font-family=\\'sans-serif\\' font-weight=\\'800\\' font-size=\\'16\\' fill=\\'%230F4C75\\' opacity=\\'0.1\\'>ОСТРОВ СОКРОВИЩ</text></svg>');background-repeat:repeat;"></div>
 
     <div style="position:relative;z-index:1">
       <div style="display:flex;justify-content:space-between;padding-bottom:14px;border-bottom:2px solid #0F4C75;margin-bottom:16px">
-        <div><div style="font-size:18px;font-weight:800;color:#0F4C75">🏝 Остров Сокровищ</div><div style="font-size:11px;color:#64748B">Аренда яхт и катеров · Пхукет</div></div>
+        <div><div style="font-size:18px;font-weight:800;color:#0F4C75">🏝 Остров Сокровищ</div><div style="font-size:11px;color:#334155;font-weight:600">Увлекательные экскурсии. Пхукет</div></div>
         <div style="text-align:right"><div style="font-size:16px;font-weight:700">Расчёт чартера</div><div style="font-size:10px;color:#64748B">${data.gen}</div></div>
       </div>
 
@@ -207,7 +207,7 @@ export function doPrintCharter(data) {
           <div style="display:flex;align-items:center;padding:8px 0;${o !== data.items[data.items.length - 1] ? 'border-bottom:1px solid #F1F5F9' : ''}">
             <span style="font-size:14px;margin-right:8px">${o.icon}</span>
             <span style="font-size:13px;font-weight:600">${o.name}</span>
-            ${o.meta ? `<span style="font-size:11px;color:#64748B;margin-left:8px">(${o.meta})</span>` : ''}
+            ${o.meta ? `<span style="font-size:11px;color:#64748B;margin-left:8px">(${o.meta.split(' × ')[0].trim()})</span>` : ''}
           </div>
         `).join('')}
       </div>
@@ -218,5 +218,13 @@ export function doPrintCharter(data) {
       </div>
     </div>
   </div>`
+
+  document.body.classList.add('printing')
+  const cleanup = () => {
+    document.body.classList.remove('printing')
+    el.innerHTML = ''
+    window.removeEventListener('afterprint', cleanup)
+  }
+  window.addEventListener('afterprint', cleanup)
   window.print()
 }

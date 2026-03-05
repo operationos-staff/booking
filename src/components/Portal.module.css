@@ -6,21 +6,21 @@
     background: #f1f5f9;
     font-family: 'Inter', sans-serif;
     color: #1e293b;
-    --pri: #0f172a;
-    --acc: #d4af37;
-    --acc-hover: #c5a028;
-    --bg: #f1f5f9;
-    --card: #ffffff;
-    --text: #334155;
+    --pri: #0ea5e9;
+    --acc: #f59e0b;
+    --acc-hover: #d97706;
+    --bg: #f8fafc;
+    --card: rgba(255, 255, 255, 0.95);
+    --text: #1e293b;
     --text-dark: #0f172a;
     --muted: #94a3b8;
     --border: #e2e8f0;
     --ok: #10b981;
     --err: #ef4444;
     --warn: #f59e0b;
-    --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+    --shadow: 0 10px 25px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    --shadow-md: 0 12px 28px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 15px 35px rgba(15, 23, 42, 0.1);
     box-sizing: border-box;
 }
 
@@ -183,12 +183,19 @@
 
 /* ===== CARDS ===== */
 .card {
-    background: #fff;
-    border-radius: 12px;
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 18px;
     box-shadow: var(--shadow);
-    border: 1px solid #f1f5f9;
-    padding: 20px;
-    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .cardTitle {
@@ -565,8 +572,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0 }
-    to { opacity: 1 }
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
 }
 
 .modalBox {
@@ -581,8 +593,15 @@
 }
 
 @keyframes slideUp {
-    from { transform: translateY(16px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(16px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .modalBox h3 {
@@ -631,7 +650,7 @@
     background: #fff;
     border-radius: 50%;
     transition: 0.25s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 input:checked+.tgl {
@@ -667,18 +686,18 @@ input:checked+.tgl::after {
 
 /* ===== THEME (used by CharterPage) ===== */
 .theme {
-    --pri: #0f172a;
-    --acc: #d4af37;
-    --acc-hover: #c5a028;
-    --bg: #f1f5f9;
-    --card: #ffffff;
-    --text: #334155;
+    --pri: #0ea5e9;
+    --acc: #f59e0b;
+    --acc-hover: #d97706;
+    --bg: #f8fafc;
+    --card: rgba(255, 255, 255, 0.95);
+    --text: #1e293b;
     --text-dark: #0f172a;
     --muted: #94a3b8;
     --border: #e2e8f0;
     --ok: #10b981;
     --err: #ef4444;
     --warn: #f59e0b;
-    --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow: 0 10px 25px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.4);
     color: var(--text);
 }
