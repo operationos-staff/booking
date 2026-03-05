@@ -133,7 +133,7 @@ export default function TourApp() {
     <>
       <AuroraBackground />
       {!user && page !== 'client' && <LoginPage onLogin={handleLogin} />}
-      <Header role={role} page={page} onPage={setPage} onLogout={handleLogout} />
+      {user && page !== 'client' && <Header role={role} page={page} onPage={setPage} onLogout={handleLogout} />}
       {page === 'calculator' && user && (
         <CalculatorPage
           packages={packages} options={options} role={role} user={user} toast={toast}
