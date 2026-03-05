@@ -753,8 +753,11 @@ export default function CharterPage({ role }) {
         const newDb = { ...db };
         const t = newDb.tours.find(x => x.id === tId);
         if (t) {
-            if (field === 'net' || field === 'sell') t[field] = Number(value) || 0;
-            else t[field] = value;
+            if (field === 'net') t[field] = Number(value) || 0;
+            else if (field === 'mgrPrice') {
+                t.mgrPrice = Number(value) || 0;
+                t.sell = Number(value) || 0; // sell = mgrPrice (синхронизация)
+            } else t[field] = value;
             saveDB(newDb);
         }
     };
@@ -1000,7 +1003,7 @@ export default function CharterPage({ role }) {
                             </div>
                             <div className={styles.tblWrapper}>
                                 <table className={styles.tbl}>
-                                    <thead><tr><th>Маршрут</th><th>Нетто ฿</th><th>Цена Менеджер ฿</th><th>Продажа Клиенту ฿</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
+                                    <thead><tr><th>Маршрут</th><th>Нетто ฿</th><th>Цена клиенту ฿</th><th style={{ width: "120px" }}>Действия</th></tr></thead>
                                     <tbody>
                                         {db.tours.map((t, idx) => (
                                             <tr key={t.id}
@@ -1028,8 +1031,7 @@ export default function CharterPage({ role }) {
                                                     </div>
                                                 </td>
                                                 <td><input type="number" value={t.net} onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
-                                                <td><input type="number" value={t.mgrPrice} onChange={e => updTour(t.id, 'mgrPrice', e.target.value)} style={{ color: 'var(--err)' }} /></td>
-                                                <td><input type="number" value={t.sell} onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)' }} /></td>
+                                                <td><input type="number" value={t.mgrPrice} onChange={e => updTour(t.id, 'mgrPrice', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
                                                 <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>Удалить</button></td>
                                             </tr>
                                         ))}
