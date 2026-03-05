@@ -6,7 +6,6 @@ const ROLE_ICONS = { manager: '👤', booking: '📋' }
 
 export default function Header({ role, page, onPage, onLogout }) {
   const isClient = page === 'client'
-  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <>
@@ -41,45 +40,11 @@ export default function Header({ role, page, onPage, onLogout }) {
             ) : null}
           </nav>
 
-          {/* Mobile hamburger */}
-          {!isClient && role && (
-            <button
-              className="mob-burger"
-              onClick={() => setMenuOpen(p => !p)}
-              aria-label="Меню"
-            >
-              <span className={`burger-line ${menuOpen ? 'open' : ''}`} />
-              <span className={`burger-line ${menuOpen ? 'open' : ''}`} />
-              <span className={`burger-line ${menuOpen ? 'open' : ''}`} />
-            </button>
-          )}
+
         </div>
       </header>
 
-      {/* Mobile dropdown menu */}
-      {menuOpen && role && (
-        <div className="mob-menu no-print" onClick={() => setMenuOpen(false)}>
-          <div className="mob-menu-inner" onClick={e => e.stopPropagation()}>
-            <div className="mob-menu-role">
-              <span className={`rbadge ${role === 'booking' ? 'rb' : 'rm'}`}>
-                {ROLE_ICONS[role]} {ROLE_NAMES[role]}
-              </span>
-            </div>
-            <button className={`mob-menu-btn ${page === 'calculator' ? 'active' : ''}`}
-              onClick={() => { onPage('calculator'); setMenuOpen(false); }}>
-              🚐 Групповые туры
-            </button>
-            <button className={`mob-menu-btn ${page === 'charter' ? 'active' : ''}`}
-              onClick={() => { onPage('charter'); setMenuOpen(false); }}>
-              🚤 Спидбот туры
-            </button>
-            <button className="mob-menu-btn mob-menu-logout"
-              onClick={() => { onLogout(); setMenuOpen(false); }}>
-              🚪 Выйти
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Mobile bottom navigation bar */}
       {!isClient && role && (

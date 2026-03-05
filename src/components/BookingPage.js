@@ -77,7 +77,47 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
             <div className="card-h-icon">🚐</div>
             <div><h2>Базовые пакеты и VIP</h2><p>Редактирование цен — изменения сразу применяются в калькуляторе</p></div>
           </div>
-          <div className="card-b" style={{ overflowX: 'auto' }}>
+          <div className="card-b">
+            {/* ── MOBILE CARDS: пакеты ── */}
+            <div className="bk-cards-mobile">
+              {packages.map((p, i) => (
+                <div key={p.id} className="bk-card">
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Тип</span>
+                    <select value={p.type} onChange={e => updPkg(i, 'type', e.target.value)} className="bk-card-select">
+                      <option value="base">🚐 base</option>
+                      <option value="vip">⭐ vip</option>
+                    </select>
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Название</span>
+                    <input type="text" value={p.name} onChange={e => updPkg(i, 'name', e.target.value)} className="bk-card-input" />
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Часы</span>
+                    <input type="number" value={p.hours} onChange={e => updPkg(i, 'hours', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--sm" />
+                  </div>
+                  <div className="bk-card-row bk-card-row--highlight">
+                    <span className="bk-card-label" style={{ color: '#fbbf24' }}>Цена менедж. ฿</span>
+                    <input type="number" value={p.mgrPrice} onChange={e => updPkg(i, 'mgrPrice', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--gold" />
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Нетто ฿</span>
+                    <input type="number" value={p.nettoPrice} onChange={e => updPkg(i, 'nettoPrice', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--sm" />
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Доп.час ฿</span>
+                    <input type="number" value={p.extraHour || 1000} onChange={e => updPkg(i, 'extraHour', parseInt(e.target.value) || 1000)} className="bk-card-input bk-card-input--sm" />
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Примечание</span>
+                    <input type="text" value={p.note || ''} onChange={e => updPkg(i, 'note', e.target.value)} className="bk-card-input" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* ── DESKTOP TABLE: пакеты ── */}
+            <div className="bk-table-desktop" style={{ overflowX: 'auto' }}>
             <table className="pe" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr>
                 <th>#</th><th>Тип</th><th>Часы</th><th>Название</th>
@@ -108,6 +148,7 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
@@ -119,7 +160,48 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
             <div className="card-h-icon">🎯</div>
             <div><h2>Цены опций</h2><p>Менеджерские и нетто-цены</p></div>
           </div>
-          <div className="card-b" style={{ overflowX: 'auto' }}>
+          <div className="card-b">
+            {/* ── MOBILE CARDS: опции ── */}
+            <div className="bk-cards-mobile">
+              {options.map((o, i) => (
+                <div key={o.id} className="bk-card">
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Название</span>
+                    <input type="text" value={o.name} onChange={e => updOpt(i, 'name', e.target.value)} className="bk-card-input" />
+                  </div>
+                  <div className="bk-card-grid">
+                    <div className="bk-card-row bk-card-row--highlight">
+                      <span className="bk-card-label" style={{ color: '#fbbf24' }}>Менедж. взр.</span>
+                      <input type="number" value={o.mgrA} onChange={e => updOpt(i, 'mgrA', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--gold" />
+                    </div>
+                    <div className="bk-card-row bk-card-row--highlight">
+                      <span className="bk-card-label" style={{ color: '#fbbf24' }}>Менедж. дет.</span>
+                      <input type="number" value={o.mgrC} onChange={e => updOpt(i, 'mgrC', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--gold" />
+                    </div>
+                    <div className="bk-card-row">
+                      <span className="bk-card-label">Нетто взр.</span>
+                      <input type="number" value={o.netA} onChange={e => updOpt(i, 'netA', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--sm" />
+                    </div>
+                    <div className="bk-card-row">
+                      <span className="bk-card-label">Нетто дет.</span>
+                      <input type="number" value={o.netC} onChange={e => updOpt(i, 'netC', parseInt(e.target.value) || 0)} className="bk-card-input bk-card-input--sm" />
+                    </div>
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Категория</span>
+                    <select value={o.cat} onChange={e => updOpt(i, 'cat', e.target.value)} className="bk-card-select">
+                      {ALL_CATS.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Только 8ч</span>
+                    <input type="checkbox" checked={o.only8h || false} onChange={e => updOpt(i, 'only8h', e.target.checked)} style={{ width: 'auto', accentColor: 'var(--primary)' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* ── DESKTOP TABLE: опции ── */}
+            <div className="bk-table-desktop" style={{ overflowX: 'auto' }}>
             <table className="pe" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr>
                 <th>#</th><th>Название</th>
@@ -149,6 +231,7 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}

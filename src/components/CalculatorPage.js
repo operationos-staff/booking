@@ -11,7 +11,70 @@ import styles from './Portal.module.css'
 function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
   return (
     <div className={styles.tblWrapper}>
-      <table className={styles.tbl}>
+      {/* ── MOBILE CARDS ── */}
+      <div className="opt-cards-mobile">
+        {options.map(o => {
+          const key = String(o.id)
+          if (!avIds.has(key)) return null
+          const q = qty[key] || { a: 0, c: 0 }
+          const mk = optMk[key] || { a: 0, c: 0 }
+          const has = (q.a || 0) + (q.c || 0) > 0
+          const [bg, fg] = CAT_COLORS[o.cat] || ['#f1f5f9', '#64748b']
+          const costA = (q.a || 0) * o.netA
+          const costC = (q.c || 0) * o.netC
+          const costSum = costA + costC
+          const clientSum = (q.a || 0) * (o.netA + (mk.a || 0)) + (q.c || 0) * (o.netC + (mk.c || 0))
+          const mgrSum = (q.a || 0) * o.mgrA + (q.c || 0) * o.mgrC
+          return (
+            <div key={o.id} className={`opt-card${has ? ' opt-card--active' : ''}`}>
+              <div className="opt-card-header">
+                <div className="opt-card-name">{o.name}</div>
+                <span className="opt-card-cat" style={{ background: bg, color: fg }}>
+                  {CAT_ICONS[o.cat] || ''} {o.cat}
+                </span>
+              </div>
+              {o.special && <div className="opt-card-special">⚠️ {o.special}</div>}
+              <div className="opt-card-inputs">
+                <label className="opt-card-label">
+                  <span>Взр.</span>
+                  <input type="number" min="0" max="99" className="opt-card-input"
+                    value={q.a || ''} placeholder="0"
+                    onChange={e => onSetQ(key, 'a', e.target.value)} />
+                  {!isBk && <span className="opt-card-price">× {o.mgrA > 0 ? fmt(o.mgrA) : 'FREE'}฿</span>}
+                  {isBk && <span className="opt-card-price">× {o.netA > 0 ? fmt(o.netA) : 'FREE'}฿</span>}
+                </label>
+                <label className="opt-card-label">
+                  <span>Дет.</span>
+                  <input type="number" min="0" max="99" className="opt-card-input"
+                    value={q.c || ''} placeholder="0"
+                    onChange={e => onSetQ(key, 'c', e.target.value)} />
+                  {!isBk && <span className="opt-card-price">× {o.mgrC > 0 ? fmt(o.mgrC) : 'FREE'}฿</span>}
+                  {isBk && <span className="opt-card-price">× {o.netC > 0 ? fmt(o.netC) : 'FREE'}฿</span>}
+                </label>
+              </div>
+              {isBk && (
+                <div className="opt-card-mk">
+                  <span className="opt-card-mk-label">+Наценка В/Д:</span>
+                  <input type="number" min="0" className="opt-card-input opt-card-input--mk"
+                    value={mk.a || ''} placeholder="0"
+                    onChange={e => onSetMk(key, 'a', e.target.value)} />
+                  <input type="number" min="0" className="opt-card-input opt-card-input--mk"
+                    value={mk.c || ''} placeholder="0"
+                    onChange={e => onSetMk(key, 'c', e.target.value)} />
+                </div>
+              )}
+              <div className="opt-card-total">
+                {isBk
+                  ? <><span>Себест.: <b>{costSum > 0 ? fmt(costSum) : '—'}฿</b></span><span className="opt-card-client">Клиент: <b>{clientSum > 0 ? fmt(clientSum) : '—'}฿</b></span></>
+                  : <span>Итого: <b style={{ color: mgrSum > 0 ? 'var(--primary)' : 'var(--muted)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}฿</b></span>
+                }
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {/* ── DESKTOP TABLE ── */}
+      <table className={`${styles.tbl} opt-table-desktop`}>
         <thead>
           <tr>
             <th>Опция</th>
@@ -226,7 +289,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
               <input type="text" className={styles.searchInput} placeholder="Поиск пакета..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             </div>
             <div className={styles.tourList}>
-              {bases.length > 0 && <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', margin: '8px 0 4px 8px' }}>Стандарт (Минивэн)</div>}
+              {bases.length > 0 && <div className="pkg-group-label" style={{ fontSize: '10px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', margin: '8px 0 4px 8px' }}>Стандарт (Минивэн)</div>}
               {bases.map(p => {
                 const isSel = String(selBase) === String(p.id)
                 const price = isBk ? p.nettoPrice : p.mgrPrice
@@ -241,7 +304,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                 )
               })}
 
-              {vips.length > 0 && <div style={{ fontSize: '10px', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', margin: '16px 0 4px 8px' }}>VIP Тойота Альфард</div>}
+              {vips.length > 0 && <div className="pkg-group-label" style={{ fontSize: '10px', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', margin: '16px 0 4px 8px' }}>VIP Тойота Альфард</div>}
               {vips.map(p => {
                 const isSel = String(selBase) === String(p.id)
                 const price = isBk ? p.nettoPrice : p.mgrPrice
@@ -275,7 +338,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                   {/* CLIENT INFO */}
                   <div className={styles.card}>
                     <div className={styles.cardTitle}><span>👤</span> Информация о клиенте</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="client-form-grid" style={{ gap: '16px' }}>
                       <div className={styles.fg}><label>Имя</label><input type="text" value={client.name} placeholder="Иван Иванов" onChange={e => setClient(c => ({ ...c, name: e.target.value }))} /></div>
                       <div className={styles.fg}><label>Дата тура</label><input type="date" value={client.date} onChange={e => setClient(c => ({ ...c, date: e.target.value }))} /></div>
                       <div className={styles.fg}><label>Телефон / WhatsApp</label><input type="text" value={client.phone} placeholder="+66 XX XXX XXXX" onChange={e => setClient(c => ({ ...c, phone: e.target.value }))} /></div>

@@ -1190,7 +1190,8 @@ body > *:not(.aurora-root) {
   .logo-icon  { font-size: 20px; }
 
   /* Основной контент — отступ снизу для bottom nav */
-  body { padding-bottom: 64px; }
+  body { padding-bottom: 80px; }
+  .mainPanel { padding-bottom: 80px !important; }
 
   /* Карточки и сетки */
   .main         { padding: 10px 10px; gap: 8px; }
@@ -1252,9 +1253,585 @@ select option {
   background: #1c1407 !important;
   color: #e5e5e5 !important;
 }
-/* ── Login mobile fixes ── */
-@media (max-width: 480px) {
-  .login-orbit { display: none !important; }
-  .login-ticker { display: none !important; }
-  .login-card { padding: 24px 16px !important; }
+/* ════════════════════════════════════════════════════════
+   ПОЛНАЯ МОБИЛЬНАЯ АДАПТАЦИЯ — 768px и ниже
+   ════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Основной лейаут ── */
+  .main {
+    flex-direction: column !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    padding-bottom: 80px !important;
+  }
+
+  /* ── Сайдбар становится горизонтальным скроллом вверху ── */
+  aside.sidebar, .sidebar {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    height: auto !important;
+    max-height: 45vh !important;
+    overflow-y: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--brd) !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ── Карточки ── */
+  .card, .card-b {
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  /* ── Все двухколоночные гриды → одна колонка ── */
+  [style*="gridTemplateColumns: '1fr 1fr'"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  .client-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Горизонтальные flex → вертикальные ── */
+  .mob-stack {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  /* ── Таблицы — горизонтальный скролл ── */
+  table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+  }
+
+  /* ── Вкладки (табы) ── */
+  .bk-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+  }
+  .bk-tab {
+    flex-shrink: 0 !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* ── Кнопки ── */
+  .btn-nav { display: none !important; }
+
+  /* ── Смета / сайдбар калькулятора ── */
+  .sum-box, .resultBox {
+    position: static !important;
+    width: 100% !important;
+    margin-top: 16px !important;
+  }
+
+  /* ── Portal контейнер ── */
+  .container {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: unset !important;
+  }
+
+  /* ── Поля форм ── */
+  input, select, textarea {
+    font-size: 16px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* ── Заголовки секций ── */
+  .card-h { padding: 10px 12px !important; }
+  .card-h-icon { width: 32px !important; height: 32px !important; font-size: 16px !important; }
+
+  /* ── Панель администратора чартеров ── */
+  .adminView {
+    padding: 10px !important;
+  }
+
+  /* ── Скрываем бейдж роли ── */
+  .rbadge { display: none !important; }
 }
+
+/* ════════════ 480px ════════════ */
+@media (max-width: 480px) {
+  .main { padding: 6px !important; }
+  .card, .card-b { padding: 10px !important; border-radius: 10px !important; }
+
+  /* Кнопки действий — полная ширина */
+  .btn-wide-mob {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Скрываем декоративные орбиты на логине */
+  .login-orbit { display: none !important; }
+  .login-ticker { font-size: 10px !important; }
+
+  /* Шапка компактнее */
+  .header-inner { padding: 0 10px !important; height: 48px !important; }
+  .logo-title { font-size: 12px !important; }
+  .logo-icon { font-size: 18px !important; }
+}
+/* ── Скрываем групповые метки в сайдбаре на мобильном ── */
+@media (max-width: 768px) {
+  .pkg-group-label { display: none !important; }
+}
+/* ── Options: таблица на десктопе, карточки на мобильном ── */
+.opt-table-desktop { display: block; }
+.opt-cards-mobile  { display: none; }
+
+@media (max-width: 768px) {
+  .opt-table-desktop { display: none !important; }
+  .opt-cards-mobile  { display: block !important; }
+}
+
+/* ── opt-cards-mobile ── */
+.opt-cards-mobile { display: none; }
+.opt-table-desktop { display: table; }
+
+@media (max-width: 768px) {
+  .opt-cards-mobile { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
+  .opt-table-desktop { display: none !important; }
+
+  .opt-card {
+    background: var(--bg2);
+    border: 1px solid var(--brd);
+    border-radius: 10px;
+    padding: 8px 10px;
+    transition: all 0.2s;
+  }
+  .opt-card--active {
+    border-color: var(--primary);
+    background: rgba(245,158,11,0.07);
+    box-shadow: 0 0 0 1px rgba(245,158,11,0.2);
+  }
+  .opt-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+  .opt-card-name {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text-dark);
+    flex: 1;
+    line-height: 1.2;
+  }
+  .opt-card-cat {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .opt-card-special {
+    font-size: 0.68rem;
+    color: var(--warn);
+    margin-bottom: 5px;
+  }
+  .opt-card-inputs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
+    align-items: center;
+  }
+  .opt-card-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: var(--txm);
+    flex: 1;
+  }
+  .opt-card-input {
+    width: 42px;
+    padding: 4px;
+    border: 1px solid var(--brd);
+    border-radius: 6px;
+    text-align: center;
+    background: var(--bg3, var(--bg));
+    color: var(--text);
+    font-size: 0.82rem;
+    outline: none;
+  }
+  .opt-card-price {
+    font-size: 0.7rem;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .opt-card-mk {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+    padding: 4px 8px;
+    background: rgba(245,158,11,0.08);
+    border-radius: 6px;
+  }
+  .opt-card-mk-label {
+    font-size: 0.68rem;
+    color: #fbbf24;
+    white-space: nowrap;
+  }
+  .opt-card-input--mk {
+    border-color: rgba(245,158,11,0.4);
+    background: rgba(245,158,11,0.1);
+    color: #fbbf24;
+    font-weight: 700;
+    width: 42px;
+  }
+  .opt-card-total {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    padding-top: 5px;
+    border-top: 1px solid var(--brd);
+    font-size: 0.75rem;
+    color: var(--txm);
+  }
+  .opt-card-client {
+    color: var(--ok);
+    font-weight: 700;
+  }
+}
+/* ── end opt-cards ── */
+
+/* ── bk-cards (BookingPage mobile) ── */
+.bk-cards-mobile { display: none; }
+.bk-table-desktop { display: block; }
+
+@media (max-width: 768px) {
+  .bk-cards-mobile { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+  .bk-table-desktop { display: none !important; }
+
+  .bk-card {
+    background: var(--bg2);
+    border: 1px solid var(--brd);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bk-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .bk-card-row--highlight {
+    background: rgba(245,158,11,0.06);
+    border-radius: 6px;
+    padding: 4px 6px;
+  }
+  .bk-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .bk-card-label {
+    font-size: 0.7rem;
+    color: var(--txm);
+    white-space: nowrap;
+    min-width: 70px;
+    max-width: 80px;
+  }
+  .bk-card-input {
+    flex: 1;
+    padding: 5px 6px;
+    border: 1px solid var(--brd);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.8rem;
+    outline: none;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .bk-card-input--sm {
+    max-width: 80px;
+  }
+  .bk-card-input--gold {
+    border-color: rgba(245,158,11,0.5);
+    color: #fbbf24;
+    background: rgba(245,158,11,0.08);
+    font-weight: 700;
+    max-width: 80px;
+  }
+  .bk-card-select {
+    flex: 1;
+    padding: 5px 6px;
+    border: 1px solid var(--brd);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.8rem;
+    outline: none;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .bk-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    overflow: hidden;
+  }
+}
+/* ── end bk-cards ── */
+
+/* ── Charter layout mobile ── */
+@media (max-width: 768px) {
+
+  /* Container — строго колонка */
+  .charter-container-mobile {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+
+  /* Sidebar — полная ширина, высота по контенту */
+  .charter-sidebar-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--brd) !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  /* tourList — горизонтальный скролл групп */
+  .charter-tourlist-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    gap: 4px !important;
+    padding: 6px 4px 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+    position: relative !important;
+  }
+
+  /* Группа маршрутов — вертикально, фиксированная ширина */
+  .charter-tourlist-mobile > div {
+    flex-shrink: 0 !important;
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    position: relative !important;
+    z-index: auto !important;
+  }
+
+  /* Дочерние маршруты — строго в потоке, не абсолют */
+  .charter-tourlist-mobile > div > div {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    margin-top: 2px !important;
+  }
+
+  /* tourItem — компактный */
+  .charter-tourlist-mobile [class*="tourItem"] {
+    padding: 6px 6px !important;
+    gap: 4px !important;
+  }
+
+  .charter-tourlist-mobile [class*="tourName"] {
+    font-size: 0.7rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .charter-tourlist-mobile [class*="tourPrice"] {
+    font-size: 0.65rem !important;
+  }
+
+  .charter-tourlist-mobile [class*="tourIcon"] {
+    font-size: 1rem !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  /* Main — полная ширина, под sidebar */
+  .charter-main-mobile {
+    flex: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    position: relative !important;
+    z-index: 0 !important;
+  }
+
+  /* ── Общие опции — исправляем обрезку цифр ── */
+  .charter-opt-item {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 10px 10px !important;
+  }
+
+  .charter-opt-prices {
+    flex-shrink: 0 !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+  }
+
+  .charter-opt-prices > div {
+    min-width: 70px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .charter-opt-prices input {
+    width: 70px !important;
+    min-width: 70px !important;
+    font-size: 0.85rem !important;
+    padding: 4px 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Имя + иконка занимают всю строку */
+  .charter-opt-item > div:first-child {
+    display: none !important;
+  }
+
+  .charter-opt-item > div:nth-child(2) {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+
+  .charter-opt-name {
+    font-size: 0.82rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.3 !important;
+  }
+}
+/* ── end charter layout mobile ── */
+@media (max-width: 768px) {
+  .charter-opt-actions button {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+    min-width: 36px !important;
+    height: 32px !important;
+  }
+}
+
+/* ── Admin header buttons mobile ── */
+@media (max-width: 768px) {
+  .charter-admin-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .charter-admin-btns button {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+    flex: 1;
+    min-width: 100px;
+  }
+}
+/* ── end admin header buttons ── */
+
+/* ── Charter mobile fixes ── */
+@media (max-width: 768px) {
+
+  /* Карточка опции — колонка */
+  .charter-opt-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* Drag handle скрываем */
+  .charter-drag-handle {
+    display: none !important;
+  }
+
+  /* Имя опции */
+  .charter-opt-name {
+    white-space: normal !important;
+    word-break: break-word !important;
+    font-size: 0.88rem !important;
+  }
+
+  /* Нетто / Продажа — рядом в одну строку */
+  .charter-opt-prices {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .charter-opt-prices > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .charter-opt-prices input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Чекбокс + кнопки — в одну строку, чекбокс слева, кнопки справа */
+  .charter-opt-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(245,158,11,0.15) !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    padding-top: 6px !important;
+    margin-top: 0 !important;
+    gap: 8px !important;
+  }
+
+  /* Кнопки карандаш и корзина — компактные, рядом */
+  .charter-opt-actions > div:last-child {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    margin-left: auto !important;
+  }
+
+  .charter-opt-actions button {
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+    width: 36px !important;
+    height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .charter-opt-actions label {
+    font-size: 0.78rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+  }
+}
+/* ── end charter mobile ── */

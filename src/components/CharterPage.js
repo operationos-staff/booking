@@ -855,14 +855,14 @@ export default function CharterPage({ role }) {
 
             {/* --- PAGE: CALC (Master-Detail) --- */}
             {activeTab === 'calc' && (
-                <div className={styles.container}>
+                <div className={`${styles.container} charter-container-mobile`}>
                     {/* SIDEBAR */}
-                    <aside className={styles.sidebar}>
+                    <aside className={`${styles.sidebar} charter-sidebar-mobile`}>
                         <div className={styles.panelHeader}>
                             <div className={styles.panelTitle}><span>📍</span> Чартерные маршруты</div>
                             <input type="text" className={styles.searchInput} placeholder="Поиск (из 50+ маршрутов)..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
-                        <div className={styles.tourList}>
+                        <div className={`${styles.tourList} charter-tourlist-mobile`}>
                             {filteredTours.length === 0 ? (
                                 <div style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>
                             ) : (() => {
@@ -954,7 +954,7 @@ export default function CharterPage({ role }) {
                     </aside>
 
                     {/* MAIN PANEL */}
-                    <main className={styles.mainPanel}>
+                    <main className={`${styles.mainPanel} charter-main-mobile`}>
                         {!sTour ? (
                             <div className={styles.emptyState}>
                                 <div className={styles.emptyStateIco}>🚤</div>
@@ -1268,7 +1268,7 @@ export default function CharterPage({ role }) {
                                         const isEdited = !!unsavedItems[i.id];
 
                                         return (
-                                            <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(245,158,11,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
+                                            <div key={i.id} className="charter-opt-item" style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(245,158,11,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
                                                 draggable={dragMode === i.id}
                                                 onDragStart={(e) => {
                                                     const globalIdx = db.items.findIndex(x => x.id === i.id);
@@ -1287,18 +1287,18 @@ export default function CharterPage({ role }) {
                                                     setDragIIdx(null);
                                                 }}
                                             >
-                                                <div onMouseEnter={() => setDragMode(i.id)} onMouseLeave={() => setDragMode(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', cursor: 'grab', opacity: 0.4, padding: '5px' }}>⋮⋮</div>
+                                                <div className="charter-drag-handle" onMouseEnter={() => setDragMode(i.id)} onMouseLeave={() => setDragMode(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', cursor: 'grab', opacity: 0.4, padding: '5px' }}>⋮⋮</div>
 
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                                                     
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                         <span style={{ fontSize: '1.2rem' }}>{i.icon}</span>
-                                                        <span style={{ lineHeight: 1.2, fontWeight: 700, fontSize: '1rem', color: '#e5e5e5' }}>{i.name}</span>
+                                                        <span className="charter-opt-name" style={{ lineHeight: 1.2, fontWeight: 700, fontSize: '1rem', color: '#e5e5e5' }}>{i.name}</span>
                                                         <span className={styles.optBadge}>{i.type === 'per_pax' ? 'Чел' : 'Шт'}</span>
                                                     </div>
                                                 </div>
 
-                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
+                                                <div className="charter-opt-prices" style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '80px' }}>
                                                         <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто ฿</div>
                                                         <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(239,68,68,0.5)', background: 'rgba(239,68,68,0.1)', color: '#fca5a5', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} title="Закупочная цена (Нетто)" />
@@ -1312,7 +1312,7 @@ export default function CharterPage({ role }) {
                                                     </div>
                                                 </div>
 
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(245,158,11,0.15)' }}>
+                                                <div className="charter-opt-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(245,158,11,0.15)' }}>
                                                     <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', cursor: 'pointer', color: currentMgr ? '#f59e0b' : '#525252', fontWeight: 600 }}>
                                                         <input type="checkbox" checked={currentMgr} onChange={e => updItemInline(i.id, 'mgr', e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#f59e0b' }} />
                                                         Видно Менеджеру
