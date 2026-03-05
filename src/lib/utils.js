@@ -91,73 +91,251 @@ export function buildClientData({ calc, isBk, client }) {
   return { ...client, items, total: calc.totalClient, gen: genDate() }
 }
 
-// ─── PRINT ───────────────────────────────────────────────────
+// ─── DARK AMBER PDF STYLES ───────────────────────────────────
+const PDF_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111; }
+  .pdf-wrap {
+    font-family: 'Inter', sans-serif;
+    background: #111111;
+    color: #e5e5e5;
+    min-height: 100vh;
+    padding: 32px;
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 18px;
+    border-bottom: 2px solid #f59e0b;
+    margin-bottom: 24px;
+  }
+  .pdf-logo-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #f59e0b;
+    letter-spacing: -0.5px;
+  }
+  .pdf-logo-sub {
+    font-size: 11px;
+    color: #737373;
+    margin-top: 3px;
+    font-weight: 500;
+  }
+  .pdf-doc-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e5e5e5;
+    text-align: right;
+  }
+  .pdf-doc-date {
+    font-size: 10px;
+    color: #737373;
+    margin-top: 3px;
+    text-align: right;
+  }
+  .pdf-client-box {
+    background: rgba(245,158,11,0.08);
+    border: 1.5px solid rgba(245,158,11,0.25);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .pdf-client-label {
+    font-size: 8px;
+    font-weight: 700;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .pdf-client-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e5e5e5;
+  }
+  .pdf-route-card {
+    background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.1));
+    border: 1.5px solid rgba(245,158,11,0.4);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+  .pdf-route-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+    opacity: 0.8;
+  }
+  .pdf-route-name {
+    font-size: 17px;
+    font-weight: 800;
+    color: #fbbf24;
+  }
+  .pdf-section-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .pdf-items-box {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid rgba(245,158,11,0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .pdf-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(245,158,11,0.08);
+  }
+  .pdf-item:last-child { border-bottom: none; }
+  .pdf-item-icon {
+    font-size: 16px;
+    margin-right: 14px;
+    min-width: 22px;
+  }
+  .pdf-item-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e5e5e5;
+    flex: 1;
+  }
+  .pdf-item-meta {
+    font-size: 11px;
+    color: #f59e0b;
+    font-weight: 600;
+    margin-left: 10px;
+  }
+  .pdf-total-box {
+    background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.08));
+    border: 2px solid rgba(245,158,11,0.5);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .pdf-total-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .pdf-total-sub {
+    font-size: 10px;
+    color: #737373;
+    margin-top: 4px;
+  }
+  .pdf-total-amount {
+    font-size: 36px;
+    font-weight: 900;
+    color: #f59e0b;
+    letter-spacing: -1px;
+  }
+  .pdf-footer {
+    text-align: center;
+    font-size: 9px;
+    color: #525252;
+    letter-spacing: 0.3px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(245,158,11,0.1);
+  }
+  .pdf-wm {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='160'><text x='50%' y='50%' transform='rotate(-35 140 80)' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif' font-weight='900' font-size='18' fill='%23f59e0b' opacity='0.04'>ОСТРОВ СОКРОВИЩ</text></svg>");
+    background-repeat: repeat;
+  }
+  .pdf-content { position: relative; z-index: 1; }
+  @media print {
+    body { background: #111 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+`
+
+// ─── PRINT GROUP TOURS ───────────────────────────────────────
 export function doPrint(data) {
   if (!data) return
   const pkgs = data.items.filter(i => i.type !== 'opt')
   const opts = data.items.filter(i => i.type === 'opt')
 
   const allItems = [
-    ...pkgs.map(p => ({ icon: p.type === 'vip' ? '⭐' : '🚐', name: p.name })),
+    ...pkgs.map(p => ({ icon: p.type === 'vip' ? '⭐' : '🚐', name: p.name, meta: null })),
     ...opts.map(o => {
       const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', ')
-      return { icon: '🎯', name: o.name + (det ? ` (${det})` : '') }
+      return { icon: '🎯', name: o.name + (det ? ` (${det})` : ''), meta: null }
     })
   ]
 
-  // Create watermark grid (3x4)
-  const wm = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => {
-    const col = i % 3; const row = Math.floor(i / 3);
-    return `<div style="position:absolute;top:${8 + row * 25}%;left:${5 + col * 33}%;transform:translate(-50%,-50%) rotate(-35deg);font-size:32px;font-weight:900;color:rgba(15,76,117,0.05);white-space:nowrap;pointer-events:none;letter-spacing:2px;font-family:sans-serif;">ОСТРОВ СОКРОВИЩ</div>`
-  }).join('')
-
   const el = document.getElementById('print-area')
   if (!el) return
-  el.innerHTML = `<div style="font-family:sans-serif;padding:28px 32px;max-width:700px;margin:0 auto;color:#1E293B;position:relative;overflow:hidden;min-height:100vh">
-    ${wm}
-    <div style="position:relative;z-index:1">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:3px solid #0F4C75;margin-bottom:20px">
+
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PDF_STYLES}</style></head><body>
+  <div class="pdf-wrap">
+    <div class="pdf-wm"></div>
+    <div class="pdf-content">
+
+      <div class="pdf-header">
         <div>
-          <div style="font-size:22px;font-weight:900;color:#0F4C75;letter-spacing:-0.5px">🏝 Остров Сокровищ</div>
-          <div style="font-size:11px;color:#64748B;margin-top:2px;font-weight:500">Аренда яхт и катеров · Пхукет, Таиланд</div>
+          <div class="pdf-logo-title">🏝 Остров Сокровищ</div>
+          <div class="pdf-logo-sub">Аренда яхт и катеров · Пхукет, Таиланд</div>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:15px;font-weight:700;color:#1E293B">Смета тура</div>
-          <div style="font-size:10px;color:#64748B;margin-top:2px">${data.gen}</div>
+        <div>
+          <div class="pdf-doc-title">Смета тура</div>
+          <div class="pdf-doc-date">${data.gen}</div>
         </div>
       </div>
 
       ${(data.name || data.date || data.phone) ? `
-      <div style="background:#F0F5FA;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        ${data.name ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Клиент</div><div style="font-size:13px;font-weight:700">${data.name}</div></div>` : ''}
-        ${data.date ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Дата</div><div style="font-size:13px;font-weight:700">${fmtDate(data.date)}</div></div>` : ''}
-        ${data.phone ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Телефон</div><div style="font-size:13px;font-weight:700">${data.phone}</div></div>` : ''}
-        ${data.note ? `<div style="grid-column:1/-1"><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Примечание</div><div style="font-size:12px">${data.note}</div></div>` : ''}
+      <div class="pdf-client-box">
+        ${data.name ? `<div><div class="pdf-client-label">Клиент</div><div class="pdf-client-value">${data.name}</div></div>` : ''}
+        ${data.date ? `<div><div class="pdf-client-label">Дата</div><div class="pdf-client-value">${fmtDate(data.date)}</div></div>` : ''}
+        ${data.phone ? `<div><div class="pdf-client-label">Телефон</div><div class="pdf-client-value">${data.phone}</div></div>` : ''}
+        ${data.note ? `<div style="grid-column:1/-1"><div class="pdf-client-label">Примечание</div><div class="pdf-client-value" style="font-weight:500;font-size:12px">${data.note}</div></div>` : ''}
       </div>` : ''}
 
-      <div style="font-size:10px;font-weight:800;color:#0F4C75;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Что включено:</div>
-      <div style="background:#fff;border:1.5px solid #E2E8F0;border-radius:10px;overflow:hidden">
-        ${allItems.map((item, i) => `
-          <div style="display:flex;align-items:center;padding:11px 16px;${i < allItems.length - 1 ? 'border-bottom:1px solid #F1F5F9' : ''}">
-            <span style="font-size:16px;margin-right:12px;min-width:20px">${item.icon}</span>
-            <span style="font-size:13px;font-weight:600;color:#1E293B">${item.name}</span>
+      <div class="pdf-section-title">Что включено:</div>
+      <div class="pdf-items-box">
+        ${allItems.map(item => `
+          <div class="pdf-item">
+            <span class="pdf-item-icon">${item.icon}</span>
+            <span class="pdf-item-name">${item.name}</span>
           </div>
         `).join('')}
       </div>
 
-      <div style="margin-top:24px;background:#0F4C75;color:#fff;border-radius:10px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div class="pdf-total-box">
         <div>
-          <div style="font-size:11px;opacity:.85;font-weight:600;text-transform:uppercase;letter-spacing:.5px">ИТОГО К ОПЛАТЕ</div>
-          <div style="font-size:10px;opacity:.65;margin-top:3px">тайских бат (THB)</div>
+          <div class="pdf-total-label">Итого к оплате</div>
+          <div class="pdf-total-sub">тайских бат (THB)</div>
         </div>
-        <div style="font-size:32px;font-weight:900;letter-spacing:-1px">${fmt(data.total)} ฿</div>
+        <div class="pdf-total-amount">${fmt(data.total)} ฿</div>
       </div>
 
-      <div style="text-align:center;margin-top:20px;font-size:9px;color:#94a3b8;letter-spacing:.3px">
+      <div class="pdf-footer">
         Расчёт от ${data.gen} · Остров Сокровищ · phang-nga-tours.com
       </div>
     </div>
-  </div>`
+  </div>
+  </body></html>`
 
   document.body.classList.add('printing')
   const cleanup = () => {
@@ -174,50 +352,65 @@ export function doPrintCharter(data) {
   if (!data) return
   const el = document.getElementById('print-area')
   if (!el) return
-  el.innerHTML = `<div style="font-family:sans-serif;padding:20px;max-width:680px;margin:0 auto;color:#1E293B;position:relative;overflow:hidden">
-    
-    <!-- Водяной знак -->
-    <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;pointer-events:none;background-image:url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'250\\' height=\\'150\\'><text x=\\'50%\\' y=\\'50%\\' transform=\\'rotate(-35 125 75)\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\' font-family=\\'sans-serif\\' font-weight=\\'800\\' font-size=\\'16\\' fill=\\'%230F4C75\\' opacity=\\'0.1\\'>ОСТРОВ СОКРОВИЩ</text></svg>');background-repeat:repeat;"></div>
 
-    <div style="position:relative;z-index:1">
-      <div style="display:flex;justify-content:space-between;padding-bottom:14px;border-bottom:2px solid #0F4C75;margin-bottom:16px">
-        <div><div style="font-size:18px;font-weight:800;color:#0F4C75">🏝 Остров Сокровищ</div><div style="font-size:11px;color:#334155;font-weight:600">Увлекательные экскурсии. Пхукет</div></div>
-        <div style="text-align:right"><div style="font-size:16px;font-weight:700">Расчёт чартера</div><div style="font-size:10px;color:#64748B">${data.gen}</div></div>
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PDF_STYLES}</style></head><body>
+  <div class="pdf-wrap">
+    <div class="pdf-wm"></div>
+    <div class="pdf-content">
+
+      <div class="pdf-header">
+        <div>
+          <div class="pdf-logo-title">🏝 Остров Сокровищ</div>
+          <div class="pdf-logo-sub">Увлекательные экскурсии. Пхукет</div>
+        </div>
+        <div>
+          <div class="pdf-doc-title">Расчёт чартера</div>
+          <div class="pdf-doc-date">${data.gen}</div>
+        </div>
       </div>
 
-      <div style="background:#F0F5FA;border-radius:7px;padding:10px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:7px">
-        ${data.name ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase">Клиент</div><div style="font-size:12px;font-weight:700">${data.name}</div></div>` : ''}
-        ${data.date ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase">Дата</div><div style="font-size:12px;font-weight:700">${fmtDate(data.date)}</div></div>` : ''}
-        ${data.phone ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase">Телефон</div><div style="font-size:12px;font-weight:700">${data.phone}</div></div>` : ''}
-        ${data.pax ? `<div><div style="font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase">Гостей</div><div style="font-size:12px;font-weight:700">${data.pax}</div></div>` : ''}
+      ${(data.name || data.date || data.phone || data.pax) ? `
+      <div class="pdf-client-box">
+        ${data.name ? `<div><div class="pdf-client-label">Клиент</div><div class="pdf-client-value">${data.name}</div></div>` : ''}
+        ${data.date ? `<div><div class="pdf-client-label">Дата</div><div class="pdf-client-value">${fmtDate(data.date)}</div></div>` : ''}
+        ${data.phone ? `<div><div class="pdf-client-label">Телефон</div><div class="pdf-client-value">${data.phone}</div></div>` : ''}
+        ${data.pax ? `<div><div class="pdf-client-label">Гостей</div><div class="pdf-client-value">${data.pax}</div></div>` : ''}
+      </div>` : ''}
+
+      <div class="pdf-route-card">
+        <div class="pdf-route-label">🚤 Маршрут</div>
+        <div class="pdf-route-name">${data.tourName}</div>
       </div>
 
-      <div style="background:#0F4C75;color:#fff;border-radius:8px;padding:12px 14px;margin-bottom:12px">
-        <div style="font-size:9px;opacity:.8;text-transform:uppercase">🚤 МАРШРУТ</div>
-        <div style="font-weight:800;font-size:16px;margin-top:4px">${data.tourName}</div>
-      </div>
-
-      <div style="font-size:12px;font-weight:700;margin:16px 0 8px;color:#0F4C75;text-transform:uppercase">Что включено:</div>
-      <div style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:12px">
-        <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #F1F5F9">
-          <span style="font-size:14px;margin-right:8px">🚤</span>
-          <span style="font-size:13px;font-weight:600">Аренда катера по маршруту</span>
+      <div class="pdf-section-title">Что включено:</div>
+      <div class="pdf-items-box">
+        <div class="pdf-item">
+          <span class="pdf-item-icon">🚤</span>
+          <span class="pdf-item-name">Аренда катера по маршруту</span>
         </div>
         ${data.items.map(o => `
-          <div style="display:flex;align-items:center;padding:8px 0;${o !== data.items[data.items.length - 1] ? 'border-bottom:1px solid #F1F5F9' : ''}">
-            <span style="font-size:14px;margin-right:8px">${o.icon}</span>
-            <span style="font-size:13px;font-weight:600">${o.name}</span>
-            ${o.meta ? `<span style="font-size:11px;color:#64748B;margin-left:8px">(${o.meta.split(' × ')[0].trim()})</span>` : ''}
+          <div class="pdf-item">
+            <span class="pdf-item-icon">${o.icon}</span>
+            <span class="pdf-item-name">${o.name}</span>
+            ${o.meta ? `<span class="pdf-item-meta">${o.meta.split(' × ')[0].trim()}</span>` : ''}
           </div>
         `).join('')}
       </div>
 
-      <div style="margin-top:20px;background:#0F4C75;color:#fff;border-radius:8px;padding:16px;display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-size:12px;opacity:.9">ИТОГО К ОПЛАТЕ</div><div style="font-size:10px;opacity:.7">тайских бат (THB)</div></div>
-        <div style="font-size:28px;font-weight:800">${fmt(data.total)} ฿</div>
+      <div class="pdf-total-box">
+        <div>
+          <div class="pdf-total-label">Итого к оплате</div>
+          <div class="pdf-total-sub">тайских бат (THB)</div>
+        </div>
+        <div class="pdf-total-amount">${fmt(data.total)} ฿</div>
+      </div>
+
+      <div class="pdf-footer">
+        Расчёт от ${data.gen} · Остров Сокровищ · phang-nga-tours.com
       </div>
     </div>
-  </div>`
+  </div>
+  </body></html>`
 
   document.body.classList.add('printing')
   const cleanup = () => {

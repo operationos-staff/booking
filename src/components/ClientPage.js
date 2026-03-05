@@ -14,8 +14,14 @@ export default function ClientPage({ data }) {
   const opts = (data.items || []).filter(i => i.type === 'opt')
 
   return (
-    <div className="cp" style={{ position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, pointerEvents: 'none', backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="250" height="150"><text x="50%" y="50%" transform="rotate(-35 125 75)" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-weight="800" font-size="16" fill="%230F4C75" opacity="0.1">ОСТРОВ СОКРОВИЩ</text></svg>')`, backgroundRepeat: 'repeat' }}></div>
+    <div className="cp" style={{ position: 'relative' }}>
+      {/* Водяной знак */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="250" height="150"><text x="50%" y="50%" transform="rotate(-35 125 75)" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-weight="800" font-size="16" fill="%23f59e0b" opacity="0.06">ОСТРОВ СОКРОВИЩ</text></svg>')`,
+        backgroundRepeat: 'repeat',
+      }} />
+
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="cp-hero">
           <div style={{ fontSize: '36px' }}>🏝</div>
@@ -23,40 +29,41 @@ export default function ClientPage({ data }) {
           <p>Увлекательные экскурсии. Пхукет</p>
         </div>
 
-        {(data.name || data.date) && (
+        {(data.name || data.date || data.phone) && (
           <div className="card">
             <div className="card-b" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {data.name && <div><div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '2px' }}>Клиент</div><div style={{ fontWeight: 700 }}>{data.name}</div></div>}
-              {data.date && <div><div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '2px' }}>Дата</div><div style={{ fontWeight: 700 }}>{fmtDate(data.date)}</div></div>}
+              {data.name  && <div><div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '2px' }}>Клиент</div><div style={{ fontWeight: 700 }}>{data.name}</div></div>}
+              {data.date  && <div><div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '2px' }}>Дата</div><div style={{ fontWeight: 700 }}>{fmtDate(data.date)}</div></div>}
               {data.phone && <div><div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '2px' }}>Телефон</div><div style={{ fontWeight: 700 }}>{data.phone}</div></div>}
             </div>
           </div>
         )}
 
         {data.tourName && (
-          <div className="card" style={{ background: '#0F4C75', color: '#fff', marginBottom: '16px' }}>
-            <div className="card-b" style={{ padding: '12px 14px' }}>
-              <div style={{ fontSize: '9px', opacity: 0.8, textTransform: 'uppercase' }}>🚤 МАРШРУТ</div>
-              <div style={{ fontWeight: 800, fontSize: '16px', marginTop: '4px' }}>{data.tourName}</div>
+          <div className="card" style={{
+            background: 'linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.08))',
+            borderColor: 'rgba(245,158,11,0.4)',
+            boxShadow: '0 0 24px rgba(245,158,11,0.1)',
+          }}>
+            <div className="card-b" style={{ padding: '12px 16px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--txl)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-mono)' }}>🚤 МАРШРУТ</div>
+              <div style={{ fontWeight: 800, fontSize: '16px', marginTop: '5px', color: 'var(--primary)' }}>{data.tourName}</div>
             </div>
           </div>
         )}
 
         <div className="card">
           <div className="card-b">
-            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '12px' }}>📋 Что включено</div>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>📋 Что включено</div>
 
             {data.tourName && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--brd)' }}>
                 <span style={{ fontSize: '18px' }}>🚤</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>Аренда катера по маршруту</div>
-                </div>
+                <div style={{ fontWeight: 700, fontSize: '14px' }}>Аренда катера по маршруту</div>
               </div>
             )}
 
             {data.tourName ? (
-              // Charter items rendering
               (data.items || []).map((o, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: i < data.items.length - 1 ? '1px solid var(--brd)' : 'none' }}>
                   <span style={{ fontSize: '18px' }}>{o.icon || '🎯'}</span>
@@ -67,7 +74,6 @@ export default function ClientPage({ data }) {
                 </div>
               ))
             ) : (
-              // Group Tour items rendering
               <>
                 {pkgs.map((p, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--brd)' }}>
@@ -104,13 +110,13 @@ export default function ClientPage({ data }) {
         {data.note && (
           <div className="card">
             <div className="card-b">
-              <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '3px' }}>📝 Примечание</div>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: '3px' }}>📝 Примечание</div>
               <div style={{ fontSize: '12px' }}>{data.note}</div>
             </div>
           </div>
         )}
 
-        <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--txl)', marginTop: '16px', paddingBottom: '24px' }}>
+        <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--txl)', marginTop: '16px', paddingBottom: '24px', fontFamily: 'var(--font-mono)' }}>
           {data.gen ? 'Расчёт от ' + data.gen + ' · ' : ''}Остров Сокровищ · Пхукет
         </div>
       </div>

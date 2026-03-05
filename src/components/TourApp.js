@@ -6,6 +6,7 @@ import { loadFromLS, saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
 
+import AuroraBackground from './AuroraBackground'
 import LoginPage from './LoginPage'
 import Header from './Header'
 import CalculatorPage from './CalculatorPage'
@@ -24,25 +25,16 @@ export default function TourApp() {
 
   const { toasts, toast } = useToast()
 
-  // ── LOAD DB DATA ─────────────────────────────────────────────
   const loadAppData = async () => {
     try {
-      const [dbPkgs, dbOpts] = await Promise.all([
-        loadPackagesFromDB(),
-        loadOptionsFromDB(),
-      ])
-
+      const [dbPkgs, dbOpts] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB()])
       const mergeById = (source, defaults) => {
-        if (!source || !source.length) return defaults;
-
-        // Deduplicate standard packages that got random UUIDs from Supabase
-        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id));
-
-        const currentIds = new Set(cleanSource.map(item => String(item.id)));
-        const missing = defaults.filter(d => !currentIds.has(String(d.id)));
-        return [...cleanSource, ...missing];
+        if (!source || !source.length) return defaults
+        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id))
+        const currentIds = new Set(cleanSource.map(item => String(item.id)))
+        const missing = defaults.filter(d => !currentIds.has(String(d.id)))
+        return [...cleanSource, ...missing]
       }
-
       setPackages(mergeById(dbPkgs, DEF_PACKAGES))
       const finalOpts = mergeById(dbOpts, DEF_OPTIONS)
       finalOpts.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
@@ -52,155 +44,106 @@ export default function TourApp() {
     }
   }
 
-  // ── INIT ─────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
-      // 1. LocalStorage fallback
       const ls = loadFromLS()
-
       const mergeById = (source, defaults) => {
-        if (!source || !source.length) return defaults;
-
-        // Deduplicate standard packages that got random UUIDs
-        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id));
-
-        const currentIds = new Set(cleanSource.map(item => String(item.id)));
-        const missing = defaults.filter(d => !currentIds.has(String(d.id)));
-        return [...cleanSource, ...missing];
+        if (!source || !source.length) return defaults
+        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id))
+        const currentIds = new Set(cleanSource.map(item => String(item.id)))
+        const missing = defaults.filter(d => !currentIds.has(String(d.id)))
+        return [...cleanSource, ...missing]
       }
-
       if (ls.packages?.length) {
-        const mergedPkgs = mergeById(ls.packages, DEF_PACKAGES);
+        const mergedPkgs = mergeById(ls.packages, DEF_PACKAGES)
         setPackages(mergedPkgs)
         saveToLS({ packages: mergedPkgs, options: ls.options || DEF_OPTIONS })
       }
       if (ls.options?.length) {
-        const sortedOpts = [...ls.options].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
-        setOptions(sortedOpts)
+        setOptions([...ls.options].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
       } else {
-        const sortedDefs = [...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
-        setOptions(sortedDefs)
+        setOptions([...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
       }
 
-      // 2. Client link ?tour=...
       const params = new URLSearchParams(window.location.search)
       const tourId = params.get('tour')
       if (tourId) {
-        // UUID from Supabase
         if (/^[0-9a-f-]{36}$/i.test(tourId)) {
           const calc = await loadCalculation(tourId)
-          if (calc?.payload) {
-            setClientData(calc.payload)
-            setPage('client')
-            setReady(true)
-            return
-          }
+          if (calc?.payload) { setClientData(calc.payload); setPage('client'); setReady(true); return }
         }
-        // Legacy base64
         try {
           const legacy = JSON.parse(decodeURIComponent(atob(tourId)))
-          setClientData(legacy)
-          setPage('client')
-          setReady(true)
-          return
+          setClientData(legacy); setPage('client'); setReady(true); return
         } catch { }
       }
 
-      // 3. Restore Supabase session
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
           const r = await fetchUserRole(session.user.id)
-          if (r) {
-            setUser(session.user)
-            setRole(r)
-            await loadAppData()
-          } else {
-            await supabase.auth.signOut()
-          }
+          if (r) { setUser(session.user); setRole(r); await loadAppData() }
+          else await supabase.auth.signOut()
         }
-      } catch (e) {
-        console.warn('Session restore failed:', e.message)
-      }
+      } catch (e) { console.warn('Session restore failed:', e.message) }
 
       setReady(true)
     }
-
     init()
   }, []) // eslint-disable-line
 
-  // ── LOGIN ─────────────────────────────────────────────────────
   const handleLogin = async (u, r) => {
-    setUser(u)
-    setRole(r)
-    await loadAppData()
+    setUser(u); setRole(r); await loadAppData()
     toast('Вход выполнен: ' + ({ manager: 'Менеджер', booking: 'Операционный отдел' }[r] || r), 'ok')
   }
 
-  // ── LOGOUT ────────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setUser(null)
-    setRole(null)
-    setPage('calculator')
-    // Reset to defaults so next user sees clean state
+    setUser(null); setRole(null); setPage('calculator')
     setPackages(JSON.parse(JSON.stringify(DEF_PACKAGES)))
     setOptions(JSON.parse(JSON.stringify(DEF_OPTIONS)))
     toast('Вы вышли')
   }
 
-  // ── LOADING SCREEN ────────────────────────────────────────────
   if (!ready) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg,#0F4C75,#1B6CA8)',
-      }}>
-        <div style={{ color: '#fff', fontSize: '16px', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}>
-          🌴 Загрузка...
+      <>
+        <AuroraBackground />
+        <div style={{
+          position: 'relative', zIndex: 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          minHeight: '100vh',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '40px', filter: 'drop-shadow(0 0 16px rgba(245,158,11,0.5))' }}>🌴</div>
+            <div style={{
+              color: '#f59e0b', fontSize: '12px',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}>
+              Загрузка...
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   return (
     <>
-      {/* Login overlay — shows when no user and not on client page */}
-      {!user && page !== 'client' && (
-        <LoginPage onLogin={handleLogin} />
-      )}
-
-      {/* Header — always visible */}
+      <AuroraBackground />
+      {!user && page !== 'client' && <LoginPage onLogin={handleLogin} />}
       <Header role={role} page={page} onPage={setPage} onLogout={handleLogout} />
-
-      {/* Pages */}
       {page === 'calculator' && user && (
         <CalculatorPage
-          packages={packages}
-          options={options}
-          role={role}
-          user={user}
-          toast={toast}
+          packages={packages} options={options} role={role} user={user} toast={toast}
           onPackagesChange={p => { setPackages(p); saveToLS({ packages: p, options }) }}
           onOptionsChange={o => { setOptions(o); saveToLS({ packages, options: o }) }}
         />
       )}
-
-
-
-      {page === 'client' && (
-        <ClientPage data={clientData} />
-      )}
-
-      {page === 'charter' && user && (
-        <CharterPage role={role} />
-      )}
-
-      {/* Print target — populated by doPrint() in utils.js */}
+      {page === 'client'  && <ClientPage data={clientData} />}
+      {page === 'charter' && user && <CharterPage role={role} />}
       <div id="print-area" />
-
-      {/* Toast notifications */}
       <ToastContainer toasts={toasts} />
     </>
   )
