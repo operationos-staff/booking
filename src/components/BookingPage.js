@@ -81,14 +81,14 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
             <table className="pe" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr>
                 <th>#</th><th>Тип</th><th>Часы</th><th>Название</th>
-                <th style={{ background: '#FEF3C7', color: '#92400E' }}>Цена менедж. ฿</th>
+                <th style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>Цена менедж. ฿</th>
                 <th>Нетто ฿</th><th>Прим.</th><th>Нетто детали</th><th>Доп.час</th>
               </tr></thead>
               <tbody>
                 {packages.map((p, i) => (
                   <tr key={p.id}>
                     <td style={{ width: '30px', textAlign: 'center', color: 'var(--txl)', fontSize: '9px' }}>{String(p.id)}</td>
-                    <td style={{ width: '60px' }}>
+                    <td style={{ width: '90px' }}>
                       <select value={p.type} onChange={e => updPkg(i, 'type', e.target.value)}>
                         <option value="base">base</option>
                         <option value="vip">vip</option>
@@ -96,8 +96,8 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                     </td>
                     <td style={{ width: '50px' }}><input type="number" value={p.hours} onChange={e => updPkg(i, 'hours', parseInt(e.target.value) || 0)} /></td>
                     <td><input type="text" value={p.name} onChange={e => updPkg(i, 'name', e.target.value)} /></td>
-                    <td style={{ width: '90px', background: '#FEF3C7' }}>
-                      <input type="number" value={p.mgrPrice} style={{ borderColor: '#FDE68A', color: '#92400E' }}
+                    <td style={{ width: '90px', background: 'rgba(245,158,11,0.1)' }}>
+                      <input type="number" value={p.mgrPrice} style={{ borderColor: 'rgba(245,158,11,0.5)', color: '#fbbf24', background: 'rgba(245,158,11,0.08)', fontWeight: 800 }}
                         onChange={e => updPkg(i, 'mgrPrice', parseInt(e.target.value) || 0)} />
                     </td>
                     <td style={{ width: '90px' }}><input type="number" value={p.nettoPrice} onChange={e => updPkg(i, 'nettoPrice', parseInt(e.target.value) || 0)} /></td>
@@ -123,8 +123,8 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
             <table className="pe" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr>
                 <th>#</th><th>Название</th>
-                <th style={{ background: '#FEF3C7', color: '#92400E' }}>Менедж. взр.</th>
-                <th style={{ background: '#FEF3C7', color: '#92400E' }}>Менедж. дет.</th>
+                <th style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>Менедж. взр.</th>
+                <th style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>Менедж. дет.</th>
                 <th>Нетто взр.</th><th>Нетто дет.</th><th>Категория</th><th>Только 8ч</th>
               </tr></thead>
               <tbody>
@@ -132,8 +132,8 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                   <tr key={o.id}>
                     <td style={{ width: '28px', textAlign: 'center', color: 'var(--txl)', fontSize: '9px' }}>{String(o.id)}</td>
                     <td><input type="text" value={o.name} onChange={e => updOpt(i, 'name', e.target.value)} /></td>
-                    <td style={{ width: '70px', background: '#FEF3C7' }}><input type="number" value={o.mgrA} style={{ borderColor: '#FDE68A', color: '#92400E' }} onChange={e => updOpt(i, 'mgrA', parseInt(e.target.value) || 0)} /></td>
-                    <td style={{ width: '70px', background: '#FEF3C7' }}><input type="number" value={o.mgrC} style={{ borderColor: '#FDE68A', color: '#92400E' }} onChange={e => updOpt(i, 'mgrC', parseInt(e.target.value) || 0)} /></td>
+                    <td style={{ width: '70px', background: 'rgba(245,158,11,0.1)' }}><input type="number" value={o.mgrA} style={{ borderColor: 'rgba(245,158,11,0.5)', color: '#fbbf24', background: 'rgba(245,158,11,0.08)', fontWeight: 800 }} onChange={e => updOpt(i, 'mgrA', parseInt(e.target.value) || 0)} /></td>
+                    <td style={{ width: '70px', background: 'rgba(245,158,11,0.1)' }}><input type="number" value={o.mgrC} style={{ borderColor: 'rgba(245,158,11,0.5)', color: '#fbbf24', background: 'rgba(245,158,11,0.08)', fontWeight: 800 }} onChange={e => updOpt(i, 'mgrC', parseInt(e.target.value) || 0)} /></td>
                     <td style={{ width: '70px' }}><input type="number" value={o.netA} onChange={e => updOpt(i, 'netA', parseInt(e.target.value) || 0)} /></td>
                     <td style={{ width: '70px' }}><input type="number" value={o.netC} onChange={e => updOpt(i, 'netC', parseInt(e.target.value) || 0)} /></td>
                     <td style={{ width: '130px' }}>

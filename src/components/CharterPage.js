@@ -1126,7 +1126,7 @@ export default function CharterPage({ role }) {
 
             {/* --- PAGE: ADMIN --- */}
             {activeTab === 'admin' && isAdmin && (
-                <div style={{ padding: '30px 20px', background: '#f8fafc', minHeight: 'calc(100vh - 120px)' }}>
+                <div style={{ padding: '30px 20px', background: 'var(--bg)', minHeight: 'calc(100vh - 120px)' }}>
                     <div className={styles.adminView}>
 
                         <div className={styles.card} style={{ borderColor: 'var(--warn)' }}>
@@ -1143,7 +1143,7 @@ export default function CharterPage({ role }) {
                                     <tbody>
                                         {db.tours.map((t, idx) => (
                                             <tr key={t.id}
-                                                style={{ background: t.color || '', cursor: dragMode === t.id ? 'move' : 'default' }}
+                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
                                                 draggable={dragMode === t.id}
                                                 onDragStart={(e) => {
                                                     setDragTIdx(idx);
@@ -1185,9 +1185,9 @@ export default function CharterPage({ role }) {
                                 <button
                                     onClick={() => setAdminSelTour('ALL')}
                                     style={{
-                                        background: adminSelTour === 'ALL' ? '#fde047' : '#fff',
-                                        color: adminSelTour === 'ALL' ? '#b45309' : '#0f4c75',
-                                        border: adminSelTour === 'ALL' ? '1px solid #facc15' : '1px solid #cbd5e1',
+                                        background: adminSelTour === 'ALL' ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.04)',
+                                        color: adminSelTour === 'ALL' ? '#fbbf24' : '#a3a3a3',
+                                        border: adminSelTour === 'ALL' ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(255,255,255,0.08)',
                                         padding: '8px 16px',
                                         borderRadius: '8px',
                                         fontWeight: 700,
@@ -1226,7 +1226,7 @@ export default function CharterPage({ role }) {
 
                             <div className={styles.optList} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
-                                    <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: '#fff', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>Нет доплат</div>
+                                    <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>Нет доплат</div>
                                 ) : (
                                     db.items.filter(i => i.tId === adminSelTour).map(i => {
                                         const currentNet = unsavedItems[i.id]?.net ?? i.net;
@@ -1235,7 +1235,7 @@ export default function CharterPage({ role }) {
                                         const isEdited = !!unsavedItems[i.id];
 
                                         return (
-                                            <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? '#fefce8' : '#fff', border: isEdited ? '1px solid #fde047' : '1px solid #e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
+                                            <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(245,158,11,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
                                                 draggable={dragMode === i.id}
                                                 onDragStart={(e) => {
                                                     const globalIdx = db.items.findIndex(x => x.id === i.id);
@@ -1257,10 +1257,10 @@ export default function CharterPage({ role }) {
                                                 <div onMouseEnter={() => setDragMode(i.id)} onMouseLeave={() => setDragMode(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', cursor: 'grab', opacity: 0.4, padding: '5px' }}>⋮⋮</div>
 
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-                                                    <input type="checkbox" style={{ width: '20px', height: '20px', accentColor: '#d4af37', flexShrink: 0 }} disabled={true} />
+                                                    
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                         <span style={{ fontSize: '1.2rem' }}>{i.icon}</span>
-                                                        <span style={{ lineHeight: 1.2, fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>{i.name}</span>
+                                                        <span style={{ lineHeight: 1.2, fontWeight: 700, fontSize: '1rem', color: '#e5e5e5' }}>{i.name}</span>
                                                         <span className={styles.optBadge}>{i.type === 'per_pax' ? 'Чел' : 'Шт'}</span>
                                                     </div>
                                                 </div>
@@ -1268,20 +1268,20 @@ export default function CharterPage({ role }) {
                                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '80px' }}>
                                                         <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто ฿</div>
-                                                        <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: '#fca5a5', background: '#fef2f2', color: '#dc2626', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} title="Закупочная цена (Нетто)" />
+                                                        <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(239,68,68,0.5)', background: 'rgba(239,68,68,0.1)', color: '#fca5a5', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} title="Закупочная цена (Нетто)" />
                                                     </div>
-                                                    <div style={{ fontSize: '1.2rem', color: '#cbd5e1', padding: '0 4px', paddingTop: '14px' }}>/</div>
+                                                    <div style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', padding: '0 4px', paddingTop: '14px' }}>/</div>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '80px' }}>
                                                         <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа ฿</div>
-                                                        <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: '#6ee7b7', background: '#ecfdf5', color: '#059669', textAlign: 'left', fontWeight: 800 }} value={currentSell === 0 ? '' : currentSell} placeholder="0" onChange={(e) => {
+                                                        <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(16,185,129,0.5)', background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', textAlign: 'left', fontWeight: 800 }} value={currentSell === 0 ? '' : currentSell} placeholder="0" onChange={(e) => {
                                                             updItemInline(i.id, 'sell', e.target.value);
                                                         }} title="Розничная цена для клиента" />
                                                     </div>
                                                 </div>
 
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid #e2e8f0' }}>
-                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', cursor: 'pointer', color: currentMgr ? '#0f4c75' : '#94a3b8', fontWeight: 600 }}>
-                                                        <input type="checkbox" checked={currentMgr} onChange={e => updItemInline(i.id, 'mgr', e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0f4c75' }} />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(245,158,11,0.15)' }}>
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', cursor: 'pointer', color: currentMgr ? '#f59e0b' : '#525252', fontWeight: 600 }}>
+                                                        <input type="checkbox" checked={currentMgr} onChange={e => updItemInline(i.id, 'mgr', e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#f59e0b' }} />
                                                         Видно Менеджеру
                                                     </label>
                                                     <div style={{ display: 'flex', gap: '4px', marginLeft: '10px' }}>
