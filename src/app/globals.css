@@ -1252,3 +1252,9 @@ select option {
   background: #1c1407 !important;
   color: #e5e5e5 !important;
 }
+/* ── Login mobile fixes ── */
+@media (max-width: 480px) {
+  .login-orbit { display: none !important; }
+  .login-ticker { display: none !important; }
+  .login-card { padding: 24px 16px !important; }
+}
