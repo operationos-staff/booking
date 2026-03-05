@@ -20,9 +20,9 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
             {isBk ? (
               <>
                 <th style={{ textAlign: 'right' }}>Нетто В/Д</th>
-                <th className="mk" style={{ background: '#FEF3C7', color: '#92400E', textAlign: 'center' }}>+Нац.</th>
+                <th className="mk" style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', textAlign: 'center' }}>+Нац.</th>
                 <th style={{ textAlign: 'right' }}>Себест.</th>
-                <th className="fn" style={{ background: '#F0FDF4', color: '#065F46', textAlign: 'right' }}>Клиент</th>
+                <th className="fn" style={{ background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', textAlign: 'right' }}>Клиент</th>
               </>
             ) : (
               <>
@@ -47,7 +47,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
             const mgrSum = (q.a || 0) * o.mgrA + (q.c || 0) * o.mgrC
 
             return (
-              <tr key={o.id} style={{ background: has ? '#F0FDF4' : 'transparent', transition: 'all 0.2s' }}>
+              <tr key={o.id} style={{ background: has ? 'rgba(16,185,129,0.08)' : 'transparent', transition: 'all 0.2s' }}>
                 <td>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-dark)' }}>{o.name}</div>
                   <span style={{ background: bg, color: fg, display: 'inline-block', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 700, marginTop: '4px', textTransform: 'uppercase' }}>
@@ -75,14 +75,14 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
                         </div>
                       </div>
                     </td>
-                    <td style={{ background: '#FFFBEB', textAlign: 'center', verticalAlign: 'middle' }}>
+                    <td style={{ background: 'rgba(245,158,11,0.06)', textAlign: 'center', verticalAlign: 'middle' }}>
                       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                        <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700, fontSize: '0.85rem' }} value={mk.a || ''} placeholder="0" onChange={e => onSetMk(key, 'a', e.target.value)} />
-                        <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid #FDE68A', borderRadius: '6px', textAlign: 'center', outline: 'none', background: '#fff', color: '#92400E', fontWeight: 700, fontSize: '0.85rem' }} value={mk.c || ''} placeholder="0" onChange={e => onSetMk(key, 'c', e.target.value)} />
+                        <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid rgba(245,158,11,0.4)', borderRadius: '6px', textAlign: 'center', outline: 'none', background: 'rgba(245,158,11,0.1)', color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }} value={mk.a || ''} placeholder="0" onChange={e => onSetMk(key, 'a', e.target.value)} />
+                        <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid rgba(245,158,11,0.4)', borderRadius: '6px', textAlign: 'center', outline: 'none', background: 'rgba(245,158,11,0.1)', color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }} value={mk.c || ''} placeholder="0" onChange={e => onSetMk(key, 'c', e.target.value)} />
                       </div>
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, color: costSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{costSum > 0 ? fmt(costSum) : '—'}</td>
-                    <td style={{ background: '#F0FDF4', textAlign: 'right', fontWeight: 800, color: clientSum === 0 ? 'var(--muted)' : 'var(--ok)' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
+                    <td style={{ background: 'rgba(16,185,129,0.06)', textAlign: 'right', fontWeight: 800, color: clientSum === 0 ? 'var(--muted)' : 'var(--ok)' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
                   </>
                 ) : (
                   <>
@@ -202,7 +202,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                 padding: '10px 20px', borderRadius: '12px 12px 0 0', border: '1px solid var(--border)', borderBottom: 'none', background: activeTab === 'admin' ? 'var(--card)' : 'transparent', fontWeight: 800, color: activeTab === 'admin' ? 'var(--pri)' : 'var(--txl)', cursor: 'pointer', transition: 'all 0.2s', borderBottom: activeTab === 'admin' ? '2px solid var(--card)' : 'none', marginBottom: activeTab === 'admin' ? '-2px' : '0'
               }}
             >
-              ⚙️ Настройка туров
+              ⚙️ Настройка
             </button>
           </div>
         </div>
@@ -246,7 +246,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                 const isSel = String(selBase) === String(p.id)
                 const price = isBk ? p.nettoPrice : p.mgrPrice
                 return (
-                  <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)} style={isSel ? { borderColor: '#d4af37', background: '#fffcf0' } : {}}>
+                  <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)} style={isSel ? { borderColor: '#d4af37', background: 'rgba(212,175,55,0.12)' } : {}}>
                     <div className={styles.tourIcon}>⭐</div>
                     <div className={styles.tourInfo}>
                       <div className={styles.tourName}>{p.name}</div>
@@ -285,7 +285,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
 
                   {/* PACKAGE DETAILS FOR BOOKING (MARKUPS) */}
                   {isBk && (
-                    <div className={styles.card} style={{ borderColor: 'var(--warn)', background: '#fffcf0' }}>
+                    <div className={styles.card} style={{ borderColor: 'var(--warn)', background: 'rgba(245,158,11,0.06)' }}>
                       <div className={styles.cardTitle}><span>💰</span> Настройка наценки на пакет</div>
                       <div style={{ display: 'flex', gap: '16px' }}>
                         <div className={styles.fg} style={{ flex: 1 }}>
@@ -297,7 +297,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                           <input type="number" value={pkgMkP} min="0" max="200" onChange={e => setPkgMkP(parseInt(e.target.value) || 0)} />
                         </div>
                       </div>
-                      <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#92400E', padding: '12px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                      <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#fbbf24', padding: '12px', background: 'rgba(245,158,11,0.1)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.3)' }}>
                         <b>📊 Расклад базы:</b> {calc.act.nettoDetail} = <b>{fmt(calc.act.nettoPrice)} ฿</b><br />
                         РПЦ менеджера: {fmt(calc.act.mgrPrice)} ฿ (встроено {fmt(calc.act.mgrPrice - calc.act.nettoPrice)} ฿ маржи)
                       </div>
@@ -317,7 +317,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
 
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
                       {cats.map(c => (
-                        <button key={c} onClick={() => setCat(c)} className={`${styles.btn} ${styles.btnSm}`} style={{ background: cat === c ? 'var(--pri)' : '#fff', color: cat === c ? '#fff' : 'var(--txl)', border: '1px solid var(--border)', borderRadius: '20px' }}>
+                        <button key={c} onClick={() => setCat(c)} className={`${styles.btn} ${styles.btnSm}`} style={{ background: cat === c ? 'var(--pri)' : 'rgba(255,255,255,0.04)', color: cat === c ? '#000' : 'var(--txl)', border: '1px solid var(--border)', borderRadius: '20px' }}>
                           {c === 'all' ? '🌐 Все' : (CAT_ICONS[c] || '') + ' ' + c}
                         </button>
                       ))}
@@ -326,7 +326,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                     <OptionsTable options={filteredOpts} isBk={isBk} qty={qty} optMk={optMk} avIds={calc.avIds} onSetQ={setQ} onSetMk={setMk} />
 
                     {is5 && (
-                      <div style={{ marginTop: '16px', padding: '12px', background: '#FEF3C7', borderRadius: '10px', fontSize: '0.85rem', color: '#92400E', border: '1px solid #FDE68A' }}>
+                      <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(245,158,11,0.1)', borderRadius: '10px', fontSize: '0.85rem', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)' }}>
                         ⏱️ <b>Пакет 5 часов:</b> Некоторые опции исключены из списка. Выберите 8 часов для полного списка.
                       </div>
                     )}
@@ -408,7 +408,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
           {modal === 'text' && <TextModal data={getClientData()} onClose={() => setModal(null)} onToast={toast} />}
           {modal === 'link' && <LinkModal url={shareUrl} onClose={() => setModal(null)} onToast={toast} />}
           {modal === 'addOpt' && <AddOptModal onClose={() => setModal(null)} onToast={toast}
-            onAdd={f => toast('Для добавления используйте вкладку "Настройка туров"')} />}
+            onAdd={f => toast('Для добавления используйте вкладку "Настройка"')} />}
         </div>
       )}
     </div>

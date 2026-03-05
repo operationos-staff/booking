@@ -564,6 +564,7 @@ export default function CharterPage({ role }) {
     const [unsavedItems, setUnsavedItems] = useState({});
     const [editItem, setEditItem] = useState(null);
     const [adminSelTour, setAdminSelTour] = useState('');
+  const [routeDropOpen, setRouteDropOpen] = useState(false)
     const [showAllOpts, setShowAllOpts] = useState(false);
     const [collapsedBoatGroups, setCollapsedBoatGroups] = useState({
         '2 eng boat': true,
@@ -846,7 +847,7 @@ export default function CharterPage({ role }) {
                                 padding: '10px 20px', borderRadius: '12px 12px 0 0', border: '1px solid var(--border)', borderBottom: 'none', background: activeTab === 'admin' ? 'var(--card)' : 'transparent', fontWeight: 800, color: activeTab === 'admin' ? 'var(--pri)' : 'var(--txl)', cursor: 'pointer', transition: 'all 0.2s', borderBottom: activeTab === 'admin' ? '2px solid var(--card)' : 'none', marginBottom: activeTab === 'admin' ? '-2px' : '0'
                             }}
                         >
-                            ⚙️ Настройка чартеров
+                            ⚙️ Настройка
                         </button>
                     </div>
                 </div>
@@ -1344,12 +1345,32 @@ export default function CharterPage({ role }) {
 
                             {!collapseRouteOpts && (
                                 <>
-                                    <div className={styles.fg} style={{ maxWidth: '400px', marginBottom: '24px' }}>
-                                        <label>Выберите маршрут:</label>
-                                        <select value={adminSelTour === 'ALL' ? '' : adminSelTour} onChange={e => setAdminSelTour(e.target.value)}>
-                                            <option value="" disabled>--- Выберите маршрут ---</option>
-                                            {db.tours.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
-                                        </select>
+                                    <div style={{ maxWidth: '400px', marginBottom: '24px', position: 'relative' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', textTransform: 'uppercase' }}>Выберите маршрут:</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <div
+                                                onClick={() => setRouteDropOpen(p => !p)}
+                                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg2)', border: '1px solid var(--brd)', borderRadius: '10px', cursor: 'pointer', color: 'var(--txt)', fontSize: '14px', userSelect: 'none' }}
+                                            >
+                                                <span>{adminSelTour && adminSelTour !== 'ALL' ? (() => { const t = db.tours.find(t => t.id === adminSelTour); return t ? `${t.icon} ${t.name}` : '--- Выберите маршрут ---'; })() : '--- Выберите маршрут ---'}</span>
+                                                <span style={{ opacity: 0.5, transform: routeDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+                                            </div>
+                                            {routeDropOpen && (
+                                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 999, background: 'var(--bg2)', border: '1px solid var(--brd)', borderRadius: '10px', marginTop: '4px', maxHeight: '280px', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                                                    {db.tours.map(t => (
+                                                        <div
+                                                            key={t.id}
+                                                            onClick={() => { setAdminSelTour(t.id); setRouteDropOpen(false); }}
+                                                            style={{ padding: '10px 14px', cursor: 'pointer', color: adminSelTour === t.id ? 'var(--pri)' : 'var(--txt)', background: adminSelTour === t.id ? 'rgba(245,158,11,0.1)' : 'transparent', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
+                                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.07)'}
+                                                            onMouseLeave={e => e.currentTarget.style.background = adminSelTour === t.id ? 'rgba(245,158,11,0.1)' : 'transparent'}
+                                                        >
+                                                            {t.icon} {t.name}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>

@@ -25,9 +25,6 @@ export default function Header({ role, page, onPage, onLogout }) {
               <span style={{ fontSize: '11px', opacity: '.8' }}>📄 Расчёт тура</span>
             ) : role ? (
               <>
-                <span className={`rbadge ${role === 'booking' ? 'rb' : 'rm'}`}>
-                  {ROLE_ICONS[role]} {ROLE_NAMES[role]}
-                </span>
                 <button className={`btn-nav ${page === 'calculator' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculator')}>
                   🚐 Групповые туры
                 </button>
@@ -37,6 +34,9 @@ export default function Header({ role, page, onPage, onLogout }) {
                 <button className="btn-nav btn-nav-o" onClick={onLogout}>
                   🚪 Выйти
                 </button>
+                <span className={`rbadge ${role === 'booking' ? 'rb' : 'rm'}`} style={{ marginLeft: '4px' }}>
+                  {ROLE_ICONS[role]} {ROLE_NAMES[role]}
+                </span>
               </>
             ) : null}
           </nav>

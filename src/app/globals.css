@@ -313,21 +313,23 @@ body > *:not(.aurora-root) {
 }
 
 .btn-nav-o {
-  background: rgba(255,255,255,0.04);
-  color: var(--txm);
-  border-color: var(--brd2);
+  background: transparent;
+  color: rgba(255,255,255,0.35);
+  border-color: transparent;
+  font-weight: 400;
 }
 .btn-nav-o:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--txt);
-  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  border-color: rgba(255,255,255,0.08);
 }
 
 .btn-nav-a {
-  background: rgba(245,158,11,0.14);
-  color: var(--primary);
-  border-color: var(--brd-gold);
+  background: rgba(245,158,11,0.18);
+  color: #fbbf24;
+  border-color: rgba(245,158,11,0.5);
   font-weight: 700;
+  box-shadow: 0 0 12px rgba(245,158,11,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 .btn-nav-a:hover {
   background: rgba(245,158,11,0.22);
@@ -1103,6 +1105,7 @@ body > *:not(.aurora-root) {
 .mob-menu    { display: none; }
 .mob-bottom-nav { display: none; }
 
+@media (max-width: 768px) {
 .mob-burger {
   background: none; border: none; cursor: pointer;
   padding: 8px; display: flex; flex-direction: column;
@@ -1231,4 +1234,16 @@ body > *:not(.aurora-root) {
   .bk-tabs      { gap: 2px; }
   .bk-tab       { padding: 6px 10px; font-size: 11px; }
   .login-card   { padding: 28px 20px; }
+}
+}
+/* ── Select dropdown dark theme ── */
+select {
+  background: var(--bg2) !important;
+  color: var(--txt) !important;
+  border: 1px solid var(--brd) !important;
+  color-scheme: dark;
+}
+select option {
+  background: #1c1407 !important;
+  color: #e5e5e5 !important;
 }
