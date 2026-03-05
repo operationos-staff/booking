@@ -115,16 +115,19 @@ const PDF_STYLES = `
     margin-bottom: 24px;
   }
   .pdf-logo-title {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 900;
+    letter-spacing: 0.08em;
     color: #f59e0b;
-    letter-spacing: -0.5px;
+    text-transform: uppercase;
+    line-height: 1.2;
   }
   .pdf-logo-sub {
-    font-size: 11px;
-    color: #737373;
+    font-size: 9px;
+    color: #a3a3a3;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
     margin-top: 3px;
-    font-weight: 500;
   }
   .pdf-doc-title {
     font-size: 15px;
@@ -262,9 +265,11 @@ const PDF_STYLES = `
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='160'><text x='50%' y='50%' transform='rotate(-35 140 80)' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif' font-weight='900' font-size='18' fill='%23f59e0b' opacity='0.04'>ОСТРОВ СОКРОВИЩ</text></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='200'><text x='50%' y='38%' transform='rotate(-32 160 76)' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif' font-weight='900' font-size='22' fill='%23f59e0b' opacity='0.07'>ОСТРОВ СОКРОВИЩ</text><text x='50%' y='62%' transform='rotate(-32 160 124)' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif' font-weight='400' font-size='11' fill='%23f59e0b' opacity='0.05'>PORTAL OPERATION</text></svg>");
     background-repeat: repeat;
+    background-size: 320px 200px;
   }
+  /* pdf-wm-corner removed */
   .pdf-content { position: relative; z-index: 1; }
   @media print {
     body { background: #111 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -295,8 +300,8 @@ export function doPrint(data) {
 
       <div class="pdf-header">
         <div>
-          <div class="pdf-logo-title">🏝 Остров Сокровищ</div>
-          <div class="pdf-logo-sub">Аренда яхт и катеров · Пхукет, Таиланд</div>
+          <div class="pdf-logo-title">ОСТРОВ СОКРОВИЩ</div>
+          <div class="pdf-logo-sub">Премиальные экскурсии · Пхукет</div>
         </div>
         <div>
           <div class="pdf-doc-title">Смета тура</div>
@@ -360,8 +365,8 @@ export function doPrintCharter(data) {
 
       <div class="pdf-header">
         <div>
-          <div class="pdf-logo-title">🏝 Остров Сокровищ</div>
-          <div class="pdf-logo-sub">Увлекательные экскурсии. Пхукет</div>
+          <div class="pdf-logo-title">ОСТРОВ СОКРОВИЩ</div>
+          <div class="pdf-logo-sub">Премиальные экскурсии · Пхукет</div>
         </div>
         <div>
           <div class="pdf-doc-title">Расчёт чартера</div>

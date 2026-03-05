@@ -24,9 +24,9 @@ export default function ClientPage({ data }) {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="cp-hero">
-          <div style={{ fontSize: '36px' }}>🏝</div>
+
           <h1>Остров Сокровищ</h1>
-          <p>Увлекательные экскурсии. Пхукет</p>
+          <p>Премиальные экскурсии · Пхукет</p>
         </div>
 
         {(data.name || data.date || data.phone) && (
