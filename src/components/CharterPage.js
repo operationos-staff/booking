@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Portal.module.css';
+import { todayISO, doPrintCharter, clipCopy } from '@/lib/utils';
+import { saveCalculation } from '@/lib/db';
+import { LinkModal } from './Modals';
 
 const DEFAULT_DB = {
     tours: [
@@ -10,6 +13,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - Phi Phi Bamboo',
             net: 25000,
+            mgrPrice: 40000,
             sell: 40000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -19,6 +23,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - James Bond',
             net: 22000,
+            mgrPrice: 37000,
             sell: 37000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -28,6 +33,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - PP+JB',
             net: 35000,
+            mgrPrice: 50000,
             sell: 50000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -37,6 +43,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - PP+JB+Krabi',
             net: 35000,
+            mgrPrice: 50000,
             sell: 50000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -46,6 +53,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - PP+Krabi',
             net: 30000,
+            mgrPrice: 45000,
             sell: 45000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -55,6 +63,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - JB+ Krabi',
             net: 30000,
+            mgrPrice: 45000,
             sell: 45000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -64,6 +73,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - PP over',
             net: 35000,
+            mgrPrice: 50000,
             sell: 50000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -73,6 +83,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - Andaman Sunrise 2d',
             net: 45000,
+            mgrPrice: 60000,
             sell: 60000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -82,6 +93,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '2 eng boat - Racha',
             net: 22000,
+            mgrPrice: 37000,
             sell: 37000,
             color: '#fef08a',
             bType: '2 eng boat'
@@ -91,6 +103,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - Phi Phi Bamboo',
             net: 32000,
+            mgrPrice: 47000,
             sell: 47000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -100,6 +113,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - James Bond',
             net: 45000,
+            mgrPrice: 60000,
             sell: 60000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -109,6 +123,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - PP+JB',
             net: 45000,
+            mgrPrice: 60000,
             sell: 60000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -118,6 +133,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - PP+JB+Krabi',
             net: 40000,
+            mgrPrice: 55000,
             sell: 55000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -127,6 +143,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - PP+Krabi',
             net: 40000,
+            mgrPrice: 55000,
             sell: 55000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -136,6 +153,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - JB+ Krabi',
             net: 45000,
+            mgrPrice: 60000,
             sell: 60000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -145,6 +163,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - PP over',
             net: 55000,
+            mgrPrice: 70000,
             sell: 70000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -154,6 +173,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - Andaman Sunrise 2d',
             net: 55000,
+            mgrPrice: 70000,
             sell: 70000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -163,6 +183,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng boat - Rok+Ha',
             net: 32000,
+            mgrPrice: 47000,
             sell: 47000,
             color: '#bfdbfe',
             bType: '3 eng boat'
@@ -172,6 +193,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - Phi Phi Bamboo',
             net: 38000,
+            mgrPrice: 53000,
             sell: 53000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -181,6 +203,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - James Bond',
             net: 55000,
+            mgrPrice: 70000,
             sell: 70000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -190,6 +213,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - PP+JB',
             net: 55000,
+            mgrPrice: 70000,
             sell: 70000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -199,6 +223,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - PP+JB+Krabi',
             net: 50000,
+            mgrPrice: 65000,
             sell: 65000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -208,6 +233,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - PP+Krabi',
             net: 50000,
+            mgrPrice: 65000,
             sell: 65000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -217,6 +243,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - JB+ Krabi',
             net: 55000,
+            mgrPrice: 70000,
             sell: 70000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -226,6 +253,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - PP over',
             net: 65000,
+            mgrPrice: 80000,
             sell: 80000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -235,6 +263,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - Andaman Sunrise 2d',
             net: 70000,
+            mgrPrice: 85000,
             sell: 85000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -244,6 +273,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: '3 eng Luxury - Rok+Ha',
             net: 38000,
+            mgrPrice: 53000,
             sell: 53000,
             color: '#fbcfe8',
             bType: '3 eng Luxury'
@@ -253,6 +283,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - Phi Phi Bamboo',
             net: 35000,
+            mgrPrice: 50000,
             sell: 50000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -262,6 +293,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - James Bond',
             net: 50000,
+            mgrPrice: 65000,
             sell: 65000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -271,6 +303,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - PP+JB',
             net: 50000,
+            mgrPrice: 65000,
             sell: 65000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -280,6 +313,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - PP+JB+Krabi',
             net: 45000,
+            mgrPrice: 60000,
             sell: 60000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -289,6 +323,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - PP+Krabi',
             net: 45000,
+            mgrPrice: 60000,
             sell: 60000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -298,6 +333,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - JB+ Krabi',
             net: 48000,
+            mgrPrice: 63000,
             sell: 63000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -307,6 +343,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - PP over',
             net: 60000,
+            mgrPrice: 75000,
             sell: 75000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -316,6 +353,7 @@ const DEFAULT_DB = {
             icon: '🚤',
             name: 'Catamaran Milan - Rok+Ha',
             net: 35000,
+            mgrPrice: 50000,
             sell: 50000,
             color: '#bbf7d0',
             bType: 'Catamaran Milan'
@@ -329,6 +367,7 @@ const DEFAULT_DB = {
             name: 'Трансфер (1 VAN, Патонг/Ката/Карон)',
             type: 'fixed',
             net: 2000,
+            mgrPrice: 2500,
             sell: 2500,
             mgr: true
         },
@@ -339,6 +378,7 @@ const DEFAULT_DB = {
             name: 'Трансфер (ALPHARD)',
             type: 'fixed',
             net: 10000,
+            mgrPrice: 12000,
             sell: 12000,
             mgr: true
         },
@@ -349,6 +389,7 @@ const DEFAULT_DB = {
             name: 'Русский гид (1 день)',
             type: 'fixed',
             net: 2000,
+            mgrPrice: 2500,
             sell: 2500,
             mgr: true
         },
@@ -359,6 +400,7 @@ const DEFAULT_DB = {
             name: 'Русский гид (С ночевкой / Симиланы)',
             type: 'fixed',
             net: 4000,
+            mgrPrice: 5000,
             sell: 5000,
             mgr: true
         },
@@ -369,6 +411,7 @@ const DEFAULT_DB = {
             name: 'Тайский гид',
             type: 'fixed',
             net: 1500,
+            mgrPrice: 2000,
             sell: 2000,
             mgr: true
         },
@@ -379,6 +422,7 @@ const DEFAULT_DB = {
             name: 'Нац. парк Пхи-Пхи (Взрослый)',
             type: 'fixed',
             net: 400,
+            mgrPrice: 400,
             sell: 400,
             mgr: true
         },
@@ -389,6 +433,7 @@ const DEFAULT_DB = {
             name: 'Нац. парк Пхи-Пхи (Детский)',
             type: 'fixed',
             net: 200,
+            mgrPrice: 200,
             sell: 200,
             mgr: true
         },
@@ -399,6 +444,7 @@ const DEFAULT_DB = {
             name: 'Нац. парк Джеймс Бонд (Взрослый)',
             type: 'fixed',
             net: 300,
+            mgrPrice: 300,
             sell: 300,
             mgr: true
         },
@@ -409,6 +455,7 @@ const DEFAULT_DB = {
             name: 'Нац. парк Джеймс Бонд (Детский)',
             type: 'fixed',
             net: 150,
+            mgrPrice: 150,
             sell: 150,
             mgr: true
         },
@@ -419,6 +466,7 @@ const DEFAULT_DB = {
             name: 'Нац. парк Краби (Взрослый)',
             type: 'fixed',
             net: 300,
+            mgrPrice: 300,
             sell: 300,
             mgr: true
         },
@@ -429,6 +477,7 @@ const DEFAULT_DB = {
             name: 'Нац. парк Краби (Детский)',
             type: 'fixed',
             net: 150,
+            mgrPrice: 150,
             sell: 150,
             mgr: true
         },
@@ -439,6 +488,7 @@ const DEFAULT_DB = {
             name: 'Обед Harbour (Взрослый)',
             type: 'fixed',
             net: 350,
+            mgrPrice: 500,
             sell: 500,
             mgr: true
         },
@@ -449,6 +499,7 @@ const DEFAULT_DB = {
             name: 'Обед Harbour (Детский)',
             type: 'fixed',
             net: 250,
+            mgrPrice: 350,
             sell: 350,
             mgr: true
         },
@@ -459,6 +510,7 @@ const DEFAULT_DB = {
             name: 'Обед Panyee (Взрослый)',
             type: 'fixed',
             net: 200,
+            mgrPrice: 300,
             sell: 300,
             mgr: true
         },
@@ -469,6 +521,7 @@ const DEFAULT_DB = {
             name: 'Обед Panyee (Детский)',
             type: 'fixed',
             net: 100,
+            mgrPrice: 150,
             sell: 150,
             mgr: true
         },
@@ -479,6 +532,7 @@ const DEFAULT_DB = {
             name: 'Каноэ (Джеймс Бонд)',
             type: 'fixed',
             net: 150,
+            mgrPrice: 250,
             sell: 250,
             mgr: true
         }
@@ -497,6 +551,9 @@ export default function CharterPage({ role }) {
     // Calc State
     const [sTour, setSTour] = useState(null);
     const [pax, setPax] = useState({ adults: 2, children: 0 }); // New pax state
+    const [client, setClient] = useState({ name: '', date: '', phone: '', note: '' });
+    const [modal, setModal] = useState(null);
+    const [shareUrl, setShareUrl] = useState('');
     const [mgrSelections, setMgrSelections] = useState({});
 
     // Admin Item Modal State
@@ -574,15 +631,19 @@ export default function CharterPage({ role }) {
     // items that match tour id or say ALL
     const currentItems = db.items.filter(i => i.tId === sTour || i.tId === 'ALL');
 
-    let sellTot = 0, netTot = 0;
-    let calcRowsC = [], calcRowsA = [];
+    let sellTot = 0, netTot = 0, mgrTot = 0;
+    let calcRowsC = [], calcRowsA = [], calcRowsM = [];
     const totalPax = (pax.adults || 0) + (pax.children || 0);
+    const selOptsList = [];
 
     if (currentTourObj) {
         sellTot += currentTourObj.sell;
         netTot += currentTourObj.net;
+        mgrTot += currentTourObj.mgrPrice || currentTourObj.sell;
+
         calcRowsC.push({ key: 'base', name: `🚤 Аренда катера (${currentTourObj.name})`, meta: 'Базовая стоимость', val: currentTourObj.sell });
         calcRowsA.push({ key: 'base-a', name: `🚤 Катер (${currentTourObj.name})`, meta: 'Нетто лодки', val: currentTourObj.net });
+        calcRowsM.push({ key: 'base-m', name: `🚤 Катер (${currentTourObj.name})`, meta: 'Менедж. цена лодки', val: currentTourObj.mgrPrice || currentTourObj.sell });
 
         currentItems.forEach(i => {
             let qty = 0, labelMeta = '';
@@ -597,10 +658,19 @@ export default function CharterPage({ role }) {
             }
 
             if (qty > 0) {
-                sellTot += i.sell * qty;
-                netTot += i.net * qty;
-                calcRowsC.push({ key: i.id, name: `${i.icon} ${i.name}`, meta: labelMeta, val: i.sell * qty });
-                calcRowsA.push({ key: i.id + '-a', name: `${i.icon} ${i.name}`, meta: i.type === 'per_pax' ? `${totalPax} чел × ${FMT(i.net)}` : `${qty} шт × ${FMT(i.net)}`, val: i.net * qty });
+                const cNet = i.net * qty;
+                const cMgr = (i.mgrPrice || i.sell) * qty;
+                const cSell = i.sell * qty;
+
+                sellTot += cSell;
+                netTot += cNet;
+                mgrTot += cMgr;
+
+                calcRowsC.push({ key: i.id, name: `${i.icon} ${i.name}`, meta: labelMeta, val: cSell });
+                calcRowsA.push({ key: i.id + '-a', name: `${i.icon} ${i.name}`, meta: i.type === 'per_pax' ? `${totalPax} чел × ${FMT(i.net)}` : `${qty} шт × ${FMT(i.net)}`, val: cNet });
+                calcRowsM.push({ key: i.id + '-m', name: `${i.icon} ${i.name}`, meta: i.type === 'per_pax' ? `${totalPax} чел × ${FMT(i.mgrPrice || i.sell)}` : `${qty} шт × ${FMT(i.mgrPrice || i.sell)}`, val: cMgr });
+
+                selOptsList.push({ ...i, meta: labelMeta, val: cSell, qty });
             }
         });
     }
@@ -611,26 +681,62 @@ export default function CharterPage({ role }) {
 
     const handlePublish = () => {
         if (!sTour) return;
-        let txt = `🌴 Private Charter Quote\n📍 Маршрут: ${currentTourObj.icon} ${currentTourObj.name}\n👥 Гостей: ${pax.adults} взр. + ${pax.children} дет.\n\n`;
-        txt += `🚤 Аренда катера: ${FMT(currentTourObj.sell)}\n`;
+        let txt = `🏝 Остров Сокровищ\nАренда яхт и катеров · Пхукет\n\n📍 Маршрут: ${currentTourObj.icon} ${currentTourObj.name}\n👥 Гостей: ${pax.adults} взр. + ${pax.children} дет.\n\n`;
+        if (client.date && client.date !== '') txt += `📅 Дата: ${client.date.split('-').reverse().join('-')}\n\n`;
+        txt += `Что включено:\n`;
+        txt += `• 🚤 Аренда катера по маршруту\n`;
 
         // Items
         currentItems.forEach(i => {
             let qty = 0;
             if (i.mgr && mgrSelections[i.id]) qty = i.type === 'per_pax' ? totalPax : mgrSelections[i.id];
             if (!i.mgr) qty = i.type === 'per_pax' ? totalPax : 1;
-            if (qty > 0) txt += `${i.icon} ${i.name}: ${FMT(i.sell * qty)}\n`;
+            if (qty > 0) {
+                let meta = i.type === 'per_pax' ? `(${qty} чел)` : (qty > 1 ? `(${qty} шт)` : '');
+                txt += `• ${i.icon} ${i.name} ${meta}\n`;
+            }
         });
-        txt += `\n💰 ИТОГО: ${FMT(sellTot)}`;
-        navigator.clipboard.writeText(txt).then(() => alert("✅ Смета скопирована!"))
+        txt += `\n💳 ИТОГО К ОПЛАТЕ: ${FMT(sellTot).replace(' ฿', ' THB')}\n`;
+
+        clipCopy(txt).then(() => alert("✅ Смета скопирована!"))
             .catch(() => alert("Смета:\n\n" + txt));
+    };
+
+    const getClientData = () => {
+        return {
+            ...client,
+            pax: `${pax.adults} взр. + ${pax.children} дет.`,
+            tourName: `${currentTourObj.icon} ${currentTourObj.name}`,
+            items: selOptsList,
+            total: sellTot,
+            gen: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
+        };
+    };
+
+    const handlePrint = () => {
+        if (!sTour) return;
+        doPrintCharter(getClientData());
+    };
+
+    const handleLink = async () => {
+        if (!sTour) return;
+        const d = getClientData();
+        const calcId = await saveCalculation('charters', d.name || 'charter', d.date || null, d);
+        let url = `${location.origin}${location.pathname}?tour=${calcId || btoa(encodeURIComponent(JSON.stringify(d)))}`;
+        setShareUrl(url);
+        setModal('link');
+        clipCopy(url).then(() => alert('Ссылка скопирована!'));
     };
 
     // ---- ADMIN LOGIC ----
     const addTour = () => {
         const newDb = { ...db };
         const newId = UID();
-        newDb.tours.push({ id: newId, icon: '🚤', name: 'Новый маршрут', net: 0, sell: 0 });
+        newDb.tours.push({
+            id: newId, icon: '🚤', name: 'Новый маршрут', net: 0,
+            mgrPrice: 0,
+            sell: 0
+        });
         saveDB(newDb);
         setAdminSelTour(newId);
     };
@@ -656,17 +762,31 @@ export default function CharterPage({ role }) {
     // Items admin overrides for "ALL"
     const openAddItem = () => {
         if (!adminSelTour) { alert("Сначала выберите маршрут (или 'ALL' если добавим)!"); return; }
-        setEditItem({ tId: adminSelTour, name: '', icon: '', type: 'fixed', net: 0, sell: 0, mgr: true });
+        setEditItem({
+            tId: adminSelTour, name: '', icon: '', type: 'fixed', net: 0,
+            mgrPrice: 0,
+            sell: 0, mgr: true
+        });
         setShowItemModal(true);
     };
     const saveItemModal = () => {
         if (!editItem.name) return;
         const newDb = { ...db };
-        const iObj = { ...editItem, id: editItem.id || UID(), net: Number(editItem.net) || 0, sell: Number(editItem.sell) || 0, icon: editItem.icon || '📌' };
+        const iObj = { ...editItem, id: editItem.id || UID(), net: Number(editItem.net) || 0, sell: Number(editItem.sell) || 0, mgrPrice: Number(editItem.mgrPrice) || 0, icon: editItem.icon || '📌' };
         if (editItem.id) newDb.items[newDb.items.findIndex(x => x.id === editItem.id)] = iObj;
         else newDb.items.push(iObj);
         saveDB(newDb);
         setShowItemModal(false);
+    };
+
+    const updItemInline = (iId, field, value) => {
+        const newDb = { ...db };
+        const item = newDb.items.find(x => x.id === iId);
+        if (item) {
+            if (['net', 'mgrPrice', 'sell'].includes(field)) item[field] = Number(value) || 0;
+            else item[field] = value;
+            saveDB(newDb);
+        }
     };
     const delItem = (iId) => {
         if (!confirm("Удалить опцию?")) return;
@@ -742,6 +862,20 @@ export default function CharterPage({ role }) {
                                 {/* Left Side: Inputs & Options */}
                                 <div>
                                     <div className={styles.card}>
+                                        <div className={styles.cardTitle}><span>📝</span> Данные клиента</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                            <div className={styles.fg}>
+                                                <label>Имя клиента</label>
+                                                <input type="text" value={client.name} onChange={e => setClient({ ...client, name: e.target.value })} placeholder="Например, Иван" />
+                                            </div>
+                                            <div className={styles.fg}>
+                                                <label>Дата / Отель</label>
+                                                <input type="date" value={client.date} onChange={e => setClient({ ...client, date: e.target.value })} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.card}>
                                         <div className={styles.cardTitle}><span>👥</span> Количество гостей</div>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                             <div className={styles.fg}>
@@ -798,29 +932,51 @@ export default function CharterPage({ role }) {
                                             <div>ИТОГО:</div>
                                             <div>{FMT(sellTot)}</div>
                                         </div>
-                                        <button className={`${styles.btn} ${styles.btnGh}`} style={{ width: '100%', marginTop: '24px' }} onClick={handlePublish}>📤 Копировать для клиента</button>
 
-                                        {isAdmin && (
-                                            <div style={{ marginTop: '32px', borderTop: '1px dashed rgba(255,255,255,0.3)', paddingTop: '20px' }}>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--warn)', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase' }}>🔒 Внутренний расчёт</div>
-                                                {calcRowsA.map((r) => (
-                                                    <div key={r.key} className={styles.rr} style={{ padding: '6px 0' }}>
-                                                        <div><div className={styles.rrName}>{r.name}</div><div className={styles.rrMeta}>{r.meta}</div></div>
-                                                        <div className={styles.rrVal}>{FMT(r.val)}</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '24px' }}>
+                                            <button className={`${styles.btn} ${styles.btnPri}`} onClick={handlePrint} style={{ fontSize: '0.85rem', padding: '10px 4px' }}>📄 PDF</button>
+                                            <button className={`${styles.btn} ${styles.btnAcc}`} onClick={handleLink} style={{ fontSize: '0.85rem', padding: '10px 4px' }}>🔗 Ссылка</button>
+                                        </div>
+                                        <button className={`${styles.btn} ${styles.btnGh}`} style={{ width: '100%', marginTop: '8px' }} onClick={handlePublish}>📤 Текст в WhatsApp</button>
+
+                                        <div style={{ marginTop: '32px', borderTop: '1px dashed rgba(255,255,255,0.3)', paddingTop: '20px' }}>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--warn)', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase' }}>🔒 Внутренний расчёт</div>
+                                            {isAdmin ? (
+                                                <>
+                                                    {calcRowsA.map((r) => (
+                                                        <div key={r.key} className={styles.rr} style={{ padding: '6px 0' }}>
+                                                            <div><div className={styles.rrName}>{r.name}</div><div className={styles.rrMeta}>{r.meta}</div></div>
+                                                            <div className={styles.rrVal}>{FMT(r.val)}</div>
+                                                        </div>
+                                                    ))}
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                                                        <div>Итого Нетто:</div><div style={{ fontWeight: 700 }}>{FMT(netTot)}</div>
                                                     </div>
-                                                ))}
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
-                                                    <div>Итого Нетто:</div><div style={{ fontWeight: 700 }}>{FMT(netTot)}</div>
-                                                </div>
-                                                <div style={{ marginTop: '16px', background: 'rgba(0,0,0,0.3)', height: '6px', borderRadius: '10px' }}>
-                                                    <div style={{ height: '100%', background: profit >= 0 ? 'linear-gradient(90deg, #d4af37, #fde047)' : '#ef4444', borderRadius: '10px', width: `${marginVisualPct}%` }}></div>
-                                                </div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
-                                                    <div>Профит: <span style={{ color: profit >= 0 ? '#10b981' : '#ef4444', fontSize: '1rem' }}>{FMT(profit)}</span></div>
-                                                    <div>{margin.toFixed(1)}% маржа</div>
-                                                </div>
-                                            </div>
-                                        )}
+                                                    <div style={{ marginTop: '16px', background: 'rgba(0,0,0,0.3)', height: '6px', borderRadius: '10px' }}>
+                                                        <div style={{ height: '100%', background: profit >= 0 ? 'linear-gradient(90deg, #d4af37, #fde047)' : '#ef4444', borderRadius: '10px', width: `${marginVisualPct}%` }}></div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
+                                                        <div>Профит компании: <span style={{ color: profit >= 0 ? '#10b981' : '#ef4444', fontSize: '1rem' }}>{FMT(profit)}</span></div>
+                                                        <div>{margin.toFixed(1)}% маржа</div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {calcRowsM.map((r) => (
+                                                        <div key={r.key} className={styles.rr} style={{ padding: '6px 0' }}>
+                                                            <div><div className={styles.rrName}>{r.name}</div><div className={styles.rrMeta}>{r.meta}</div></div>
+                                                            <div className={styles.rrVal}>{FMT(r.val)}</div>
+                                                        </div>
+                                                    ))}
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                                                        <div>К оплате в кассу:</div><div style={{ fontWeight: 700, color: 'var(--warn)' }}>{FMT(mgrTot)}</div>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.85rem', fontWeight: 600 }}>
+                                                        <div>Ваш профит: <span style={{ color: '#10b981', fontSize: '1rem' }}>{FMT(sellTot - mgrTot)}</span></div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -844,7 +1000,7 @@ export default function CharterPage({ role }) {
                             </div>
                             <div className={styles.tblWrapper}>
                                 <table className={styles.tbl}>
-                                    <thead><tr><th>Маршрут</th><th>Нетто ฿</th><th>Продажа ฿</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
+                                    <thead><tr><th>Маршрут</th><th>Нетто ฿</th><th>Цена Менеджер ฿</th><th>Продажа Клиенту ฿</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
                                     <tbody>
                                         {db.tours.map((t, idx) => (
                                             <tr key={t.id}
@@ -872,7 +1028,8 @@ export default function CharterPage({ role }) {
                                                     </div>
                                                 </td>
                                                 <td><input type="number" value={t.net} onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
-                                                <td><input type="number" value={t.sell} onChange={e => updTour(t.id, 'sell', e.target.value)} /></td>
+                                                <td><input type="number" value={t.mgrPrice} onChange={e => updTour(t.id, 'mgrPrice', e.target.value)} style={{ color: 'var(--err)' }} /></td>
+                                                <td><input type="number" value={t.sell} onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)' }} /></td>
                                                 <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>Удалить</button></td>
                                             </tr>
                                         ))}
@@ -898,7 +1055,7 @@ export default function CharterPage({ role }) {
 
                             <div className={styles.tblWrapper}>
                                 <table className={styles.tbl}>
-                                    <thead><tr><th>Опция</th><th>Тип</th><th>Нетто ฿</th><th>Продажа ฿</th><th>Видимость</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
+                                    <thead><tr><th>Опция</th><th>Тип</th><th>Нетто ฿</th><th>Цена Менеджер ฿</th><th>Продажа ฿</th><th>Видимость</th><th style={{ width: "150px" }}>Действия</th></tr></thead>
                                     <tbody>
                                         {db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
                                             <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--muted)' }}>Нет доплат</td></tr>
@@ -925,9 +1082,31 @@ export default function CharterPage({ role }) {
                                                 >
                                                     <td><span style={{ fontSize: '1.2rem' }}>{i.icon}</span> <b>{i.name}</b></td>
                                                     <td><span className={styles.optBadge}>{i.type === 'per_pax' ? '👤 На человека' : '🔒 На группу (шт.)'}</span></td>
-                                                    <td style={{ color: 'var(--err)', fontWeight: 700 }}>{FMT(i.net)}</td>
-                                                    <td style={{ color: 'var(--ok)', fontWeight: 700 }}>{FMT(i.sell)}</td>
-                                                    <td>{i.mgr ? '✔️ Выбирает Менеджер' : '⚡ Автоматически'}</td>
+                                                    <td style={{ width: '100px' }}>
+                                                        <input type="number" value={i.net} min="0"
+                                                            style={{ width: '100%', padding: '4px 6px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', fontWeight: 700, color: '#64748b', textAlign: 'right', outline: 'none' }}
+                                                            onChange={e => updItemInline(i.id, 'net', e.target.value)}
+                                                            onFocus={e => e.target.style.borderColor = '#0284c7'}
+                                                            onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                                                        />
+                                                    </td>
+                                                    <td style={{ width: '100px' }}>
+                                                        <input type="number" value={i.mgrPrice || i.sell} min="0"
+                                                            style={{ width: '100%', padding: '4px 6px', border: '1.5px solid #fde68a', borderRadius: '6px', fontSize: '12px', fontWeight: 700, color: '#dc2626', textAlign: 'right', outline: 'none', background: '#fffbeb' }}
+                                                            onChange={e => updItemInline(i.id, 'mgrPrice', e.target.value)}
+                                                            onFocus={e => e.target.style.borderColor = '#f59e0b'}
+                                                            onBlur={e => e.target.style.borderColor = '#fde68a'}
+                                                        />
+                                                    </td>
+                                                    <td style={{ width: '100px' }}>
+                                                        <input type="number" value={i.sell} min="0"
+                                                            style={{ width: '100%', padding: '4px 6px', border: '1.5px solid #bbf7d0', borderRadius: '6px', fontSize: '12px', fontWeight: 700, color: '#059669', textAlign: 'right', outline: 'none', background: '#f0fdf4' }}
+                                                            onChange={e => updItemInline(i.id, 'sell', e.target.value)}
+                                                            onFocus={e => e.target.style.borderColor = '#10b981'}
+                                                            onBlur={e => e.target.style.borderColor = '#bbf7d0'}
+                                                        />
+                                                    </td>
+                                                    <td>{i.mgr ? '✔️ Менеджер' : '⚡ Авто'}</td>
                                                     <td>
                                                         <div style={{ display: 'flex', gap: '4px' }}>
                                                             <button className={`${styles.btn} ${styles.btnGh} ${styles.btnSm}`} onClick={() => { setEditItem({ ...i }); setShowItemModal(true); }}>✏️</button>
@@ -945,6 +1124,9 @@ export default function CharterPage({ role }) {
                     </div>
                 </div>
             )}
+
+            {/* --- LINK MODAL --- */}
+            {modal === 'link' && <LinkModal url={shareUrl} onClose={() => setModal(null)} onToast={(msg) => alert(msg)} />}
 
             {/* --- ITEM MODAL --- */}
             {showItemModal && (
@@ -964,6 +1146,7 @@ export default function CharterPage({ role }) {
                             </div>
                             <div style={{ display: 'flex', gap: '16px' }}>
                                 <div className={styles.fg} style={{ flex: 1 }}><label>Нетто / ฿</label><input type="number" value={editItem.net} onChange={e => setEditItem({ ...editItem, net: e.target.value })} /></div>
+                                <div className={styles.fg} style={{ flex: 1 }}><label>Менеджер / ฿</label><input type="number" value={editItem.mgrPrice || editItem.sell} onChange={e => setEditItem({ ...editItem, mgrPrice: e.target.value })} /></div>
                                 <div className={styles.fg} style={{ flex: 1 }}><label>Продажа / ฿</label><input type="number" value={editItem.sell} onChange={e => setEditItem({ ...editItem, sell: e.target.value })} /></div>
                             </div>
                             <div className={styles.fg} style={{ marginTop: '10px' }}>

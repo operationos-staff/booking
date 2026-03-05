@@ -1276,6 +1276,10 @@ h3,
   #print-area {
     display: block !important
   }
+
+  body.printing > *:not(#print-area) {
+    display: none !important
+  }
 }
 
 #print-area {
