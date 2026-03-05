@@ -564,6 +564,15 @@ export default function CharterPage({ role }) {
     const [unsavedItems, setUnsavedItems] = useState({});
     const [editItem, setEditItem] = useState(null);
     const [adminSelTour, setAdminSelTour] = useState('');
+    const [showAllOpts, setShowAllOpts] = useState(false);
+    const [collapsedBoatGroups, setCollapsedBoatGroups] = useState({
+        '2 eng boat': true,
+        '3 eng boat': true,
+        '3 eng Luxury': true,
+        'Catamaran Milan': true,
+    });
+    const [collapseAllOpts, setCollapseAllOpts] = useState(true);
+    const [collapseRouteOpts, setCollapseRouteOpts] = useState(true);
 
     // Drag & Drop State
     const [dragTIdx, setDragTIdx] = useState(null);
@@ -1138,97 +1147,120 @@ export default function CharterPage({ role }) {
                                 </div>
                             </div>
                             <div className={styles.tblWrapper}>
-                                <table className={styles.tbl} style={{ width: '100%', borderCollapse: 'collapse', userSelect: 'auto' }}>
-                                    <thead><tr><th style={{ width: '24px' }}></th><th>Маршрут</th><th>Нетто ฿</th><th>Продажа ฿</th><th style={{ width: "120px" }}>Действия</th></tr></thead>
-                                    <tbody>
-                                        {db.tours.map((t, idx) => (
-                                            <tr key={t.id}
-                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
-                                                draggable={dragMode === t.id}
-                                                onDragStart={(e) => {
-                                                    setDragTIdx(idx);
-                                                    if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
-                                                }}
-                                                onDragOver={e => e.preventDefault()}
-                                                onDrop={e => {
-                                                    e.preventDefault();
-                                                    if (dragTIdx === null || dragTIdx === idx) return;
-                                                    const newTours = [...db.tours];
-                                                    const [moved] = newTours.splice(dragTIdx, 1);
-                                                    newTours.splice(idx, 0, moved);
-                                                    saveDB({ ...db, tours: newTours });
-                                                    setDragTIdx(null);
-                                                }}
-                                            >
-                                                <td><div onMouseEnter={() => setDragMode(t.id)} onMouseLeave={() => setDragMode(null)} style={{ cursor: 'grab', opacity: 0.5, padding: '5px' }}>⋮⋮</div></td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: '6px' }}>
-                                                        <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
-                                                        <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} />
-                                                    </div>
-                                                </td>
-                                                <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
-                                                <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
-                                                <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>Удалить</button></td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                {(() => {
+                                    const BOAT_GROUPS = [
+                                        { key: '2 eng boat', label: '🚤 2 eng boat', color: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.3)' },
+                                        { key: '3 eng boat', label: '🚢 3 eng boat', color: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)' },
+                                        { key: '3 eng Luxury', label: '⭐ 3 eng Luxury', color: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.3)' },
+                                        { key: 'Catamaran Milan', label: '⛵ Catamaran Milan', color: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)' },
+                                    ];
+                                    return BOAT_GROUPS.map(group => {
+                                        const groupTours = db.tours
+                                            .map((t, idx) => ({ ...t, _idx: idx }))
+                                            .filter(t => t.name.startsWith(group.key));
+                                        if (groupTours.length === 0) return null;
+                                        const isCollapsed = collapsedBoatGroups[group.key] !== false;
+                                        return (
+                                            <div key={group.key} style={{ marginBottom: '16px', border: `1px solid ${group.border}`, borderRadius: '10px', overflow: 'hidden' }}>
+                                                <div
+                                                    onClick={() => setCollapsedBoatGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                                                    style={{ background: group.color, padding: '10px 14px', fontWeight: 700, color: '#fbbf24', fontSize: '13px', letterSpacing: '0.05em', borderBottom: isCollapsed ? 'none' : `1px solid ${group.border}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
+                                                >
+                                                    <span>{group.label} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>({groupTours.length} маршрутов)</span></span>
+                                                    <span style={{ fontSize: '16px', opacity: 0.7, transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>▼</span>
+                                                </div>
+                                                {!isCollapsed && <table className={styles.tbl} style={{ width: '100%', borderCollapse: 'collapse', userSelect: 'auto' }}>
+                                                    <thead>
+                                                        <tr>
+                                                            <th style={{ width: '24px' }}></th>
+                                                            <th>Маршрут</th>
+                                                            <th>Нетто ฿</th>
+                                                            <th>Продажа ฿</th>
+                                                            <th style={{ width: '120px' }}>Действия</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {groupTours.map(t => (
+                                                            <tr key={t.id}
+                                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
+                                                                draggable={dragMode === t.id}
+                                                                onDragStart={(e) => {
+                                                                    setDragTIdx(t._idx);
+                                                                    if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
+                                                                }}
+                                                                onDragOver={e => e.preventDefault()}
+                                                                onDrop={e => {
+                                                                    e.preventDefault();
+                                                                    if (dragTIdx === null || dragTIdx === t._idx) return;
+                                                                    const newTours = [...db.tours];
+                                                                    const [moved] = newTours.splice(dragTIdx, 1);
+                                                                    newTours.splice(t._idx, 0, moved);
+                                                                    saveDB({ ...db, tours: newTours });
+                                                                    setDragTIdx(null);
+                                                                }}
+                                                            >
+                                                                <td><div onMouseEnter={() => setDragMode(t.id)} onMouseLeave={() => setDragMode(null)} style={{ cursor: 'grab', opacity: 0.5, padding: '5px' }}>⋮⋮</div></td>
+                                                                <td>
+                                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                                        <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
+                                                                        <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} />
+                                                                    </div>
+                                                                </td>
+                                                                <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
+                                                                <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
+                                                                <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>Удалить</button></td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>}
+                                            </div>
+                                        );
+                                    });
+                                })()}
                             </div>
                         </div>
 
-                        <div className={styles.card} style={{ borderColor: 'var(--warn)', marginTop: '24px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-                                <div className={styles.cardTitle} style={{ marginBottom: 0, borderBottom: 'none' }}>
-                                    <span>⚙️</span> Настройка доплат по маршруту
+                        {/* ── БЛОК 2: ОБЩИЕ ОПЦИИ ── */}
+                        <div className={styles.card} style={{ borderColor: 'rgba(245,158,11,0.4)', marginTop: '24px' }}>
+                            <div
+                                onClick={() => {
+                                    setCollapseAllOpts(prev => !prev);
+                                    if (collapseAllOpts) {
+                                        setAdminSelTour('ALL');
+                                        setShowAllOpts(true);
+                                    } else {
+                                        setAdminSelTour('');
+                                        setShowAllOpts(false);
+                                    }
+                                }}
+                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none', padding: '4px 0', marginBottom: collapseAllOpts ? 0 : '20px' }}
+                            >
+                                <div className={styles.cardTitle} style={{ marginBottom: 0, borderBottom: 'none', color: '#fbbf24' }}>
+                                    <span>🌟</span> Общие опции (для всех туров)
                                 </div>
-                                <button
-                                    onClick={() => setAdminSelTour('ALL')}
-                                    style={{
-                                        background: adminSelTour === 'ALL' ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.04)',
-                                        color: adminSelTour === 'ALL' ? '#fbbf24' : '#a3a3a3',
-                                        border: adminSelTour === 'ALL' ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        boxShadow: adminSelTour === 'ALL' ? '0 4px 6px rgba(250, 204, 21, 0.2)' : 'none',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    🌟 ОБЩИЕ ОПЦИИ (ДЛЯ ВСЕХ ТУРОВ)
-                                </button>
+                                <span style={{ fontSize: '16px', opacity: 0.7, transition: 'transform 0.2s', transform: collapseAllOpts ? 'rotate(0deg)' : 'rotate(180deg)', color: '#fbbf24' }}>▼</span>
                             </div>
 
-                            <div className={styles.fg} style={{ maxWidth: '400px', marginBottom: '24px' }}>
-                                <label>Выберите маршрут:</label>
-                                <select value={adminSelTour} onChange={e => setAdminSelTour(e.target.value)}>
-                                    <option value="" disabled>--- Выберите маршрут ---</option>
-                                    {db.tours.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
-                                </select>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                <div style={{ fontWeight: 700, color: 'var(--pri)', flex: 1 }}>Список доплат</div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    {Object.keys(unsavedItems).length > 0 && (
-                                        <>
-                                            <button className={`${styles.btn} ${styles.btnPri}`} onClick={saveAllEdits} style={{ padding: '8px 16px', background: '#10b981', borderColor: '#059669', animation: 'pulse 2s infinite' }}>💾 Сохранить цены</button>
-                                            <button className={`${styles.btn} ${styles.btnGh}`} onClick={discardAllEdits} style={{ padding: '8px 16px' }}>Отменить</button>
-                                        </>
-                                    )}
-                                    <button className={`${styles.btn} ${styles.btnAcc}`} onClick={openAddItem}>Добавить доплату</button>
-                                </div>
-                            </div>
+                            {!collapseAllOpts && (
+                                <>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                        <div style={{ fontWeight: 700, color: 'var(--pri)', flex: 1 }}>Список общих доплат</div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {Object.keys(unsavedItems).length > 0 && (
+                                                <>
+                                                    <button className={`${styles.btn} ${styles.btnPri}`} onClick={saveAllEdits} style={{ padding: '8px 16px', background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.6)', color: '#6ee7b7', animation: 'pulse 2s infinite' }}>💾 Сохранить цены</button>
+                                                    <button className={`${styles.btn} ${styles.btnGh}`} onClick={discardAllEdits} style={{ padding: '8px 16px' }}>Отменить</button>
+                                                </>
+                                            )}
+                                            <button className={`${styles.btn} ${styles.btnAcc}`} onClick={openAddItem}>Добавить опцию</button>
+                                        </div>
+                                    </div>
 
                             <div className={styles.optList} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
-                                    <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>Нет доплат</div>
+                                {db.items.filter(i => i.tId === 'ALL').length === 0 ? (
+                                    <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(245,158,11,0.2)' }}>Нет общих опций</div>
                                 ) : (
-                                    db.items.filter(i => i.tId === adminSelTour).map(i => {
+                                    db.items.filter(i => i.tId === 'ALL').map(i => {
                                         const currentNet = unsavedItems[i.id]?.net ?? i.net;
                                         const currentSell = unsavedItems[i.id]?.sell ?? i.sell;
                                         const currentMgr = unsavedItems[i.id]?.mgr ?? i.mgr;
@@ -1294,9 +1326,149 @@ export default function CharterPage({ role }) {
                                     })
                                 )}
                             </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* ── БЛОК 3: ДОПЛАТЫ ПО МАРШРУТУ ── */}
+                        <div className={styles.card} style={{ borderColor: 'rgba(16,185,129,0.3)', marginTop: '24px' }}>
+                            <div
+                                onClick={() => setCollapseRouteOpts(prev => !prev)}
+                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none', padding: '4px 0', marginBottom: collapseRouteOpts ? 0 : '20px' }}
+                            >
+                                <div className={styles.cardTitle} style={{ marginBottom: 0, borderBottom: 'none', color: '#6ee7b7' }}>
+                                    <span>⚙️</span> Доплаты по конкретному маршруту
+                                </div>
+                                <span style={{ fontSize: '16px', opacity: 0.7, transition: 'transform 0.2s', transform: collapseRouteOpts ? 'rotate(0deg)' : 'rotate(180deg)', color: '#6ee7b7' }}>▼</span>
+                            </div>
+
+                            {!collapseRouteOpts && (
+                                <>
+                                    <div className={styles.fg} style={{ maxWidth: '400px', marginBottom: '24px' }}>
+                                        <label>Выберите маршрут:</label>
+                                        <select value={adminSelTour === 'ALL' ? '' : adminSelTour} onChange={e => setAdminSelTour(e.target.value)}>
+                                            <option value="" disabled>--- Выберите маршрут ---</option>
+                                            {db.tours.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
+                                        </select>
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                        <div style={{ fontWeight: 700, color: 'var(--pri)', flex: 1 }}>Список доплат</div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            {Object.keys(unsavedItems).length > 0 && (
+                                                <>
+                                                    <button className={`${styles.btn} ${styles.btnPri}`} onClick={saveAllEdits} style={{ padding: '8px 16px', background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.6)', color: '#6ee7b7', animation: 'pulse 2s infinite' }}>💾 Сохранить цены</button>
+                                                    <button className={`${styles.btn} ${styles.btnGh}`} onClick={discardAllEdits} style={{ padding: '8px 16px' }}>Отменить</button>
+                                                </>
+                                            )}
+                                            <button className={`${styles.btn} ${styles.btnAcc}`} onClick={openAddItem}>Добавить доплату</button>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.optList} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {(adminSelTour === '' || adminSelTour === 'ALL') ? (
+                                            <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>Выберите маршрут выше</div>
+                                        ) : db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
+                                            <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>Нет доплат для этого маршрута</div>
+                                        ) : (
+                                            db.items.filter(i => i.tId === adminSelTour).map(i => {
+                                                const currentNet = unsavedItems[i.id]?.net ?? i.net;
+                                                const currentSell = unsavedItems[i.id]?.sell ?? i.sell;
+                                                const currentMgr = unsavedItems[i.id]?.mgr ?? i.mgr;
+                                                const isEdited = !!unsavedItems[i.id];
+                                                return (
+                                                    <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(16,185,129,0.15)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
+                                                        draggable={dragMode === i.id}
+                                                        onDragStart={(e) => {
+                                                            const globalIdx = db.items.findIndex(x => x.id === i.id);
+                                                            setDragIIdx(globalIdx);
+                                                            if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
+                                                        }}
+                                                        onDragOver={e => e.preventDefault()}
+                                                        onDrop={e => {
+                                                            e.preventDefault();
+                                                            const targetGlobalIdx = db.items.findIndex(x => x.id === i.id);
+                                                            if (dragIIdx === null || dragIIdx === targetGlobalIdx) return;
+                                                            const newItems = [...db.items];
+                                                            const [moved] = newItems.splice(dragIIdx, 1);
+                                                            newItems.splice(targetGlobalIdx, 0, moved);
+                                                            saveDB({ ...db, items: newItems });
+                                                            setDragIIdx(null);
+                                                        }}
+                                                    >
+                                                        <div onMouseEnter={() => setDragMode(i.id)} onMouseLeave={() => setDragMode(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', cursor: 'grab', opacity: 0.4, padding: '5px' }}>⋮⋮</div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                <span style={{ fontSize: '1.2rem' }}>{i.icon}</span>
+                                                                <span style={{ lineHeight: 1.2, fontWeight: 700, fontSize: '1rem', color: '#e5e5e5' }}>{i.name}</span>
+                                                                <span className={styles.optBadge}>{i.type === 'per_pax' ? 'Чел' : 'Шт'}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap', alignItems: 'center' }}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '80px' }}>
+                                                                <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто ฿</div>
+                                                                <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(239,68,68,0.5)', background: 'rgba(239,68,68,0.1)', color: '#fca5a5', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} />
+                                                            </div>
+                                                            <div style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', padding: '0 4px', paddingTop: '14px' }}>/</div>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '80px' }}>
+                                                                <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа ฿</div>
+                                                                <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(16,185,129,0.5)', background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', textAlign: 'left', fontWeight: 800 }} value={currentSell === 0 ? '' : currentSell} placeholder="0" onChange={(e) => updItemInline(i.id, 'sell', e.target.value)} />
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '1px solid rgba(16,185,129,0.2)' }}>
+                                                            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', cursor: 'pointer', color: currentMgr ? '#f59e0b' : '#525252', fontWeight: 600 }}>
+                                                                <input type="checkbox" checked={currentMgr} onChange={e => updItemInline(i.id, 'mgr', e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#f59e0b' }} />
+                                                                Видно Менеджеру
+                                                            </label>
+                                                            <div style={{ display: 'flex', gap: '4px', marginLeft: '10px' }}>
+                                                                <button className={`${styles.btn} ${styles.btnGh} ${styles.btnSm}`} onClick={() => { setEditItem({ ...i }); setShowItemModal(true); }} style={{ padding: '6px' }}>✏️</button>
+                                                                <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delItem(i.id)} style={{ padding: '6px' }}>🗑</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                     </div>
+
+                    {/* ── КНОПКА НАЗАД ── */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px', paddingBottom: '20px' }}>
+                        <button
+                            onClick={() => setActiveTab('calc')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '12px 24px',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: '#a3a3a3',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '10px',
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = 'rgba(245,158,11,0.15)';
+                                e.currentTarget.style.color = '#fbbf24';
+                                e.currentTarget.style.borderColor = 'rgba(245,158,11,0.4)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                e.currentTarget.style.color = '#a3a3a3';
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                            }}
+                        >
+                            ← Назад к калькулятору
+                        </button>
+                    </div>
+
                 </div>
             )}
 
