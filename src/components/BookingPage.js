@@ -2,11 +2,11 @@
 import { useState, useRef } from 'react'
 import { ALL_CATS } from '@/lib/constants'
 import { fmt, saveToLS } from '@/lib/utils'
-import { savePackagesToDB, saveOptionsToDB } from '@/lib/db'
+import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB } from '@/lib/db'
 
 const EMPTY_OPT = { name: '', mgrA: 0, mgrC: 0, netA: 0, netC: 0, cat: 'Достопримечательности', only8h: false }
 
-export default function BookingPage({ packages, options, onPackagesChange, onOptionsChange, onPageChange, role, toast }) {
+export default function BookingPage({ packages, options, onPackagesChange, onOptionsChange, onPageChange, role, toast, onReloadData }) {
   const [tab, setTab] = useState('calc')
   const [saving, setSaving] = useState(false)
   const [newOpt, setNewOpt] = useState(EMPTY_OPT)
@@ -18,8 +18,14 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
   const updOpt = (i, key, val) => {
     const o = [...options]; o[i] = { ...o[i], [key]: val }; onOptionsChange(o)
   }
-  const delOpt = id => {
+  const delOpt = async (id) => {
     if (!confirm('Удалить опцию?')) return
+    // Delete from DB if it has a DB id
+    const opt = options.find(o => String(o.id) === String(id))
+    const dbId = opt?._dbId ?? (typeof opt?.id === 'number' ? opt.id : null)
+    if (dbId && role === 'booking') {
+      await deleteOptionFromDB(dbId)
+    }
     onOptionsChange(options.filter(o => String(o.id) !== String(id)))
     toast('Удалено', 'ok')
   }
@@ -39,7 +45,11 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
         savePackagesToDB(packages),
         saveOptionsToDB(options),
       ])
-      toast(`Сохранено! Пакеты: ${pkgOk}, Опции: ${optOk}`, 'ok')
+      toast(`Сохранено в базу! Пакеты: ${pkgOk}, Опции: ${optOk}`, 'ok')
+      // Reload data from DB to get consistent IDs and ensure all clients see the same data
+      if (onReloadData) {
+        await onReloadData()
+      }
     } catch (e) {
       toast('Ошибка: ' + e.message, 'err')
     } finally {

@@ -52,6 +52,11 @@ export async function savePackagesToDB(packages) {
   return ok
 }
 
+export async function deletePackageFromDB(id) {
+  const { error } = await supabase.from('packages').delete().eq('id', id)
+  if (error) console.error('deletePackage:', error.message)
+}
+
 // ─── OPTIONS ─────────────────────────────────────────────────
 export async function loadOptionsFromDB() {
   const { data, error } = await supabase
@@ -107,6 +112,112 @@ export async function saveOptionsToDB(options) {
 export async function deleteOptionFromDB(id) {
   const { error } = await supabase.from('options').delete().eq('id', id)
   if (error) console.error('deleteOption:', error.message)
+}
+
+// ─── CHARTER CONFIG ──────────────────────────────────────────
+// Strategy: try charter_config table first, fallback to calculations table
+const CHARTER_CONFIG_KEY = 'charter_main_config'
+const CHARTER_CALC_ID = '__charter_config__'
+
+async function tryCharterConfigTable(action, charterData) {
+  if (action === 'load') {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', CHARTER_CONFIG_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  }
+  if (action === 'save') {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({
+        config_key: CHARTER_CONFIG_KEY,
+        payload: charterData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  }
+}
+
+async function tryCalculationsTable(action, charterData) {
+  if (action === 'load') {
+    const { data, error } = await supabase
+      .from('calculations')
+      .select('payload')
+      .eq('client_name', CHARTER_CALC_ID)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  }
+  if (action === 'save') {
+    // First try to find existing
+    const { data: existing } = await supabase
+      .from('calculations')
+      .select('id')
+      .eq('client_name', CHARTER_CALC_ID)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (existing?.id) {
+      const { error } = await supabase
+        .from('calculations')
+        .update({ payload: charterData })
+        .eq('id', existing.id)
+      if (error) throw error
+    } else {
+      const { error } = await supabase
+        .from('calculations')
+        .insert({
+          created_by: CHARTER_CALC_ID,
+          client_name: CHARTER_CALC_ID,
+          payload: charterData,
+        })
+      if (error) throw error
+    }
+    return true
+  }
+}
+
+export async function loadCharterFromDB() {
+  // Try charter_config table first
+  try {
+    const result = await tryCharterConfigTable('load')
+    if (result) return result
+  } catch (e) {
+    console.warn('charter_config table not available:', e.message)
+  }
+
+  // Fallback to calculations table
+  try {
+    return await tryCalculationsTable('load')
+  } catch (e) {
+    console.warn('Charter fallback load failed:', e.message)
+    return null
+  }
+}
+
+export async function saveCharterToDB(charterData) {
+  // Try charter_config table first
+  try {
+    const ok = await tryCharterConfigTable('save', charterData)
+    if (ok) return true
+  } catch (e) {
+    console.warn('charter_config table not available for save:', e.message)
+  }
+
+  // Fallback to calculations table
+  try {
+    return await tryCalculationsTable('save', charterData)
+  } catch (e) {
+    console.error('Charter save failed completely:', e.message)
+    return false
+  }
 }
 
 // ─── CALCULATIONS ─────────────────────────────────────────────

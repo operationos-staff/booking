@@ -168,7 +168,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────
-export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange }) {
+export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData }) {
   const isBk = role === 'booking'
   const [activeTab, setActiveTab] = useState('calc')
 
@@ -278,6 +278,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
             onPackagesChange={onPackagesChange} onOptionsChange={onOptionsChange}
             onPageChange={() => setActiveTab('calc')}
             role={role} toast={toast}
+            onReloadData={onReloadData}
           />
         </div>
       ) : (

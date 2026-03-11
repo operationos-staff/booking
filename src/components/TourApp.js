@@ -1,8 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole } from '@/lib/db'
-import { loadFromLS, saveToLS } from '@/lib/utils'
+import { saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
 
@@ -25,46 +25,38 @@ export default function TourApp() {
 
   const { toasts, toast } = useToast()
 
-  const loadAppData = async () => {
+  // Load data from Supabase DB - this is the SINGLE SOURCE OF TRUTH
+  // DB data always takes priority; defaults are only used when DB is empty
+  const loadAppData = useCallback(async () => {
     try {
       const [dbPkgs, dbOpts] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB()])
-      const mergeById = (source, defaults) => {
-        if (!source || !source.length) return defaults
-        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id))
-        const currentIds = new Set(cleanSource.map(item => String(item.id)))
-        const missing = defaults.filter(d => !currentIds.has(String(d.id)))
-        return [...cleanSource, ...missing]
-      }
-      setPackages(mergeById(dbPkgs, DEF_PACKAGES))
-      const finalOpts = mergeById(dbOpts, DEF_OPTIONS)
-      finalOpts.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
-      setOptions(finalOpts)
-    } catch (e) {
-      console.warn('DB load error, using local data:', e.message)
-    }
-  }
 
-  useEffect(() => {
-    const init = async () => {
-      const ls = loadFromLS()
-      const mergeById = (source, defaults) => {
-        if (!source || !source.length) return defaults
-        const cleanSource = source.filter(sItem => !defaults.some(d => d.name === sItem.name && d.hours === sItem.hours && d.id !== sItem.id))
-        const currentIds = new Set(cleanSource.map(item => String(item.id)))
-        const missing = defaults.filter(d => !currentIds.has(String(d.id)))
-        return [...cleanSource, ...missing]
+      // For packages: use DB data if available, fall back to defaults
+      if (dbPkgs && dbPkgs.length) {
+        setPackages(dbPkgs)
+        saveToLS({ packages: dbPkgs, options: dbOpts || DEF_OPTIONS })
+      } else {
+        setPackages(JSON.parse(JSON.stringify(DEF_PACKAGES)))
       }
-      if (ls.packages?.length) {
-        const mergedPkgs = mergeById(ls.packages, DEF_PACKAGES)
-        setPackages(mergedPkgs)
-        saveToLS({ packages: mergedPkgs, options: ls.options || DEF_OPTIONS })
-      }
-      if (ls.options?.length) {
-        setOptions([...ls.options].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
+
+      // For options: use DB data if available, fall back to defaults
+      if (dbOpts && dbOpts.length) {
+        const sorted = [...dbOpts].sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+        setOptions(sorted)
+        saveToLS({ packages: dbPkgs || DEF_PACKAGES, options: sorted })
       } else {
         setOptions([...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
       }
+    } catch (e) {
+      console.warn('DB load error, using defaults:', e.message)
+      setPackages(JSON.parse(JSON.stringify(DEF_PACKAGES)))
+      setOptions([...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
+    }
+  }, [])
 
+  useEffect(() => {
+    const init = async () => {
+      // Check for client tour link FIRST (no auth needed)
       const params = new URLSearchParams(window.location.search)
       const tourId = params.get('tour')
       if (tourId) {
@@ -78,22 +70,31 @@ export default function TourApp() {
         } catch { }
       }
 
+      // Try to restore session and load data from DB
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
           const r = await fetchUserRole(session.user.id)
-          if (r) { setUser(session.user); setRole(r); await loadAppData() }
-          else await supabase.auth.signOut()
+          if (r) {
+            setUser(session.user)
+            setRole(r)
+            // ALWAYS load from DB - this is the source of truth for ALL roles
+            await loadAppData()
+          } else {
+            await supabase.auth.signOut()
+          }
         }
       } catch (e) { console.warn('Session restore failed:', e.message) }
 
       setReady(true)
     }
     init()
-  }, []) // eslint-disable-line
+  }, [loadAppData])
 
   const handleLogin = async (u, r) => {
-    setUser(u); setRole(r); await loadAppData()
+    setUser(u); setRole(r)
+    // ALWAYS load fresh data from DB on login for ALL roles
+    await loadAppData()
     toast('Вход выполнен: ' + ({ manager: 'Менеджер', booking: 'Операционный отдел' }[r] || r), 'ok')
   }
 
@@ -139,10 +140,11 @@ export default function TourApp() {
           packages={packages} options={options} role={role} user={user} toast={toast}
           onPackagesChange={p => { setPackages(p); saveToLS({ packages: p, options }) }}
           onOptionsChange={o => { setOptions(o); saveToLS({ packages, options: o }) }}
+          onReloadData={loadAppData}
         />
       )}
       {page === 'client'  && <ClientPage data={clientData} />}
-      {page === 'charter' && user && <CharterPage role={role} />}
+      {page === 'charter' && user && <CharterPage role={role} toast={toast} />}
       <div id="print-area" />
       <ToastContainer toasts={toasts} />
     </>

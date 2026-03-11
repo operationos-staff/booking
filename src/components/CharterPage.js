@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Portal.module.css';
 import { todayISO, doPrintCharter, clipCopy } from '@/lib/utils';
-import { saveCalculation } from '@/lib/db';
+import { saveCalculation, loadCharterFromDB, saveCharterToDB } from '@/lib/db';
 import { LinkModal, TextModal } from './Modals';
 
 const DEFAULT_DB = {
@@ -542,20 +542,23 @@ const DEFAULT_DB = {
 const UID = () => Math.random().toString(36).substr(2, 9);
 const FMT = (n) => new Intl.NumberFormat('ru-RU').format(n || 0) + ' ฿';
 
-export default function CharterPage({ role }) {
+export default function CharterPage({ role, toast: externalToast }) {
     const isAdmin = role === 'booking';
+    const showToast = externalToast || ((msg) => alert(msg));
     const [db, setDb] = useState(DEFAULT_DB);
     const [activeTab, setActiveTab] = useState('calc');
     const [searchQuery, setSearchQuery] = useState('');
+    const [dbLoaded, setDbLoaded] = useState(false);
+    const [savingDb, setSavingDb] = useState(false);
 
     // Calc State
     const [sTour, setSTour] = useState(null);
-    const [pax, setPax] = useState({ adults: 2, children: 0 }); // New pax state
+    const [pax, setPax] = useState({ adults: 2, children: 0 });
     const [client, setClient] = useState({ name: '', date: '', phone: '', note: '' });
     const [modal, setModal] = useState(null);
     const [shareUrl, setShareUrl] = useState('');
     const [mgrSelections, setMgrSelections] = useState({});
-    const [mgrPricesOverrides, setMgrPricesOverrides] = useState({}); // New State for Admin Pricing Override
+    const [mgrPricesOverrides, setMgrPricesOverrides] = useState({});
 
     // Admin Item Modal State
     const [showItemModal, setShowItemModal] = useState(false);
@@ -564,7 +567,7 @@ export default function CharterPage({ role }) {
     const [unsavedItems, setUnsavedItems] = useState({});
     const [editItem, setEditItem] = useState(null);
     const [adminSelTour, setAdminSelTour] = useState('');
-  const [routeDropOpen, setRouteDropOpen] = useState(false)
+    const [routeDropOpen, setRouteDropOpen] = useState(false);
     const [showAllOpts, setShowAllOpts] = useState(false);
     const [collapsedBoatGroups, setCollapsedBoatGroups] = useState({
         '2 eng boat': true,
@@ -578,29 +581,49 @@ export default function CharterPage({ role }) {
     // Drag & Drop State
     const [dragTIdx, setDragTIdx] = useState(null);
     const [dragIIdx, setDragIIdx] = useState(null);
-    const [dragMode, setDragMode] = useState(null); // Fix text selection by only enabling drag on handle
+    const [dragMode, setDragMode] = useState(null);
     const [openGroups, setOpenGroups] = useState({ '2 eng boat': false, '3 eng boat': false, '3 eng Luxury': false, 'Catamaran Milan': false });
 
-    // Load from LS
+    // Load charter data: Supabase DB first, then localStorage fallback, then defaults
     useEffect(() => {
-        const saved = localStorage.getItem('charter_db');
-        if (saved) {
+        const loadData = async () => {
             try {
-                const parsed = JSON.parse(saved);
-                // Auto-sync if hardcoded DB has more/different amount of tours (from our recent Excel import)
-                if (!parsed.tours || parsed.tours.length !== DEFAULT_DB.tours.length) {
-                    console.log("Syncing database from code... (length mismatch)");
-                    setDb(DEFAULT_DB);
-                    localStorage.setItem('charter_db', JSON.stringify(DEFAULT_DB));
-                    if (DEFAULT_DB.tours.length) setAdminSelTour(DEFAULT_DB.tours[0].id);
+                // 1. Try loading from Supabase (source of truth)
+                const dbData = await loadCharterFromDB();
+                if (dbData && dbData.tours && dbData.tours.length > 0) {
+                    console.log('Charter: loaded from Supabase DB');
+                    setDb(dbData);
+                    localStorage.setItem('charter_db', JSON.stringify(dbData));
+                    if (dbData.tours.length) setAdminSelTour(dbData.tours[0].id);
+                    setDbLoaded(true);
                     return;
                 }
-                setDb(document.DEFAULT_DB_DEV || parsed); // Use memory override if available
-                if (parsed.tours?.length) setAdminSelTour(parsed.tours[0].id);
-            } catch (e) { }
-        } else {
+            } catch (e) {
+                console.warn('Charter: Supabase load failed:', e.message);
+            }
+
+            // 2. Fallback: try localStorage
+            const saved = localStorage.getItem('charter_db');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.tours && parsed.tours.length > 0) {
+                        console.log('Charter: loaded from localStorage');
+                        setDb(parsed);
+                        if (parsed.tours.length) setAdminSelTour(parsed.tours[0].id);
+                        setDbLoaded(true);
+                        return;
+                    }
+                } catch (e) { }
+            }
+
+            // 3. Use defaults
+            console.log('Charter: using defaults');
+            setDb(DEFAULT_DB);
             if (DEFAULT_DB.tours.length) setAdminSelTour(DEFAULT_DB.tours[0].id);
-        }
+            setDbLoaded(true);
+        };
+        loadData();
     }, []);
 
     // Force manager view if role changes while in admin
@@ -610,16 +633,45 @@ export default function CharterPage({ role }) {
         }
     }, [isAdmin, activeTab]);
 
-    const saveDB = (newDb) => {
+    // Save DB: always save to localStorage AND Supabase (for booking role)
+    const saveDB = useCallback(async (newDb) => {
         setDb(newDb);
         localStorage.setItem('charter_db', JSON.stringify(newDb));
+        // Always try to save to Supabase so managers see changes
+        if (isAdmin) {
+            try {
+                await saveCharterToDB(newDb);
+            } catch (e) {
+                console.warn('Charter: Supabase save failed, saved to localStorage:', e.message);
+            }
+        }
+    }, [isAdmin]);
+
+    // Explicit save button for admin to push all changes to Supabase
+    const saveCharterToCloud = async () => {
+        setSavingDb(true);
+        try {
+            const ok = await saveCharterToDB(db);
+            if (ok) {
+                showToast('Чартеры сохранены в базу!', 'ok');
+            } else {
+                showToast('Ошибка сохранения чартеров', 'err');
+            }
+        } catch (e) {
+            showToast('Ошибка: ' + e.message, 'err');
+        } finally {
+            setSavingDb(false);
+        }
     };
 
-    const resetDB = () => {
+    const resetDB = async () => {
         if (!confirm("ВНИМАНИЕ! Это удалит все ваши изменения цен и вернет базу к заводским (из Excel). Продолжить?")) return;
-        saveDB(DEFAULT_DB);
-        alert("База данных успешно сброшена к заводским настройкам!");
-        window.location.reload();
+        setDb(DEFAULT_DB);
+        localStorage.setItem('charter_db', JSON.stringify(DEFAULT_DB));
+        if (isAdmin) {
+            await saveCharterToDB(DEFAULT_DB);
+        }
+        showToast('База данных сброшена к заводским настройкам!', 'ok');
     };
 
     // ---- CALC LOGIC ----
@@ -729,45 +781,55 @@ export default function CharterPage({ role }) {
     };
 
     // ---- ADMIN LOGIC ----
-    const addTour = () => {
-        const newDb = { ...db };
+    const addTour = async () => {
+        const newDb = { ...db, tours: [...db.tours] };
         const newId = UID();
         newDb.tours.push({
             id: newId, icon: '🚤', name: 'Новый маршрут', net: 0,
             mgrPrice: 0,
-            sell: 0
+            sell: 0,
+            bType: '2 eng boat',
+            color: '#fef08a'
         });
-        saveDB(newDb);
+        await saveDB(newDb);
         setAdminSelTour(newId);
+        showToast('Маршрут добавлен', 'ok');
     };
-    const delTour = (id) => {
+    const delTour = async (id) => {
         if (!confirm("Удалить маршрут и все его доплаты?")) return;
-        const newDb = { ...db };
-        newDb.tours = newDb.tours.filter(t => t.id !== id);
-        newDb.items = newDb.items.filter(i => i.tId !== id);
-        saveDB(newDb);
+        const newDb = {
+            ...db,
+            tours: db.tours.filter(t => t.id !== id),
+            items: db.items.filter(i => i.tId !== id)
+        };
+        await saveDB(newDb);
         if (sTour === id) setSTour(null);
         if (adminSelTour === id) setAdminSelTour(newDb.tours.length ? newDb.tours[0].id : '');
+        showToast('Маршрут удален', 'ok');
     };
     const updTour = (tId, field, value) => {
-        const newDb = { ...db };
-        const t = newDb.tours.find(x => x.id === tId);
-        if (t) {
+        const newDb = { ...db, tours: [...db.tours] };
+        const tIdx = newDb.tours.findIndex(x => x.id === tId);
+        if (tIdx !== -1) {
+            const t = { ...newDb.tours[tIdx] };
             if (field === 'sell') {
                 t.sell = Number(value) || 0;
-                t.mgrPrice = Number(value) || 0; // Sync manager price
+                t.mgrPrice = Number(value) || 0;
             } else if (['net', 'mgrPrice'].includes(field)) {
                 t[field] = Number(value) || 0;
             } else {
                 t[field] = value;
             }
-            saveDB(newDb);
+            newDb.tours[tIdx] = t;
+            // Save locally immediately for responsiveness; Supabase save happens on explicit "Save" button
+            setDb(newDb);
+            localStorage.setItem('charter_db', JSON.stringify(newDb));
         }
     };
 
     // Items admin overrides for "ALL"
     const openAddItem = () => {
-        if (!adminSelTour) { alert("Сначала выберите маршрут (или 'ALL' если добавим)!"); return; }
+        if (!adminSelTour) { showToast("Сначала выберите маршрут!", 'err'); return; }
         setEditItem({
             tId: adminSelTour, name: '', icon: '', type: 'fixed', net: 0,
             mgrPrice: 0,
@@ -775,14 +837,19 @@ export default function CharterPage({ role }) {
         });
         setShowItemModal(true);
     };
-    const saveItemModal = () => {
+    const saveItemModal = async () => {
         if (!editItem.name) return;
-        const newDb = { ...db };
+        const newDb = { ...db, items: [...db.items] };
         const iObj = { ...editItem, id: editItem.id || UID(), net: Number(editItem.net) || 0, sell: Number(editItem.sell) || 0, mgrPrice: Number(editItem.mgrPrice) || 0, icon: editItem.icon || '📌' };
-        if (editItem.id) newDb.items[newDb.items.findIndex(x => x.id === editItem.id)] = iObj;
-        else newDb.items.push(iObj);
-        saveDB(newDb);
+        const existIdx = newDb.items.findIndex(x => x.id === editItem.id);
+        if (existIdx !== -1) {
+            newDb.items[existIdx] = iObj;
+        } else {
+            newDb.items.push(iObj);
+        }
+        await saveDB(newDb);
         setShowItemModal(false);
+        showToast('Опция сохранена', 'ok');
     };
 
     const updItemInline = (iId, field, value) => {
@@ -796,21 +863,21 @@ export default function CharterPage({ role }) {
         });
     };
 
-    const saveAllEdits = () => {
-        const newDb = { ...db };
+    const saveAllEdits = async () => {
+        const newDb = { ...db, items: [...db.items] };
         Object.keys(unsavedItems).forEach(iId => {
             const idx = newDb.items.findIndex(x => x.id === iId);
             if (idx !== -1) {
-                // if we updated sell, auto-sync mgrPrice just like before, unless mgrPrice was also explicitly updated in this batch
-                const itemUpdates = unsavedItems[iId];
+                const itemUpdates = { ...unsavedItems[iId] };
                 if ('sell' in itemUpdates && !('mgrPrice' in itemUpdates)) {
                     itemUpdates.mgrPrice = itemUpdates.sell;
                 }
                 newDb.items[idx] = { ...newDb.items[idx], ...itemUpdates };
             }
         });
-        saveDB(newDb);
+        await saveDB(newDb);
         setUnsavedItems({});
+        showToast('Цены сохранены', 'ok');
     };
 
     const discardAllEdits = () => {
@@ -818,11 +885,14 @@ export default function CharterPage({ role }) {
             setUnsavedItems({});
         }
     };
-    const delItem = (iId) => {
+    const delItem = async (iId) => {
         if (!confirm("Удалить опцию?")) return;
-        const newDb = { ...db };
-        newDb.items = newDb.items.filter(i => i.id !== iId);
-        saveDB(newDb);
+        const newDb = {
+            ...db,
+            items: db.items.filter(i => i.id !== iId)
+        };
+        await saveDB(newDb);
+        showToast('Опция удалена', 'ok');
     };
 
     const filteredTours = db.tours.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -1145,6 +1215,9 @@ export default function CharterPage({ role }) {
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button className={`${styles.btn} ${styles.btnErr}`} onClick={resetDB}>Сброс БД</button>
                                     <button className={`${styles.btn} ${styles.btnPri}`} onClick={addTour}>Добавить чартер</button>
+                                    <button className={`${styles.btn} ${styles.btnOk}`} onClick={saveCharterToCloud} disabled={savingDb} style={{ background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.6)', color: '#6ee7b7' }}>
+                                        {savingDb ? '⏳ Сохранение...' : '💾 Сохранить в Базу'}
+                                    </button>
                                 </div>
                             </div>
                             <div className={styles.tblWrapper}>
@@ -1158,7 +1231,7 @@ export default function CharterPage({ role }) {
                                     return BOAT_GROUPS.map(group => {
                                         const groupTours = db.tours
                                             .map((t, idx) => ({ ...t, _idx: idx }))
-                                            .filter(t => t.name.startsWith(group.key));
+                                            .filter(t => (t.bType || '').toLowerCase() === group.key.toLowerCase() || t.name.startsWith(group.key));
                                         if (groupTours.length === 0) return null;
                                         const isCollapsed = collapsedBoatGroups[group.key] !== false;
                                         return (
@@ -1196,7 +1269,9 @@ export default function CharterPage({ role }) {
                                                                     const newTours = [...db.tours];
                                                                     const [moved] = newTours.splice(dragTIdx, 1);
                                                                     newTours.splice(t._idx, 0, moved);
-                                                                    saveDB({ ...db, tours: newTours });
+                                                                    const newDb = { ...db, tours: newTours };
+                                                                    setDb(newDb);
+                                                                    localStorage.setItem('charter_db', JSON.stringify(newDb));
                                                                     setDragTIdx(null);
                                                                 }}
                                                             >
@@ -1283,7 +1358,9 @@ export default function CharterPage({ role }) {
                                                     const newItems = [...db.items];
                                                     const [moved] = newItems.splice(dragIIdx, 1);
                                                     newItems.splice(targetGlobalIdx, 0, moved);
-                                                    saveDB({ ...db, items: newItems });
+                                                    const newDb2 = { ...db, items: newItems };
+                                                    setDb(newDb2);
+                                                    localStorage.setItem('charter_db', JSON.stringify(newDb2));
                                                     setDragIIdx(null);
                                                 }}
                                             >
@@ -1413,7 +1490,9 @@ export default function CharterPage({ role }) {
                                                             const newItems = [...db.items];
                                                             const [moved] = newItems.splice(dragIIdx, 1);
                                                             newItems.splice(targetGlobalIdx, 0, moved);
-                                                            saveDB({ ...db, items: newItems });
+                                                            const newDb3 = { ...db, items: newItems };
+                                                            setDb(newDb3);
+                                                            localStorage.setItem('charter_db', JSON.stringify(newDb3));
                                                             setDragIIdx(null);
                                                         }}
                                                     >
