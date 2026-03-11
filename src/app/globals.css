@@ -1835,3 +1835,13 @@ select option {
   }
 }
 /* ── end charter mobile ── */
+
+/* ── charter admin mobile responsive ── */
+@media (max-width: 768px) {
+  .charter-admin-table-desktop {
+    display: none !important;
+  }
+  .charter-admin-cards-mobile {
+    display: flex !important;
+  }
+}

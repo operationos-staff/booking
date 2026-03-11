@@ -542,6 +542,47 @@ const DEFAULT_DB = {
 const UID = () => Math.random().toString(36).substr(2, 9);
 const FMT = (n) => new Intl.NumberFormat('ru-RU').format(n || 0) + ' ฿';
 
+const DEFAULT_BOAT_TYPES = [
+    { key: '2 eng boat', label: '🚤 2 eng boat', icon: '🚤', color: '#fef08a', bgColor: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.3)' },
+    { key: '3 eng boat', label: '🚢 3 eng boat', icon: '🚢', color: '#bfdbfe', bgColor: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)' },
+    { key: '3 eng Luxury', label: '⭐ 3 eng Luxury', icon: '✨', color: '#fbcfe8', bgColor: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.3)' },
+    { key: 'Catamaran Milan', label: '⛵ Catamaran Milan', icon: '⛵', color: '#bbf7d0', bgColor: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)' },
+];
+
+const EXTRA_COLORS = [
+    { color: '#c4b5fd', bgColor: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.3)' },
+    { color: '#fcd34d', bgColor: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
+    { color: '#a5f3fc', bgColor: 'rgba(6,182,212,0.1)', border: 'rgba(6,182,212,0.3)' },
+    { color: '#fda4af', bgColor: 'rgba(244,63,94,0.1)', border: 'rgba(244,63,94,0.3)' },
+    { color: '#86efac', bgColor: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)' },
+];
+
+// Build dynamic boat types from DB tours
+function buildBoatTypes(tours) {
+    const knownKeys = new Set(DEFAULT_BOAT_TYPES.map(bt => bt.key));
+    const dynamicTypes = [...DEFAULT_BOAT_TYPES];
+    let extraIdx = 0;
+    tours.forEach(t => {
+        const bt = t.bType;
+        if (bt && !knownKeys.has(bt)) {
+            knownKeys.add(bt);
+            const ec = EXTRA_COLORS[extraIdx % EXTRA_COLORS.length];
+            extraIdx++;
+            dynamicTypes.push({ key: bt, label: `🚤 ${bt}`, icon: '🚤', ...ec });
+        }
+    });
+    return dynamicTypes;
+}
+
+function getTourBType(t, boatTypes) {
+    if (t.bType) return t.bType;
+    const types = boatTypes || DEFAULT_BOAT_TYPES;
+    for (const bt of types) {
+        if (t.name && t.name.toLowerCase().startsWith(bt.key.toLowerCase())) return bt.key;
+    }
+    return null;
+}
+
 export default function CharterPage({ role, toast: externalToast }) {
     const isAdmin = role === 'booking';
     const showToast = externalToast || ((msg) => alert(msg));
@@ -569,12 +610,9 @@ export default function CharterPage({ role, toast: externalToast }) {
     const [adminSelTour, setAdminSelTour] = useState('');
     const [routeDropOpen, setRouteDropOpen] = useState(false);
     const [showAllOpts, setShowAllOpts] = useState(false);
-    const [collapsedBoatGroups, setCollapsedBoatGroups] = useState({
-        '2 eng boat': true,
-        '3 eng boat': true,
-        '3 eng Luxury': true,
-        'Catamaran Milan': true,
-    });
+    const [collapsedBoatGroups, setCollapsedBoatGroups] = useState({});
+    const [showAddBoatType, setShowAddBoatType] = useState(false);
+    const [newBoatTypeName, setNewBoatTypeName] = useState('');
     const [collapseAllOpts, setCollapseAllOpts] = useState(true);
     const [collapseRouteOpts, setCollapseRouteOpts] = useState(true);
 
@@ -582,7 +620,10 @@ export default function CharterPage({ role, toast: externalToast }) {
     const [dragTIdx, setDragTIdx] = useState(null);
     const [dragIIdx, setDragIIdx] = useState(null);
     const [dragMode, setDragMode] = useState(null);
-    const [openGroups, setOpenGroups] = useState({ '2 eng boat': false, '3 eng boat': false, '3 eng Luxury': false, 'Catamaran Milan': false });
+    const [openGroups, setOpenGroups] = useState({});
+
+    // Dynamic boat types derived from current DB
+    const BOAT_TYPES = React.useMemo(() => buildBoatTypes(db.tours), [db.tours]);
 
     // Load charter data: Supabase DB first, then localStorage fallback, then defaults
     useEffect(() => {
@@ -653,6 +694,7 @@ export default function CharterPage({ role, toast: externalToast }) {
         try {
             const ok = await saveCharterToDB(db);
             if (ok) {
+                setTourEdited(false);
                 showToast('Чартеры сохранены в базу!', 'ok');
             } else {
                 showToast('Ошибка сохранения чартеров', 'err');
@@ -781,19 +823,43 @@ export default function CharterPage({ role, toast: externalToast }) {
     };
 
     // ---- ADMIN LOGIC ----
-    const addTour = async () => {
+    const addTour = async (bType) => {
+        const bt = BOAT_TYPES.find(b => b.key === bType) || DEFAULT_BOAT_TYPES[0];
         const newDb = { ...db, tours: [...db.tours] };
         const newId = UID();
         newDb.tours.push({
-            id: newId, icon: '🚤', name: 'Новый маршрут', net: 0,
+            id: newId, icon: '🚤', name: `${bt.key} - Новый маршрут`, net: 0,
             mgrPrice: 0,
             sell: 0,
-            bType: '2 eng boat',
-            color: '#fef08a'
+            bType: bt.key,
+            color: bt.color
         });
         await saveDB(newDb);
         setAdminSelTour(newId);
-        showToast('Маршрут добавлен', 'ok');
+        // Uncollapse the group so new tour is visible
+        setCollapsedBoatGroups(prev => ({ ...prev, [bt.key]: false }));
+        showToast(`Маршрут добавлен в ${bt.key}`, 'ok');
+    };
+
+    const addBoatType = async () => {
+        const name = newBoatTypeName.trim();
+        if (!name) { showToast('Введите название типа лодки', 'err'); return; }
+        const existing = BOAT_TYPES.find(bt => bt.key.toLowerCase() === name.toLowerCase());
+        if (existing) { showToast('Такой тип уже существует', 'err'); return; }
+        // Create a new tour with this boat type, which will auto-create the group
+        const ec = EXTRA_COLORS[(BOAT_TYPES.length - DEFAULT_BOAT_TYPES.length) % EXTRA_COLORS.length];
+        const newDb = { ...db, tours: [...db.tours] };
+        const newId = UID();
+        newDb.tours.push({
+            id: newId, icon: '🚤', name: `${name} - Новый маршрут`, net: 0,
+            mgrPrice: 0, sell: 0, bType: name, color: ec.color
+        });
+        await saveDB(newDb);
+        setAdminSelTour(newId);
+        setCollapsedBoatGroups(prev => ({ ...prev, [name]: false }));
+        setNewBoatTypeName('');
+        setShowAddBoatType(false);
+        showToast(`Новый тип "${name}" создан с маршрутом`, 'ok');
     };
     const delTour = async (id) => {
         if (!confirm("Удалить маршрут и все его доплаты?")) return;
@@ -807,6 +873,8 @@ export default function CharterPage({ role, toast: externalToast }) {
         if (adminSelTour === id) setAdminSelTour(newDb.tours.length ? newDb.tours[0].id : '');
         showToast('Маршрут удален', 'ok');
     };
+    const [tourEdited, setTourEdited] = useState(false);
+
     const updTour = (tId, field, value) => {
         const newDb = { ...db, tours: [...db.tours] };
         const tIdx = newDb.tours.findIndex(x => x.id === tId);
@@ -820,10 +888,16 @@ export default function CharterPage({ role, toast: externalToast }) {
             } else {
                 t[field] = value;
             }
+            // When changing bType, also update color to match
+            if (field === 'bType') {
+                const bt = BOAT_TYPES.find(b => b.key === value) || DEFAULT_BOAT_TYPES.find(b => b.key === value);
+                if (bt) t.color = bt.color;
+            }
             newDb.tours[tIdx] = t;
-            // Save locally immediately for responsiveness; Supabase save happens on explicit "Save" button
+            // Save locally for responsiveness; Supabase save on explicit "Save" button
             setDb(newDb);
             localStorage.setItem('charter_db', JSON.stringify(newDb));
+            setTourEdited(true);
         }
     };
 
@@ -1212,86 +1286,245 @@ export default function CharterPage({ role, toast: externalToast }) {
                         <div className={styles.card} style={{ borderColor: 'var(--warn)' }}>
                             <div className={styles.cardTitleFlex}>
                                 <div className={styles.cardTitle} style={{ borderBottom: 'none', marginBottom: 0, flex: 1 }}><span>🚤</span> Управление маршрутами ({db.tours.length} шт.)</div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    <button
+                                        className={`${styles.btn}`}
+                                        onClick={() => setShowAddBoatType(prev => !prev)}
+                                        style={{ padding: '6px 14px', background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.5)', borderRadius: '8px', color: '#c4b5fd', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                                    >
+                                        🚢 Новый тип лодки
+                                    </button>
                                     <button className={`${styles.btn} ${styles.btnErr}`} onClick={resetDB}>Сброс БД</button>
-                                    <button className={`${styles.btn} ${styles.btnPri}`} onClick={addTour}>Добавить чартер</button>
-                                    <button className={`${styles.btn} ${styles.btnOk}`} onClick={saveCharterToCloud} disabled={savingDb} style={{ background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.6)', color: '#6ee7b7' }}>
-                                        {savingDb ? '⏳ Сохранение...' : '💾 Сохранить в Базу'}
+                                    <button className={`${styles.btn} ${styles.btnOk}`} onClick={saveCharterToCloud} disabled={savingDb} style={{ background: (tourEdited || Object.keys(unsavedItems).length > 0) ? 'rgba(245,158,11,0.3)' : 'rgba(16,185,129,0.2)', borderColor: (tourEdited || Object.keys(unsavedItems).length > 0) ? 'rgba(245,158,11,0.6)' : 'rgba(16,185,129,0.6)', color: (tourEdited || Object.keys(unsavedItems).length > 0) ? '#fbbf24' : '#6ee7b7', animation: (tourEdited || Object.keys(unsavedItems).length > 0) ? 'pulse 2s infinite' : 'none' }}>
+                                        {savingDb ? '⏳ Сохранение...' : (tourEdited || Object.keys(unsavedItems).length > 0) ? '⚠️ Сохранить изменения' : '💾 Сохранить в Базу'}
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Add new boat type inline form */}
+                            {showAddBoatType && (
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '12px 16px', margin: '0 0 16px 0', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '10px' }}>
+                                    <span style={{ fontSize: '13px', color: '#c4b5fd', fontWeight: 700, whiteSpace: 'nowrap' }}>Название типа:</span>
+                                    <input
+                                        type="text"
+                                        value={newBoatTypeName}
+                                        onChange={e => setNewBoatTypeName(e.target.value)}
+                                        placeholder="Например: Yacht Premium"
+                                        style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', background: 'var(--bg2)', border: '1px solid rgba(139,92,246,0.3)', color: 'var(--txt)', fontSize: '13px' }}
+                                        onKeyDown={e => { if (e.key === 'Enter') addBoatType(); }}
+                                    />
+                                    <button onClick={addBoatType} style={{ padding: '8px 16px', background: 'rgba(139,92,246,0.3)', border: '1px solid rgba(139,92,246,0.5)', borderRadius: '8px', color: '#c4b5fd', fontWeight: 700, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                        Создать тип + маршрут
+                                    </button>
+                                    <button onClick={() => { setShowAddBoatType(false); setNewBoatTypeName(''); }} style={{ padding: '8px 12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#a3a3a3', cursor: 'pointer', fontSize: '12px' }}>
+                                        Отмена
+                                    </button>
+                                </div>
+                            )}
+
                             <div className={styles.tblWrapper}>
                                 {(() => {
-                                    const BOAT_GROUPS = [
-                                        { key: '2 eng boat', label: '🚤 2 eng boat', color: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.3)' },
-                                        { key: '3 eng boat', label: '🚢 3 eng boat', color: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)' },
-                                        { key: '3 eng Luxury', label: '⭐ 3 eng Luxury', color: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.3)' },
-                                        { key: 'Catamaran Milan', label: '⛵ Catamaran Milan', color: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)' },
-                                    ];
-                                    return BOAT_GROUPS.map(group => {
+                                    // Collect grouped + ungrouped tours using dynamic BOAT_TYPES
+                                    const allGrouped = new Set();
+                                    const groupBlocks = BOAT_TYPES.map(group => {
                                         const groupTours = db.tours
                                             .map((t, idx) => ({ ...t, _idx: idx }))
-                                            .filter(t => (t.bType || '').toLowerCase() === group.key.toLowerCase() || t.name.startsWith(group.key));
-                                        if (groupTours.length === 0) return null;
-                                        const isCollapsed = collapsedBoatGroups[group.key] !== false;
-                                        return (
-                                            <div key={group.key} style={{ marginBottom: '16px', border: `1px solid ${group.border}`, borderRadius: '10px', overflow: 'hidden' }}>
-                                                <div
-                                                    onClick={() => setCollapsedBoatGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                                                    style={{ background: group.color, padding: '10px 14px', fontWeight: 700, color: '#fbbf24', fontSize: '13px', letterSpacing: '0.05em', borderBottom: isCollapsed ? 'none' : `1px solid ${group.border}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
-                                                >
-                                                    <span>{group.label} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>({groupTours.length} маршрутов)</span></span>
-                                                    <span style={{ fontSize: '16px', opacity: 0.7, transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>▼</span>
-                                                </div>
-                                                {!isCollapsed && <table className={styles.tbl} style={{ width: '100%', borderCollapse: 'collapse', userSelect: 'auto' }}>
-                                                    <thead>
-                                                        <tr>
-                                                            <th style={{ width: '24px' }}></th>
-                                                            <th>Маршрут</th>
-                                                            <th>Нетто ฿</th>
-                                                            <th>Продажа ฿</th>
-                                                            <th style={{ width: '120px' }}>Действия</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {groupTours.map(t => (
-                                                            <tr key={t.id}
-                                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
-                                                                draggable={dragMode === t.id}
-                                                                onDragStart={(e) => {
-                                                                    setDragTIdx(t._idx);
-                                                                    if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
-                                                                }}
-                                                                onDragOver={e => e.preventDefault()}
-                                                                onDrop={e => {
-                                                                    e.preventDefault();
-                                                                    if (dragTIdx === null || dragTIdx === t._idx) return;
-                                                                    const newTours = [...db.tours];
-                                                                    const [moved] = newTours.splice(dragTIdx, 1);
-                                                                    newTours.splice(t._idx, 0, moved);
-                                                                    const newDb = { ...db, tours: newTours };
-                                                                    setDb(newDb);
-                                                                    localStorage.setItem('charter_db', JSON.stringify(newDb));
-                                                                    setDragTIdx(null);
-                                                                }}
-                                                            >
-                                                                <td><div onMouseEnter={() => setDragMode(t.id)} onMouseLeave={() => setDragMode(null)} style={{ cursor: 'grab', opacity: 0.5, padding: '5px' }}>⋮⋮</div></td>
-                                                                <td>
-                                                                    <div style={{ display: 'flex', gap: '6px' }}>
-                                                                        <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
-                                                                        <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} />
-                                                                    </div>
-                                                                </td>
-                                                                <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
-                                                                <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
-                                                                <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>Удалить</button></td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>}
-                                            </div>
-                                        );
+                                            .filter(t => {
+                                                const bt = getTourBType(t, BOAT_TYPES);
+                                                return bt && bt.toLowerCase() === group.key.toLowerCase();
+                                            });
+                                        groupTours.forEach(t => allGrouped.add(t.id));
+                                        return { group, groupTours };
                                     });
+                                    const ungrouped = db.tours
+                                        .map((t, idx) => ({ ...t, _idx: idx }))
+                                        .filter(t => !allGrouped.has(t.id));
+
+                                    return (
+                                        <>
+                                            {groupBlocks.map(({ group, groupTours }) => {
+                                                const isCollapsed = collapsedBoatGroups[group.key] === true;
+                                                return (
+                                                    <div key={group.key} style={{ marginBottom: '16px', border: `1px solid ${group.border}`, borderRadius: '10px', overflow: 'hidden' }}>
+                                                        <div
+                                                            style={{ background: group.bgColor, padding: '10px 14px', fontWeight: 700, color: '#fbbf24', fontSize: '13px', letterSpacing: '0.05em', borderBottom: isCollapsed ? 'none' : `1px solid ${group.border}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
+                                                        >
+                                                            <span onClick={() => setCollapsedBoatGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))} style={{ flex: 1 }}>
+                                                                {group.label} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>({groupTours.length} маршрутов)</span>
+                                                            </span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); addTour(group.key); }}
+                                                                    style={{ padding: '4px 12px', background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.5)', borderRadius: '6px', color: '#6ee7b7', fontWeight: 700, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                                                    title={`Добавить маршрут в ${group.key}`}
+                                                                >
+                                                                    + Маршрут
+                                                                </button>
+                                                                <span onClick={() => setCollapsedBoatGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))} style={{ fontSize: '16px', opacity: 0.7, transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>▼</span>
+                                                            </div>
+                                                        </div>
+                                                        {!isCollapsed && (
+                                                            <>
+                                                                {/* Desktop table */}
+                                                                <table className={`${styles.tbl} charter-admin-table-desktop`} style={{ width: '100%', borderCollapse: 'collapse', userSelect: 'auto' }}>
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style={{ width: '24px' }}></th>
+                                                                            <th>Маршрут</th>
+                                                                            <th>Нетто ฿</th>
+                                                                            <th>Продажа ฿</th>
+                                                                            <th style={{ width: '120px' }}>Действия</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {groupTours.map(t => (
+                                                                            <tr key={t.id}
+                                                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
+                                                                                draggable={dragMode === t.id}
+                                                                                onDragStart={(e) => {
+                                                                                    setDragTIdx(t._idx);
+                                                                                    if (e.dataTransfer) e.dataTransfer.setData('text/plain', '');
+                                                                                }}
+                                                                                onDragOver={e => e.preventDefault()}
+                                                                                onDrop={e => {
+                                                                                    e.preventDefault();
+                                                                                    if (dragTIdx === null || dragTIdx === t._idx) return;
+                                                                                    const newTours = [...db.tours];
+                                                                                    const [moved] = newTours.splice(dragTIdx, 1);
+                                                                                    newTours.splice(t._idx, 0, moved);
+                                                                                    saveDB({ ...db, tours: newTours });
+                                                                                    setDragTIdx(null);
+                                                                                }}
+                                                                            >
+                                                                                <td><div onMouseEnter={() => setDragMode(t.id)} onMouseLeave={() => setDragMode(null)} style={{ cursor: 'grab', opacity: 0.5, padding: '5px' }}>⋮⋮</div></td>
+                                                                                <td>
+                                                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                                                        <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
+                                                                                        <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} style={{ flex: 1 }} />
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
+                                                                                <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
+                                                                                <td>
+                                                                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                                                                        <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>🗑</button>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+
+                                                                {/* Mobile cards */}
+                                                                <div className="charter-admin-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '8px', padding: '8px' }}>
+                                                                    {groupTours.map(t => (
+                                                                        <div key={t.id} style={{
+                                                                            background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)',
+                                                                            border: '1px solid rgba(245,158,11,0.15)',
+                                                                            borderRadius: '10px',
+                                                                            padding: '12px',
+                                                                        }}>
+                                                                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+                                                                                <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '40px', textAlign: 'center', fontSize: '1.2rem' }} maxLength="4" />
+                                                                                <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} style={{ flex: 1, fontWeight: 700 }} />
+                                                                                <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)} style={{ padding: '6px 8px' }}>🗑</button>
+                                                                            </div>
+                                                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто</div>
+                                                                                    <input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} style={{ width: '100%' }} />
+                                                                                </div>
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа</div>
+                                                                                    <input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ width: '100%', color: 'var(--ok)', fontWeight: 700 }} />
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* Ungrouped tours (orphans without bType) */}
+                                            {ungrouped.length > 0 && (
+                                                <div style={{ marginBottom: '16px', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '10px', overflow: 'hidden' }}>
+                                                    <div style={{ background: 'rgba(239,68,68,0.1)', padding: '10px 14px', fontWeight: 700, color: '#ef4444', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span>⚠️ Без группы <span style={{ color: 'var(--muted)', fontWeight: 400 }}>({ungrouped.length} маршрутов — назначьте тип лодки или удалите)</span></span>
+                                                    </div>
+                                                    {/* Desktop table for ungrouped */}
+                                                    <table className={`${styles.tbl} charter-admin-table-desktop`} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Маршрут</th>
+                                                                <th>Тип лодки</th>
+                                                                <th>Нетто ฿</th>
+                                                                <th>Продажа ฿</th>
+                                                                <th style={{ width: '120px' }}>Действия</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {ungrouped.map(t => (
+                                                                <tr key={t.id} style={{ background: 'rgba(239,68,68,0.05)' }}>
+                                                                    <td>
+                                                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                                                            <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '50px', textAlign: 'center' }} maxLength="4" />
+                                                                            <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} style={{ flex: 1 }} />
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <select value={t.bType || ''} onChange={e => updTour(t.id, 'bType', e.target.value)} style={{ padding: '6px', borderRadius: '6px', background: 'var(--bg2)', color: 'var(--txt)', border: '1px solid var(--brd)' }}>
+                                                                            <option value="">-- Выберите --</option>
+                                                                            {BOAT_TYPES.map(bt => <option key={bt.key} value={bt.key}>{bt.label}</option>)}
+                                                                        </select>
+                                                                    </td>
+                                                                    <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
+                                                                    <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
+                                                                    <td><button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)}>🗑</button></td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                    {/* Mobile cards for ungrouped */}
+                                                    <div className="charter-admin-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '8px', padding: '8px' }}>
+                                                        {ungrouped.map(t => (
+                                                            <div key={t.id} style={{
+                                                                background: 'rgba(239,68,68,0.05)',
+                                                                border: '1px solid rgba(239,68,68,0.3)',
+                                                                borderRadius: '10px',
+                                                                padding: '12px',
+                                                            }}>
+                                                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+                                                                    <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '40px', textAlign: 'center' }} maxLength="4" />
+                                                                    <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} style={{ flex: 1, fontWeight: 700 }} />
+                                                                    <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)} style={{ padding: '6px 8px' }}>🗑</button>
+                                                                </div>
+                                                                <div style={{ marginBottom: '8px' }}>
+                                                                    <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Тип лодки</div>
+                                                                    <select value={t.bType || ''} onChange={e => updTour(t.id, 'bType', e.target.value)} style={{ width: '100%', padding: '6px', borderRadius: '6px', background: 'var(--bg2)', color: 'var(--txt)', border: '1px solid var(--brd)' }}>
+                                                                        <option value="">-- Выберите --</option>
+                                                                        {BOAT_TYPES.map(bt => <option key={bt.key} value={bt.key}>{bt.label}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто</div>
+                                                                        <input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} style={{ width: '100%' }} />
+                                                                    </div>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа</div>
+                                                                        <input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ width: '100%', color: 'var(--ok)', fontWeight: 700 }} />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
                                 })()}
                             </div>
                         </div>
@@ -1358,9 +1591,7 @@ export default function CharterPage({ role, toast: externalToast }) {
                                                     const newItems = [...db.items];
                                                     const [moved] = newItems.splice(dragIIdx, 1);
                                                     newItems.splice(targetGlobalIdx, 0, moved);
-                                                    const newDb2 = { ...db, items: newItems };
-                                                    setDb(newDb2);
-                                                    localStorage.setItem('charter_db', JSON.stringify(newDb2));
+                                                    saveDB({ ...db, items: newItems });
                                                     setDragIIdx(null);
                                                 }}
                                             >
@@ -1490,9 +1721,7 @@ export default function CharterPage({ role, toast: externalToast }) {
                                                             const newItems = [...db.items];
                                                             const [moved] = newItems.splice(dragIIdx, 1);
                                                             newItems.splice(targetGlobalIdx, 0, moved);
-                                                            const newDb3 = { ...db, items: newItems };
-                                                            setDb(newDb3);
-                                                            localStorage.setItem('charter_db', JSON.stringify(newDb3));
+                                                            saveDB({ ...db, items: newItems });
                                                             setDragIIdx(null);
                                                         }}
                                                     >
