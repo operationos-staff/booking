@@ -17,7 +17,7 @@ test.describe('Booking portal', () => {
   test('login page renders', async ({ page }) => {
     await page.goto('/')
     // Brand title visible
-    await expect(page.locator('text=ОСТРОВ СОКРОВИЩ')).toBeVisible()
+    await expect(page.locator('text=ОСТРОВ СОКРОВИЩ').first()).toBeVisible()
     // Auth form visible
     await expect(page.locator('input[type="email"]')).toBeVisible()
     await expect(page.locator('input[type="password"]')).toBeVisible()
@@ -43,7 +43,7 @@ test.describe('Booking portal', () => {
     }
     const encoded = Buffer.from(encodeURIComponent(JSON.stringify(data))).toString('base64')
     await page.goto(`/?tour=${encoded}`)
-    await expect(page.locator('text=Остров Сокровищ')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('heading', { name: 'Остров Сокровищ' })).toBeVisible({ timeout: 10000 })
     await expect(page.locator('text=15')).toBeVisible()
   })
 
