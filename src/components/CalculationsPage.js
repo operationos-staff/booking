@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { loadCalculations, deleteCalculation } from '@/lib/db'
-import { fmtDate } from '@/lib/utils'
+import { fmtDate, fmtBangkok } from '@/lib/utils'
 
 const PAGE_SIZE = 20
 
@@ -108,7 +108,7 @@ export default function CalculationsPage({ user, role }) {
                   <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
                     {c.tour_date ? fmtDate(c.tour_date) : 'Дата не указана'}
                     {' · '}
-                    {new Date(c.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    {fmtBangkok(c.created_at, { year: 'numeric', month: '2-digit', day: '2-digit', hour: undefined, minute: undefined })}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>

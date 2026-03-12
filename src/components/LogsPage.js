@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { loadActivityLog } from '@/lib/db'
+import { fmtBangkok } from '@/lib/utils'
 
 const ACTION_LABELS = {
   login:                    { label: 'Вход в систему',         icon: '🔐', color: '#22c55e' },
@@ -27,9 +28,7 @@ const ACTION_FILTERS = [
 ]
 
 function formatDate(ts) {
-  if (!ts) return ''
-  const d = new Date(ts)
-  return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return fmtBangkok(ts)
 }
 
 function getChangeSummary(action, details) {

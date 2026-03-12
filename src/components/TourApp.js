@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings } from '@/lib/db'
+import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings, saveDisplayName } from '@/lib/db'
 import { saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
@@ -15,6 +15,7 @@ import CharterPage from './CharterPage'
 import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
+import ProfilePage from './ProfilePage'
 import ToastContainer from './ToastContainer'
 
 export default function TourApp() {
@@ -26,6 +27,8 @@ export default function TourApp() {
   const [clientData, setClientData] = useState(null)
   const [ready, setReady] = useState(false)
   const [brandSettings, setBrandSettings] = useState(null)
+  const [displayName, setDisplayName] = useState('')
+  const [newCalcBadge, setNewCalcBadge] = useState(0)
 
   const { toasts, toast } = useToast()
 
@@ -59,6 +62,20 @@ export default function TourApp() {
       setOptions([...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Realtime: badge for booking when new calculation saved
+  useEffect(() => {
+    if (!user || role !== 'booking') return
+    const ch = supabase
+      .channel('new_calcs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'calculations' }, (payload) => {
+        if (payload.new?.client_name !== '__charter_config__') {
+          setNewCalcBadge(n => n + 1)
+        }
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [user, role])
 
   // Realtime: notify managers when prices change
   useEffect(() => {
@@ -95,11 +112,11 @@ export default function TourApp() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
-          const r = await fetchUserRole(session.user.id)
-          if (r) {
+          const profile = await fetchUserRole(session.user.id)
+          if (profile?.role) {
             setUser(session.user)
-            setRole(r)
-            // ALWAYS load from DB - this is the source of truth for ALL roles
+            setRole(profile.role)
+            setDisplayName(profile.display_name || '')
             await loadAppData()
           } else {
             await supabase.auth.signOut()
@@ -112,8 +129,8 @@ export default function TourApp() {
     init()
   }, [loadAppData])
 
-  const handleLogin = async (u, r) => {
-    setUser(u); setRole(r)
+  const handleLogin = async (u, r, dn) => {
+    setUser(u); setRole(r); setDisplayName(dn || '')
     await loadAppData()
     logActivity(u.id, u.email, 'login', { role: r })
     toast('Вход выполнен: ' + ({ manager: 'Менеджер', booking: 'Операционный отдел' }[r] || r), 'ok')
@@ -156,7 +173,7 @@ export default function TourApp() {
     <>
       <AuroraBackground />
       {!user && page !== 'client' && <LoginPage onLogin={handleLogin} />}
-      {user && page !== 'client' && <Header role={role} page={page} onPage={setPage} onLogout={handleLogout} />}
+      {user && page !== 'client' && <Header role={role} page={page} onPage={(p) => { setPage(p); if (p === 'calculations') setNewCalcBadge(0) }} onLogout={handleLogout} newCalcBadge={newCalcBadge} />}
       {page === 'calculator' && user && (
         <CalculatorPage
           packages={packages} options={options} role={role} user={user} toast={toast}
@@ -169,8 +186,16 @@ export default function TourApp() {
       {page === 'client'       && <ClientPage data={clientData} />}
       {page === 'charter'      && user && <CharterPage role={role} toast={toast} user={user} brandSettings={brandSettings} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
-      {page === 'calculations' && user && <CalculationsPage user={user} role={role} />}
+      {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}
+      {page === 'profile'      && user && (
+        <ProfilePage
+          user={user} role={role} displayName={displayName}
+          onDisplayNameChange={setDisplayName}
+          onLogout={handleLogout}
+          toast={toast}
+        />
+      )}
       <div id="print-area" />
       <ToastContainer toasts={toasts} />
     </>

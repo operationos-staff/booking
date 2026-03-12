@@ -337,9 +337,18 @@ export async function saveBrandSettings(settings) {
 export async function fetchUserRole(userId) {
   const { data, error } = await supabase
     .from('user_roles')
-    .select('role')
+    .select('role, display_name')
     .eq('user_id', userId)
     .maybeSingle()
   if (error) { console.warn('fetchRole:', error.message); return null }
-  return data?.role ?? null
+  return data ?? null
+}
+
+export async function saveDisplayName(userId, displayName) {
+  const { error } = await supabase
+    .from('user_roles')
+    .update({ display_name: displayName })
+    .eq('user_id', userId)
+  if (error) { console.error('saveDisplayName:', error.message); return false }
+  return true
 }

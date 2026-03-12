@@ -230,6 +230,17 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
     setShareUrl(url)
     setModal('link')
     clipCopy(url).then(() => toast('Ссылка скопирована!', 'ok'))
+
+    // Telegram notification for booking role
+    if (brandSettings?.tg_chat_id && d) {
+      const pkg = d.items?.[0]?.name || ''
+      const msg = `📋 <b>Новый расчёт</b>\n👤 ${d.name || 'Клиент не указан'}\n🚐 ${pkg}\n📅 ${d.date || '—'}\n💰 ${(d.total || 0).toLocaleString('ru-RU')} ฿\n🔗 <a href="${url}">Открыть расчёт</a>`
+      fetch('/api/notify-telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, chatId: brandSettings.tg_chat_id }),
+      }).catch(() => {})
+    }
   }
 
   const cats = ['all', ...new Set(options.map(o => o.cat))]

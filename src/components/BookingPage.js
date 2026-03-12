@@ -5,7 +5,7 @@ import { fmt, saveToLS } from '@/lib/utils'
 import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB, saveBrandSettings, loadBrandSettings, loadActivityLog } from '@/lib/db'
 
 const EMPTY_OPT = { name: '', mgrA: 0, mgrC: 0, netA: 0, netC: 0, cat: 'Достопримечательности', only8h: false }
-const EMPTY_BRAND = { whatsapp: '', telegram: '', website: '', instagram: '' }
+const EMPTY_BRAND = { whatsapp: '', telegram: '', website: '', instagram: '', tg_chat_id: '' }
 
 export default function BookingPage({ packages, options, onPackagesChange, onOptionsChange, onPageChange, role, toast, onReloadData }) {
   const [tab, setTab] = useState('calc')
@@ -300,6 +300,11 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                 <label>Instagram</label>
                 <input type="text" value={brand.instagram} placeholder="@ostrov_sokrovish"
                   onChange={e => setBrand(b => ({ ...b, instagram: e.target.value }))} />
+              </div>
+              <div className="field" style={{ gridColumn: '1/-1' }}>
+                <label>Telegram Chat ID (для уведомлений о расчётах)</label>
+                <input type="text" value={brand.tg_chat_id} placeholder="-1001234567890"
+                  onChange={e => setBrand(b => ({ ...b, tg_chat_id: e.target.value }))} />
               </div>
             </div>
             <button

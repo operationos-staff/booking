@@ -821,7 +821,17 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
         let url = `${location.origin}${location.pathname}?tour=${calcId || btoa(encodeURIComponent(JSON.stringify(d)))}`;
         setShareUrl(url);
         setModal('link');
-        clipCopy(url).then(() => alert('Ссылка скопирована!'));
+        clipCopy(url).then(() => showToast('Ссылка скопирована!', 'ok'));
+
+        // Telegram notification
+        if (brandSettings?.tg_chat_id && d) {
+            const msg = `🚤 <b>Новый чартер</b>\n👤 ${d.name || 'Клиент не указан'}\n🗺 ${d.tourName || '—'}\n👥 ${d.pax || '—'}\n📅 ${d.date || '—'}\n💰 ${(d.total || 0).toLocaleString('ru-RU')} ฿\n🔗 <a href="${url}">Открыть расчёт</a>`;
+            fetch('/api/notify-telegram', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg, chatId: brandSettings.tg_chat_id }),
+            }).catch(() => {});
+        }
     };
 
     // ---- ADMIN LOGIC ----

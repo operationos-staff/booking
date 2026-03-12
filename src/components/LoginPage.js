@@ -17,13 +17,13 @@ export default function LoginPage({ onLogin }) {
       if (error) { setErr('Ошибка входа: ' + error.message); return }
       const user = data?.user
       if (!user) { setErr('Не удалось получить данные пользователя'); return }
-      const role = await fetchUserRole(user.id)
-      if (!role) {
+      const profile = await fetchUserRole(user.id)
+      if (!profile?.role) {
         setErr('Роль не назначена. Обратитесь к администратору.')
         await supabase.auth.signOut()
         return
       }
-      onLogin(user, role)
+      onLogin(user, profile.role, profile.display_name || '')
     } catch (e) {
       setErr('Ошибка: ' + e.message)
     } finally {

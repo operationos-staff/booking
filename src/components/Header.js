@@ -4,7 +4,7 @@ import { useState } from 'react'
 const ROLE_NAMES = { manager: 'Менеджер', booking: 'Операционный отдел' }
 const ROLE_ICONS = { manager: '👤', booking: '📋' }
 
-export default function Header({ role, page, onPage, onLogout }) {
+export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0 }) {
   const isClient = page === 'client'
 
   return (
@@ -30,8 +30,13 @@ export default function Header({ role, page, onPage, onLogout }) {
                 <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('charter')}>
                   🚤 Спидбот туры
                 </button>
-                <button className={`btn-nav ${page === 'calculations' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculations')}>
+                <button className={`btn-nav ${page === 'calculations' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculations')} style={{ position: 'relative' }}>
                   📂 Расчёты
+                  {newCalcBadge > 0 && (
+                    <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#f59e0b', color: '#111', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {newCalcBadge > 9 ? '9+' : newCalcBadge}
+                    </span>
+                  )}
                 </button>
                 {role === 'booking' && (
                   <>
@@ -43,6 +48,9 @@ export default function Header({ role, page, onPage, onLogout }) {
                     </button>
                   </>
                 )}
+                <button className={`btn-nav ${page === 'profile' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('profile')}>
+                  👤 Профиль
+                </button>
                 <button className="btn-nav btn-nav-o" onClick={onLogout}>
                   🚪 Выйти
                 </button>
@@ -101,6 +109,13 @@ export default function Header({ role, page, onPage, onLogout }) {
               </button>
             </>
           )}
+          <button
+            className={`mob-bottom-btn ${page === 'profile' ? 'mob-bottom-active' : ''}`}
+            onClick={() => onPage('profile')}
+          >
+            <span className="mob-bottom-icon">👤</span>
+            <span className="mob-bottom-label">Профиль</span>
+          </button>
           <button
             className="mob-bottom-btn"
             onClick={onLogout}

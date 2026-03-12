@@ -11,6 +11,17 @@ export const fmtDate = d => {
 
 export const todayISO = () => new Date().toISOString().split('T')[0]
 
+// Timestamps always shown in Bangkok time (UTC+7)
+export const fmtBangkok = (ts, opts = {}) => {
+  if (!ts) return ''
+  return new Date(ts).toLocaleString('ru-RU', {
+    timeZone: 'Asia/Bangkok',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+    ...opts,
+  })
+}
+
 export const genDate = () =>
   new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
 

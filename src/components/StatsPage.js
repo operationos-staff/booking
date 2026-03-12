@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { loadStats } from '@/lib/db'
+import { fmtBangkok } from '@/lib/utils'
 
 export default function StatsPage() {
   const [stats, setStats]     = useState(null)
@@ -86,7 +87,7 @@ export default function StatsPage() {
                   {c.client_name || '—'}
                 </span>
                 <span style={{ color: '#475569', flexShrink: 0 }}>
-                  {new Date(c.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
+                  {fmtBangkok(c.created_at, { day: '2-digit', month: '2-digit', year: undefined, hour: undefined, minute: undefined })}
                 </span>
               </div>
             ))
