@@ -231,6 +231,34 @@ export async function loadCalculation(calcId) {
   return data
 }
 
+// ─── ACTIVITY LOG ─────────────────────────────────────────────
+export async function logActivity(userId, userEmail, action, details = {}) {
+  try {
+    await supabase.from('activity_log').insert({
+      user_id:    userId   || null,
+      user_email: userEmail || null,
+      action,
+      details,
+    })
+  } catch (e) {
+    console.warn('logActivity failed:', e.message)
+  }
+}
+
+export async function loadActivityLog({ limit = 100, offset = 0, action = null } = {}) {
+  let q = supabase
+    .from('activity_log')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (action) q = q.eq('action', action)
+
+  const { data, error } = await q
+  if (error) { console.warn('loadActivityLog:', error.message); return [] }
+  return data || []
+}
+
 // ─── AUTH ─────────────────────────────────────────────────────
 export async function fetchUserRole(userId) {
   const { data, error } = await supabase

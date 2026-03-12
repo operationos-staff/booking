@@ -30,6 +30,11 @@ export default function Header({ role, page, onPage, onLogout }) {
                 <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('charter')}>
                   🚤 Спидбот туры
                 </button>
+                {role === 'booking' && (
+                  <button className={`btn-nav ${page === 'logs' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('logs')}>
+                    📋 Логи
+                  </button>
+                )}
                 <button className="btn-nav btn-nav-o" onClick={onLogout}>
                   🚪 Выйти
                 </button>
@@ -63,6 +68,15 @@ export default function Header({ role, page, onPage, onLogout }) {
             <span className="mob-bottom-icon">🚤</span>
             <span className="mob-bottom-label">Чартер</span>
           </button>
+          {role === 'booking' && (
+            <button
+              className={`mob-bottom-btn ${page === 'logs' ? 'mob-bottom-active' : ''}`}
+              onClick={() => onPage('logs')}
+            >
+              <span className="mob-bottom-icon">📋</span>
+              <span className="mob-bottom-label">Логи</span>
+            </button>
+          )}
           <button
             className="mob-bottom-btn"
             onClick={onLogout}

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole } from '@/lib/db'
+import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole, logActivity } from '@/lib/db'
 import { saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
@@ -12,6 +12,7 @@ import Header from './Header'
 import CalculatorPage from './CalculatorPage'
 import ClientPage from './ClientPage'
 import CharterPage from './CharterPage'
+import LogsPage from './LogsPage'
 import ToastContainer from './ToastContainer'
 
 export default function TourApp() {
@@ -93,12 +94,13 @@ export default function TourApp() {
 
   const handleLogin = async (u, r) => {
     setUser(u); setRole(r)
-    // ALWAYS load fresh data from DB on login for ALL roles
     await loadAppData()
+    logActivity(u.id, u.email, 'login', { role: r })
     toast('Вход выполнен: ' + ({ manager: 'Менеджер', booking: 'Операционный отдел' }[r] || r), 'ok')
   }
 
   const handleLogout = async () => {
+    if (user) logActivity(user.id, user.email, 'logout', { role })
     await supabase.auth.signOut()
     setUser(null); setRole(null); setPage('calculator')
     setPackages(JSON.parse(JSON.stringify(DEF_PACKAGES)))
@@ -145,6 +147,7 @@ export default function TourApp() {
       )}
       {page === 'client'  && <ClientPage data={clientData} />}
       {page === 'charter' && user && <CharterPage role={role} toast={toast} />}
+      {page === 'logs'    && user && role === 'booking' && <LogsPage user={user} />}
       <div id="print-area" />
       <ToastContainer toasts={toasts} />
     </>
