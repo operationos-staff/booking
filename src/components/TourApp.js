@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole, logActivity } from '@/lib/db'
+import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings } from '@/lib/db'
 import { saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
@@ -13,6 +13,8 @@ import CalculatorPage from './CalculatorPage'
 import ClientPage from './ClientPage'
 import CharterPage from './CharterPage'
 import LogsPage from './LogsPage'
+import CalculationsPage from './CalculationsPage'
+import StatsPage from './StatsPage'
 import ToastContainer from './ToastContainer'
 
 export default function TourApp() {
@@ -23,6 +25,7 @@ export default function TourApp() {
   const [options, setOptions] = useState(() => JSON.parse(JSON.stringify(DEF_OPTIONS)))
   const [clientData, setClientData] = useState(null)
   const [ready, setReady] = useState(false)
+  const [brandSettings, setBrandSettings] = useState(null)
 
   const { toasts, toast } = useToast()
 
@@ -30,7 +33,8 @@ export default function TourApp() {
   // DB data always takes priority; defaults are only used when DB is empty
   const loadAppData = useCallback(async () => {
     try {
-      const [dbPkgs, dbOpts] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB()])
+      const [dbPkgs, dbOpts, dbBrand] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB(), loadBrandSettings()])
+      if (dbBrand) setBrandSettings(dbBrand)
 
       // For packages: use DB data if available, fall back to defaults
       if (dbPkgs && dbPkgs.length) {
@@ -50,10 +54,26 @@ export default function TourApp() {
       }
     } catch (e) {
       console.warn('DB load error, using defaults:', e.message)
+      toast('Не удалось загрузить данные из базы', 'err')
       setPackages(JSON.parse(JSON.stringify(DEF_PACKAGES)))
       setOptions([...DEF_OPTIONS].sort((a, b) => a.name.localeCompare(b.name, 'ru')))
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Realtime: notify managers when prices change
+  useEffect(() => {
+    if (!user || role === 'booking') return
+    const channel = supabase
+      .channel('price_updates')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'packages' }, () => {
+        loadAppData().then(() => toast('Цены пакетов обновлены', 'ok'))
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'options' }, () => {
+        loadAppData().then(() => toast('Цены опций обновлены', 'ok'))
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [user, role, loadAppData, toast])
 
   useEffect(() => {
     const init = async () => {
@@ -63,7 +83,7 @@ export default function TourApp() {
       if (tourId) {
         if (/^[0-9a-f-]{36}$/i.test(tourId)) {
           const calc = await loadCalculation(tourId)
-          if (calc?.payload) { setClientData(calc.payload); setPage('client'); setReady(true); return }
+          if (calc?.payload) { setClientData({ ...calc.payload, _savedAt: calc.payload._savedAt || calc.created_at }); setPage('client'); setReady(true); return }
         }
         try {
           const legacy = JSON.parse(decodeURIComponent(atob(tourId)))
@@ -143,11 +163,14 @@ export default function TourApp() {
           onPackagesChange={p => { setPackages(p); saveToLS({ packages: p, options }) }}
           onOptionsChange={o => { setOptions(o); saveToLS({ packages, options: o }) }}
           onReloadData={loadAppData}
+          brandSettings={brandSettings}
         />
       )}
-      {page === 'client'  && <ClientPage data={clientData} />}
-      {page === 'charter' && user && <CharterPage role={role} toast={toast} />}
-      {page === 'logs'    && user && role === 'booking' && <LogsPage user={user} />}
+      {page === 'client'       && <ClientPage data={clientData} />}
+      {page === 'charter'      && user && <CharterPage role={role} toast={toast} user={user} brandSettings={brandSettings} />}
+      {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
+      {page === 'calculations' && user && <CalculationsPage user={user} role={role} />}
+      {page === 'stats'        && user && role === 'booking' && <StatsPage />}
       <div id="print-area" />
       <ToastContainer toasts={toasts} />
     </>

@@ -1,16 +1,38 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ALL_CATS } from '@/lib/constants'
 import { fmt, saveToLS } from '@/lib/utils'
-import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB } from '@/lib/db'
+import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB, saveBrandSettings, loadBrandSettings, loadActivityLog } from '@/lib/db'
 
 const EMPTY_OPT = { name: '', mgrA: 0, mgrC: 0, netA: 0, netC: 0, cat: 'Достопримечательности', only8h: false }
+const EMPTY_BRAND = { whatsapp: '', telegram: '', website: '', instagram: '' }
 
 export default function BookingPage({ packages, options, onPackagesChange, onOptionsChange, onPageChange, role, toast, onReloadData }) {
   const [tab, setTab] = useState('calc')
   const [saving, setSaving] = useState(false)
   const [newOpt, setNewOpt] = useState(EMPTY_OPT)
   const nextId = useRef(Date.now())
+  const [brand, setBrand] = useState(EMPTY_BRAND)
+  const [savingBrand, setSavingBrand] = useState(false)
+  const [historyModal, setHistoryModal] = useState(null) // { table, id, name }
+  const [historyLogs, setHistoryLogs] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
+  useEffect(() => {
+    loadBrandSettings().then(b => { if (b) setBrand({ ...EMPTY_BRAND, ...b }) })
+  }, [])
+
+  const openHistory = async (table, id, name) => {
+    setHistoryModal({ table, id, name })
+    setHistoryLoading(true)
+    setHistoryLogs([])
+    const action = `db_update_${table}`
+    const logs = await loadActivityLog({ limit: 20, offset: 0, action })
+    // Filter to logs for this specific item
+    const filtered = logs.filter(l => l.details?.new?.id === id || l.details?.old?.id === id)
+    setHistoryLogs(filtered)
+    setHistoryLoading(false)
+  }
 
   const updPkg = (i, key, val) => {
     const p = [...packages]; p[i] = { ...p[i], [key]: val }; onPackagesChange(p)
@@ -74,7 +96,7 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
 
       {/* Tabs */}
       <div className="bk-tabs" style={{ marginBottom: '16px' }}>
-        {[['pkgs', '🚐 Пакеты'], ['opts', '🎯 Опции'], ['addrem', '➕ Добавить / Удалить']].map(([id, label]) => (
+        {[['pkgs', '🚐 Пакеты'], ['opts', '🎯 Опции'], ['addrem', '➕ Добавить / Удалить'], ['brand', '🏷 Брендинг']].map(([id, label]) => (
           <button key={id} className={`bk-tab ${tab === id ? 'on' : ''}`} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
@@ -132,7 +154,7 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
               <thead><tr>
                 <th>#</th><th>Тип</th><th>Часы</th><th>Название</th>
                 <th style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>Цена менедж. ฿</th>
-                <th>Нетто ฿</th><th>Прим.</th><th>Нетто детали</th><th>Доп.час</th>
+                <th>Нетто ฿</th><th>Прим.</th><th>Нетто детали</th><th>Доп.час</th><th></th>
               </tr></thead>
               <tbody>
                 {packages.map((p, i) => (
@@ -154,6 +176,9 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                     <td><input type="text" value={p.note || ''} onChange={e => updPkg(i, 'note', e.target.value)} /></td>
                     <td><input type="text" value={p.nettoDetail || ''} onChange={e => updPkg(i, 'nettoDetail', e.target.value)} /></td>
                     <td style={{ width: '70px' }}><input type="number" value={p.extraHour || 1000} onChange={e => updPkg(i, 'extraHour', parseInt(e.target.value) || 1000)} /></td>
+                    <td style={{ width: '32px' }}>
+                      {p._dbId && <button title="История цен" onClick={() => openHistory('packages', p._dbId, p.name)} style={{ padding: '3px 6px', background: 'rgba(96,165,250,0.15)', border: 'none', borderRadius: '4px', cursor: 'pointer', color: '#60a5fa', fontSize: '11px' }}>📈</button>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -246,6 +271,56 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
         </div>
       )}
 
+      {/* ── TAB: BRAND ── */}
+      {tab === 'brand' && (
+        <div className="card">
+          <div className="card-h">
+            <div className="card-h-icon">🏷</div>
+            <div><h2>Контакты и брендинг</h2><p>Отображаются в клиентских ссылках</p></div>
+          </div>
+          <div className="card-b">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', maxWidth: '500px' }}>
+              <div className="field" style={{ gridColumn: '1/-1' }}>
+                <label>WhatsApp (номер, напр. 66812345678)</label>
+                <input type="text" value={brand.whatsapp} placeholder="+66 81 234 5678"
+                  onChange={e => setBrand(b => ({ ...b, whatsapp: e.target.value }))} />
+              </div>
+              <div className="field" style={{ gridColumn: '1/-1' }}>
+                <label>Telegram (логин, напр. @ostrov_team)</label>
+                <input type="text" value={brand.telegram} placeholder="@ostrov_team"
+                  onChange={e => setBrand(b => ({ ...b, telegram: e.target.value }))} />
+              </div>
+              <div className="field" style={{ gridColumn: '1/-1' }}>
+                <label>Сайт</label>
+                <input type="text" value={brand.website} placeholder="phang-nga-tours.com"
+                  onChange={e => setBrand(b => ({ ...b, website: e.target.value }))} />
+              </div>
+              <div className="field" style={{ gridColumn: '1/-1' }}>
+                <label>Instagram</label>
+                <input type="text" value={brand.instagram} placeholder="@ostrov_sokrovish"
+                  onChange={e => setBrand(b => ({ ...b, instagram: e.target.value }))} />
+              </div>
+            </div>
+            <button
+              className="btn btn-p"
+              disabled={savingBrand}
+              onClick={async () => {
+                setSavingBrand(true)
+                const ok = await saveBrandSettings(brand)
+                setSavingBrand(false)
+                toast(ok ? 'Брендинг сохранён!' : 'Ошибка сохранения', ok ? 'ok' : 'err')
+              }}
+              style={{ width: 'auto', padding: '9px 18px', marginTop: '8px' }}
+            >
+              {savingBrand ? '⏳ Сохранение...' : '💾 Сохранить контакты'}
+            </button>
+            <div style={{ marginTop: '12px', fontSize: '11px', color: '#64748b' }}>
+              Кнопки WhatsApp и Telegram появятся в клиентской ссылке под итоговой суммой.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── TAB: ADD / REMOVE ── */}
       {tab === 'addrem' && (
         <>
@@ -302,5 +377,55 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
         </>
       )}
     </div>
+
+    {/* Price history modal */}
+    {historyModal && (
+      <div
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
+        onClick={() => setHistoryModal(null)}
+      >
+        <div style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '520px', maxHeight: '80vh', overflow: 'auto' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b' }}>📈 История цен</div>
+              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{historyModal.name}</div>
+            </div>
+            <button onClick={() => setHistoryModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '20px' }}>×</button>
+          </div>
+
+          {historyLoading ? (
+            <div style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>Загрузка...</div>
+          ) : historyLogs.length === 0 ? (
+            <div style={{ color: '#64748b', textAlign: 'center', padding: '20px', fontSize: '12px' }}>Изменений не найдено</div>
+          ) : (
+            historyLogs.map(l => {
+              const old = l.details?.old || {}
+              const nw  = l.details?.new  || {}
+              const priceKeys = ['mgr_price', 'netto_price', 'mgr_price_adult', 'mgr_price_child', 'net_price_adult', 'net_price_child', 'net', 'sell']
+              const changed = priceKeys.filter(k => old[k] !== undefined && old[k] !== nw[k])
+              return (
+                <div key={l.id} style={{ marginBottom: '12px', padding: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', fontSize: '12px' }}>
+                  <div style={{ color: '#475569', marginBottom: '6px' }}>
+                    {l.user_email || 'система'} · {new Date(l.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  {changed.length === 0 ? (
+                    <div style={{ color: '#64748b' }}>Прочие изменения</div>
+                  ) : changed.map(k => (
+                    <div key={k} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '2px' }}>
+                      <span style={{ color: '#64748b', minWidth: '130px' }}>{k}</span>
+                      <span style={{ color: '#f87171', textDecoration: 'line-through' }}>{fmt(old[k])} ฿</span>
+                      <span style={{ color: '#64748b' }}>→</span>
+                      <span style={{ color: '#4ade80' }}>{fmt(nw[k])} ฿</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            })
+          )}
+        </div>
+      </div>
+    )}
   )
 }

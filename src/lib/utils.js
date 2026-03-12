@@ -78,7 +78,7 @@ export function computeCalc({ packages, options, selBase, qty, optMk, isBk, pkgM
 }
 
 // ─── CLIENT DATA SNAPSHOT ───────────────────────────────────
-export function buildClientData({ calc, isBk, client }) {
+export function buildClientData({ calc, isBk, client, brand }) {
   if (!calc.act) return null
   const items = []
   const pkgP = isBk ? calc.pkgNet + calc.pkgMkCalc : calc.pkgMgr
@@ -88,7 +88,7 @@ export function buildClientData({ calc, isBk, client }) {
     const cP = isBk ? o.netC + (o.mk?.c || 0) : o.mgrC
     items.push({ name: o.name, cat: o.cat, aQ: o.q.a || 0, cQ: o.q.c || 0, aP, cP, sum: isBk ? o.client : o.mgr, type: 'opt' })
   }
-  return { ...client, items, total: calc.totalClient, gen: genDate() }
+  return { ...client, items, total: calc.totalClient, gen: genDate(), _savedAt: new Date().toISOString(), _brand: brand || null }
 }
 
 // ─── DARK AMBER PDF STYLES ───────────────────────────────────

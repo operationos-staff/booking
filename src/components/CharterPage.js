@@ -583,7 +583,7 @@ function getTourBType(t, boatTypes) {
     return null;
 }
 
-export default function CharterPage({ role, toast: externalToast }) {
+export default function CharterPage({ role, toast: externalToast, user, brandSettings }) {
     const isAdmin = role === 'booking';
     const showToast = externalToast || ((msg) => alert(msg));
     const [db, setDb] = useState(DEFAULT_DB);
@@ -803,7 +803,9 @@ export default function CharterPage({ role, toast: externalToast }) {
             tourName: `${currentTourObj.icon} ${currentTourObj.name}`,
             items: selOptsList,
             total: sellTot,
-            gen: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
+            gen: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }),
+            _savedAt: new Date().toISOString(),
+            _brand: brandSettings || null,
         };
     };
 
@@ -815,7 +817,7 @@ export default function CharterPage({ role, toast: externalToast }) {
     const handleLink = async () => {
         if (!sTour) return;
         const d = getClientData();
-        const calcId = await saveCalculation('charters', d.name || 'charter', d.date || null, d);
+        const calcId = await saveCalculation(user?.id || null, d.name || 'charter', d.date || null, d);
         let url = `${location.origin}${location.pathname}?tour=${calcId || btoa(encodeURIComponent(JSON.stringify(d)))}`;
         setShareUrl(url);
         setModal('link');

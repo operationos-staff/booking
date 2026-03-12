@@ -224,11 +224,32 @@ export async function saveCalculation(userId, clientName, tourDate, payload) {
 export async function loadCalculation(calcId) {
   const { data, error } = await supabase
     .from('calculations')
-    .select('payload, client_name, tour_date')
+    .select('payload, client_name, tour_date, created_at')
     .eq('id', calcId)
     .single()
   if (error) { console.warn('loadCalc:', error.message); return null }
   return data
+}
+
+export async function loadCalculations({ userId, role, limit = 20, offset = 0, search = '' } = {}) {
+  let q = supabase
+    .from('calculations')
+    .select('id, client_name, tour_date, created_at, created_by')
+    .not('client_name', 'eq', '__charter_config__')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (role !== 'booking' && userId) q = q.eq('created_by', userId)
+  if (search) q = q.ilike('client_name', `%${search}%`)
+
+  const { data, error } = await q
+  if (error) { console.warn('loadCalculations:', error.message); return [] }
+  return data || []
+}
+
+export async function deleteCalculation(id) {
+  const { error } = await supabase.from('calculations').delete().eq('id', id)
+  if (error) console.error('deleteCalculation:', error.message)
 }
 
 // ─── ACTIVITY LOG ─────────────────────────────────────────────
@@ -257,6 +278,59 @@ export async function loadActivityLog({ limit = 100, offset = 0, action = null }
   const { data, error } = await q
   if (error) { console.warn('loadActivityLog:', error.message); return [] }
   return data || []
+}
+
+// ─── STATISTICS ───────────────────────────────────────────────
+export async function loadStats() {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [totalRes, weekRes, monthRes, recentCalcsRes, recentLoginsRes] = await Promise.all([
+    supabase.from('calculations').select('*', { count: 'exact', head: true }).not('client_name', 'eq', '__charter_config__'),
+    supabase.from('calculations').select('*', { count: 'exact', head: true }).not('client_name', 'eq', '__charter_config__').gte('created_at', weekAgo),
+    supabase.from('calculations').select('*', { count: 'exact', head: true }).not('client_name', 'eq', '__charter_config__').gte('created_at', monthAgo),
+    supabase.from('calculations').select('created_at, client_name').not('client_name', 'eq', '__charter_config__').gte('created_at', monthAgo).order('created_at', { ascending: false }),
+    supabase.from('activity_log').select('user_email, created_at').eq('action', 'login').order('created_at', { ascending: false }).limit(10),
+  ])
+
+  return {
+    totalCalcs:   totalRes.count    ?? 0,
+    weekCalcs:    weekRes.count     ?? 0,
+    monthCalcs:   monthRes.count    ?? 0,
+    recentCalcs:  recentCalcsRes.data  || [],
+    recentLogins: recentLoginsRes.data || [],
+  }
+}
+
+// ─── BRAND SETTINGS ───────────────────────────────────────────
+const BRAND_SETTINGS_KEY = 'brand_settings'
+
+export async function loadBrandSettings() {
+  try {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', BRAND_SETTINGS_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  } catch (e) {
+    console.warn('loadBrandSettings failed:', e.message)
+    return null
+  }
+}
+
+export async function saveBrandSettings(settings) {
+  try {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({ config_key: BRAND_SETTINGS_KEY, payload: settings, updated_at: new Date().toISOString() }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('saveBrandSettings failed:', e.message)
+    return false
+  }
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────

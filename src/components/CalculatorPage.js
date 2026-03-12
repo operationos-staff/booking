@@ -168,7 +168,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────
-export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData }) {
+export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings }) {
   const isBk = role === 'booking'
   const [activeTab, setActiveTab] = useState('calc')
 
@@ -216,7 +216,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
     toast('Сброшено')
   }
 
-  const getClientData = () => buildClientData({ calc, isBk, client })
+  const getClientData = () => buildClientData({ calc, isBk, client, brand: brandSettings })
 
   const genLink = async () => {
     const d = getClientData()

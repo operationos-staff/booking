@@ -12,6 +12,8 @@ export default function ClientPage({ data }) {
 
   const pkgs = (data.items || []).filter(i => i.type !== 'opt')
   const opts = (data.items || []).filter(i => i.type === 'opt')
+  const brand = data._brand || {}
+  const isExpired = data._savedAt && (Date.now() - new Date(data._savedAt).getTime()) > 7 * 24 * 60 * 60 * 1000
 
   return (
     <div className="cp" style={{ position: 'relative' }}>
@@ -23,8 +25,15 @@ export default function ClientPage({ data }) {
       }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <div className="cp-hero">
 
+        {/* Expiry warning */}
+        {isExpired && (
+          <div style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '10px', padding: '10px 14px', margin: '8px 0 0', fontSize: '12px', color: '#fca5a5', fontWeight: 600 }}>
+            ⚠️ Этот расчёт был создан более 7 дней назад. Цены могли измениться — уточните у менеджера.
+          </div>
+        )}
+
+        <div className="cp-hero">
           <h1>Остров Сокровищ</h1>
           <p>Премиальные экскурсии · Пхукет</p>
         </div>
@@ -116,8 +125,35 @@ export default function ClientPage({ data }) {
           </div>
         )}
 
+        {/* Contact buttons */}
+        {(brand.whatsapp || brand.telegram) && (
+          <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
+            {brand.whatsapp && (
+              <a
+                href={`https://wa.me/${brand.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Здравствуйте! Хочу забронировать тур${data.tourName ? ': ' + data.tourName : ''}${data.date ? ' на ' + fmtDate(data.date) : ''}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(37,211,102,0.15)', border: '1px solid rgba(37,211,102,0.35)', color: '#4ade80', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}
+              >
+                <span style={{ fontSize: '18px' }}>💬</span> WhatsApp
+              </a>
+            )}
+            {brand.telegram && (
+              <a
+                href={`https://t.me/${brand.telegram.replace('@', '')}?text=${encodeURIComponent(`Здравствуйте! Хочу забронировать тур${data.tourName ? ': ' + data.tourName : ''}${data.date ? ' на ' + fmtDate(data.date) : ''}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.35)', color: '#60a5fa', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}
+              >
+                <span style={{ fontSize: '18px' }}>✈️</span> Telegram
+              </a>
+            )}
+          </div>
+        )}
+
         <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--txl)', marginTop: '16px', paddingBottom: '24px', fontFamily: 'var(--font-mono)' }}>
-          {data.gen ? 'Расчёт от ' + data.gen + ' · ' : ''}Остров Сокровищ · Пхукет
+          {data.gen ? 'Расчёт от ' + data.gen + ' · ' : ''}
+          {brand.website ? <a href={brand.website} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--txl)', textDecoration: 'none' }}>{brand.website}</a> : 'Остров Сокровищ · Пхукет'}
         </div>
       </div>
     </div>

@@ -30,10 +30,18 @@ export default function Header({ role, page, onPage, onLogout }) {
                 <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('charter')}>
                   🚤 Спидбот туры
                 </button>
+                <button className={`btn-nav ${page === 'calculations' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculations')}>
+                  📂 Расчёты
+                </button>
                 {role === 'booking' && (
-                  <button className={`btn-nav ${page === 'logs' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('logs')}>
-                    📋 Логи
-                  </button>
+                  <>
+                    <button className={`btn-nav ${page === 'stats' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('stats')}>
+                      📊 Статистика
+                    </button>
+                    <button className={`btn-nav ${page === 'logs' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('logs')}>
+                      📋 Логи
+                    </button>
+                  </>
                 )}
                 <button className="btn-nav btn-nav-o" onClick={onLogout}>
                   🚪 Выйти
@@ -68,14 +76,30 @@ export default function Header({ role, page, onPage, onLogout }) {
             <span className="mob-bottom-icon">🚤</span>
             <span className="mob-bottom-label">Чартер</span>
           </button>
+          <button
+            className={`mob-bottom-btn ${page === 'calculations' ? 'mob-bottom-active' : ''}`}
+            onClick={() => onPage('calculations')}
+          >
+            <span className="mob-bottom-icon">📂</span>
+            <span className="mob-bottom-label">Расчёты</span>
+          </button>
           {role === 'booking' && (
-            <button
-              className={`mob-bottom-btn ${page === 'logs' ? 'mob-bottom-active' : ''}`}
-              onClick={() => onPage('logs')}
-            >
-              <span className="mob-bottom-icon">📋</span>
-              <span className="mob-bottom-label">Логи</span>
-            </button>
+            <>
+              <button
+                className={`mob-bottom-btn ${page === 'stats' ? 'mob-bottom-active' : ''}`}
+                onClick={() => onPage('stats')}
+              >
+                <span className="mob-bottom-icon">📊</span>
+                <span className="mob-bottom-label">Стат.</span>
+              </button>
+              <button
+                className={`mob-bottom-btn ${page === 'logs' ? 'mob-bottom-active' : ''}`}
+                onClick={() => onPage('logs')}
+              >
+                <span className="mob-bottom-icon">📋</span>
+                <span className="mob-bottom-label">Логи</span>
+              </button>
+            </>
           )}
           <button
             className="mob-bottom-btn"
