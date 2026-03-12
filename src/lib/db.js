@@ -38,7 +38,8 @@ export async function savePackagesToDB(packages) {
       note:         pkg.note        || '',
       updated_at:   new Date().toISOString(),
     }
-    const dbId = pkg._dbId ?? (typeof pkg.id === 'number' ? pkg.id : null)
+    const MAX_SERIAL = 2147483647
+    const dbId = pkg._dbId ?? (typeof pkg.id === 'number' && pkg.id <= MAX_SERIAL ? pkg.id : null)
     if (dbId) {
       const { error } = await supabase.from('packages').update(row).eq('id', dbId)
       if (!error) ok++
@@ -95,7 +96,8 @@ export async function saveOptionsToDB(options) {
       note:            opt.note   || '',
       updated_at:      new Date().toISOString(),
     }
-    const dbId = opt._dbId ?? (typeof opt.id === 'number' ? opt.id : null)
+    const MAX_SERIAL = 2147483647
+    const dbId = opt._dbId ?? (typeof opt.id === 'number' && opt.id <= MAX_SERIAL ? opt.id : null)
     if (dbId) {
       const { error } = await supabase.from('options').update(row).eq('id', dbId)
       if (!error) ok++
@@ -185,37 +187,20 @@ async function tryCalculationsTable(action, charterData) {
 }
 
 export async function loadCharterFromDB() {
-  // Try charter_config table first
   try {
     const result = await tryCharterConfigTable('load')
-    if (result) return result
+    return result
   } catch (e) {
-    console.warn('charter_config table not available:', e.message)
-  }
-
-  // Fallback to calculations table
-  try {
-    return await tryCalculationsTable('load')
-  } catch (e) {
-    console.warn('Charter fallback load failed:', e.message)
+    console.warn('charter_config load failed:', e.message)
     return null
   }
 }
 
 export async function saveCharterToDB(charterData) {
-  // Try charter_config table first
   try {
-    const ok = await tryCharterConfigTable('save', charterData)
-    if (ok) return true
+    return await tryCharterConfigTable('save', charterData)
   } catch (e) {
-    console.warn('charter_config table not available for save:', e.message)
-  }
-
-  // Fallback to calculations table
-  try {
-    return await tryCalculationsTable('save', charterData)
-  } catch (e) {
-    console.error('Charter save failed completely:', e.message)
+    console.error('charter_config save failed:', e.message)
     return false
   }
 }
