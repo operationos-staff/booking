@@ -29,6 +29,14 @@ export default function TourApp() {
   const [brandSettings, setBrandSettings] = useState(null)
   const [displayName, setDisplayName] = useState('')
   const [newCalcBadge, setNewCalcBadge] = useState(0)
+  const [theme, setTheme] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('theme') || 'dark' : 'dark'))
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
 
   const { toasts, toast } = useToast()
 
@@ -173,7 +181,7 @@ export default function TourApp() {
     <>
       <AuroraBackground />
       {!user && page !== 'client' && <LoginPage onLogin={handleLogin} />}
-      {user && page !== 'client' && <Header role={role} page={page} onPage={(p) => { setPage(p); if (p === 'calculations') setNewCalcBadge(0) }} onLogout={handleLogout} newCalcBadge={newCalcBadge} />}
+      {user && page !== 'client' && <Header role={role} page={page} onPage={(p) => { setPage(p); if (p === 'calculations') setNewCalcBadge(0) }} onLogout={handleLogout} newCalcBadge={newCalcBadge} theme={theme} onToggleTheme={toggleTheme} />}
       {page === 'calculator' && user && (
         <CalculatorPage
           packages={packages} options={options} role={role} user={user} toast={toast}

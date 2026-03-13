@@ -48,7 +48,7 @@ export default function CalculationsPage({ user, role }) {
         <h1 style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
           📂 Мои расчёты
         </h1>
-        <p style={{ color: '#64748b', fontSize: '13px' }}>
+        <p style={{ color: 'var(--txl)', fontSize: '13px' }}>
           {role === 'booking' ? 'Все сохранённые расчёты менеджеров' : 'Ваши сохранённые расчёты для клиентов'}
         </p>
       </div>
@@ -62,8 +62,8 @@ export default function CalculationsPage({ user, role }) {
           onChange={e => handleSearch(e.target.value)}
           style={{
             flex: 1, padding: '9px 14px', borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.05)', color: '#e5e5e5',
+            border: '1px solid var(--bd2)',
+            background: 'var(--dv)', color: 'var(--txt)',
             outline: 'none', fontSize: '13px',
           }}
         />
@@ -72,9 +72,9 @@ export default function CalculationsPage({ user, role }) {
 
       {/* List */}
       {loading ? (
-        <div style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>Загрузка...</div>
+        <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '40px' }}>Загрузка...</div>
       ) : calcs.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>
+        <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '40px' }}>
           {search ? 'Ничего не найдено' : 'Расчётов пока нет'}
         </div>
       ) : (
@@ -85,8 +85,8 @@ export default function CalculationsPage({ user, role }) {
               <div
                 key={c.id}
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${isExpired ? 'rgba(248,113,113,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                  background: 'var(--s1)',
+                  border: `1px solid ${isExpired ? 'rgba(248,113,113,0.25)' : 'var(--bd)'}`,
                   borderRadius: '10px',
                   padding: '12px 14px',
                   display: 'flex',
@@ -96,7 +96,7 @@ export default function CalculationsPage({ user, role }) {
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#e5e5e5' }}>
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--txt)' }}>
                       {c.client_name || 'Без имени'}
                     </span>
                     {isExpired && (
@@ -105,7 +105,7 @@ export default function CalculationsPage({ user, role }) {
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--txm)', marginTop: '2px' }}>
                     {c.tour_date ? fmtDate(c.tour_date) : 'Дата не указана'}
                     {' · '}
                     {fmtBangkok(c.created_at, { year: 'numeric', month: '2-digit', day: '2-digit', hour: undefined, minute: undefined })}
@@ -149,5 +149,5 @@ const pageBtnStyle = {
 
 const refreshBtnStyle = {
   padding: '8px 14px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'rgba(255,255,255,0.07)', color: '#94a3b8', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap',
+  background: 'var(--s2)', color: '#94a3b8', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap',
 }

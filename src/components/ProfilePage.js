@@ -7,7 +7,6 @@ export default function ProfilePage({ user, role, displayName, onDisplayNameChan
   const [name, setName]         = useState(displayName || '')
   const [savingName, setSavingName] = useState(false)
 
-  const [curPass, setCurPass]   = useState('')
   const [newPass, setNewPass]   = useState('')
   const [confPass, setConfPass] = useState('')
   const [savingPass, setSavingPass] = useState(false)
@@ -30,7 +29,7 @@ export default function ProfilePage({ user, role, displayName, onDisplayNameChan
     setSavingPass(false)
     if (error) { toast('Ошибка: ' + error.message, 'err'); return }
     toast('Пароль обновлён', 'ok')
-    setCurPass(''); setNewPass(''); setConfPass('')
+    setNewPass(''); setConfPass('')
   }
 
   const signOutAll = async () => {
@@ -43,8 +42,8 @@ export default function ProfilePage({ user, role, displayName, onDisplayNameChan
     <div style={{ minHeight: '100vh', paddingTop: '80px', paddingBottom: '100px', paddingLeft: '16px', paddingRight: '16px', maxWidth: '560px', margin: '0 auto' }}>
 
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>👤 Профиль</h1>
-        <p style={{ color: '#64748b', fontSize: '13px' }}>{user.email} · {ROLE_LABELS[role] || role}</p>
+        <h1 style={{ color: 'var(--primary)', fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>👤 Профиль</h1>
+        <p style={{ color: 'var(--txl)', fontSize: '13px' }}>{user.email} · {ROLE_LABELS[role] || role}</p>
       </div>
 
       {/* Display name */}
@@ -100,8 +99,8 @@ export default function ProfilePage({ user, role, displayName, onDisplayNameChan
 }
 
 const card = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--s1)',
+  border: '1px solid var(--bd)',
   borderRadius: '14px',
   padding: '20px',
   marginBottom: '16px',
@@ -110,22 +109,22 @@ const card = {
 const cardTitle = {
   fontSize: '14px',
   fontWeight: 700,
-  color: '#e5e5e5',
+  color: 'var(--txt)',
   marginBottom: '4px',
 }
 
 const hint = {
   fontSize: '12px',
-  color: '#475569',
+  color: 'var(--txm)',
 }
 
 const inputStyle = {
   flex: 1,
   padding: '9px 14px',
   borderRadius: '10px',
-  border: '1px solid rgba(255,255,255,0.1)',
-  background: 'rgba(255,255,255,0.05)',
-  color: '#e5e5e5',
+  border: '1px solid var(--bd2)',
+  background: 'var(--bg3)',
+  color: 'var(--txt)',
   outline: 'none',
   fontSize: '13px',
 }
@@ -136,7 +135,7 @@ const btnPrimary = {
   border: 'none',
   cursor: 'pointer',
   background: 'rgba(245,158,11,0.2)',
-  color: '#f59e0b',
+  color: 'var(--primary)',
   fontWeight: 700,
   fontSize: '13px',
   whiteSpace: 'nowrap',
@@ -148,7 +147,7 @@ const btnDanger = {
   border: 'none',
   cursor: 'pointer',
   background: 'rgba(248,113,113,0.15)',
-  color: '#f87171',
+  color: 'var(--er)',
   fontWeight: 700,
   fontSize: '13px',
 }

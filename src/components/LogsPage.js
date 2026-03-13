@@ -79,7 +79,7 @@ export default function LogsPage({ user }) {
         <h1 style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
           📋 История действий
         </h1>
-        <p style={{ color: '#64748b', fontSize: '13px' }}>
+        <p style={{ color: 'var(--txl)', fontSize: '13px' }}>
           Изменения цен, входы/выходы, сохранённые расчёты
         </p>
       </div>
@@ -97,7 +97,7 @@ export default function LogsPage({ user }) {
               cursor: 'pointer',
               fontSize: '12px',
               fontWeight: 600,
-              background: filter === f.value ? '#f59e0b' : 'rgba(255,255,255,0.07)',
+              background: filter === f.value ? '#f59e0b' : 'var(--s2)',
               color:      filter === f.value ? '#111'    : '#94a3b8',
               transition: 'all 0.15s',
             }}
@@ -107,7 +107,7 @@ export default function LogsPage({ user }) {
         ))}
         <button
           onClick={load}
-          style={{ padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, background: 'rgba(255,255,255,0.07)', color: '#94a3b8' }}
+          style={{ padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, background: 'var(--s2)', color: '#94a3b8' }}
         >
           🔄 Обновить
         </button>
@@ -115,9 +115,9 @@ export default function LogsPage({ user }) {
 
       {/* Таблица */}
       {loading ? (
-        <div style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>Загрузка...</div>
+        <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '40px' }}>Загрузка...</div>
       ) : logs.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>Записей нет</div>
+        <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '40px' }}>Записей нет</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {logs.map(log => {
@@ -129,8 +129,8 @@ export default function LogsPage({ user }) {
               <div
                 key={log.id}
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${isOpen ? meta.color + '44' : 'rgba(255,255,255,0.08)'}`,
+                  background: 'var(--s1)',
+                  border: `1px solid ${isOpen ? meta.color + '44' : 'var(--bd)'}`,
                   borderRadius: '10px',
                   overflow: 'hidden',
                   transition: 'border-color 0.15s',
@@ -144,18 +144,18 @@ export default function LogsPage({ user }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '13px', fontWeight: 700, color: meta.color }}>{meta.label}</span>
-                      {summary && <span style={{ fontSize: '11px', color: '#64748b' }}>{summary}</span>}
+                      {summary && <span style={{ fontSize: '11px', color: 'var(--txl)' }}>{summary}</span>}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--txm)', marginTop: '2px' }}>
                       {log.user_email || 'система'} · {formatDate(log.created_at)}
                     </div>
                   </div>
-                  <span style={{ color: '#475569', fontSize: '12px' }}>{isOpen ? '▲' : '▼'}</span>
+                  <span style={{ color: 'var(--txm)', fontSize: '12px' }}>{isOpen ? '▲' : '▼'}</span>
                 </div>
 
                 {/* Детали */}
                 {isOpen && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '12px 14px' }}>
+                  <div style={{ borderTop: '1px solid var(--dv)', padding: '12px 14px' }}>
                     {log.action.startsWith('db_update_') && log.details?.old && log.details?.new ? (
                       <DiffView old={log.details.old} nw={log.details.new} />
                     ) : (
@@ -207,9 +207,9 @@ function DiffView({ old, nw }) {
           </div>
           {changed.map(k => (
             <div key={k} style={{ display: 'flex', gap: '8px', marginBottom: '4px', alignItems: 'flex-start' }}>
-              <span style={{ color: '#64748b', minWidth: '120px', fontWeight: 600 }}>{k}</span>
+              <span style={{ color: 'var(--txl)', minWidth: '120px', fontWeight: 600 }}>{k}</span>
               <span style={{ color: '#f87171', textDecoration: 'line-through' }}>{String(old[k])}</span>
-              <span style={{ color: '#64748b' }}>→</span>
+              <span style={{ color: 'var(--txl)' }}>→</span>
               <span style={{ color: '#4ade80' }}>{String(nw[k])}</span>
             </div>
           ))}
@@ -217,10 +217,10 @@ function DiffView({ old, nw }) {
       )}
       {unchanged.length > 0 && (
         <details style={{ marginTop: '8px' }}>
-          <summary style={{ color: '#475569', cursor: 'pointer', fontSize: '11px' }}>Без изменений ({unchanged.length} полей)</summary>
+          <summary style={{ color: 'var(--txm)', cursor: 'pointer', fontSize: '11px' }}>Без изменений ({unchanged.length} полей)</summary>
           <div style={{ marginTop: '6px' }}>
             {unchanged.map(k => (
-              <div key={k} style={{ display: 'flex', gap: '8px', marginBottom: '2px', color: '#475569' }}>
+              <div key={k} style={{ display: 'flex', gap: '8px', marginBottom: '2px', color: 'var(--txm)' }}>
                 <span style={{ minWidth: '120px', fontWeight: 600 }}>{k}</span>
                 <span>{String(nw[k])}</span>
               </div>
