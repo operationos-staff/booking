@@ -5,9 +5,9 @@ import { loadExcursionsFromDB, saveExcursionToDB, deleteExcursionFromDB } from '
 import { fmt } from '@/lib/utils'
 
 const PRICING_MODELS = [
-  { key: 'per_person', label: '👤 За человека',  desc: 'Цена умножается на кол-во туристов' },
-  { key: 'per_boat',   label: '🚤 За лодку',     desc: 'Фиксированная цена за судно' },
-  { key: 'per_group',  label: '🚐 За группу',    desc: 'Фиксированная цена за группу' },
+  { key: 'per_person',  label: '👤 За человека',    desc: 'Цена × кол-во туристов (взр/дет)' },
+  { key: 'per_vehicle', label: '🚐 За транспорт',   desc: 'Фиксированная цена за лодку / авто / автобус' },
+  { key: 'per_group',   label: '🎯 За группу',      desc: 'Фиксированная цена за всю группу' },
 ]
 
 const FIELD_TYPES = ['text', 'number', 'boolean', 'date']
@@ -106,6 +106,7 @@ export default function ExcursionBuilder({ toast, role }) {
 
   const pm = PRICING_MODELS.find(p => p.key === form.pricingModel) || PRICING_MODELS[0]
   const isPerPerson = form.pricingModel === 'per_person'
+  const isPerVehicle = form.pricingModel === 'per_vehicle'
 
   const S = {
     page: { display: 'grid', gridTemplateColumns: '300px 1fr', gap: '16px', height: 'calc(100vh - 120px)' },
@@ -359,12 +360,14 @@ export default function ExcursionBuilder({ toast, role }) {
             ) : (
               <div style={S.grid2}>
                 <div style={S.field}>
-                  <label style={S.label}>Цена менеджер (всего) ฿</label>
+                  <label style={S.label}>
+                    {isPerVehicle ? 'Цена менеджер (за транспорт) ฿' : 'Цена менеджер (за группу) ฿'}
+                  </label>
                   <input type="number" min="0" style={{ ...S.inp, ...S.inpGold }} value={form.mgrPrice}
                     onChange={e => upd('mgrPrice', parseInt(e.target.value) || 0)} />
                 </div>
                 <div style={S.field}>
-                  <label style={S.label}>Нетто (всего) ฿</label>
+                  <label style={S.label}>Нетто ฿</label>
                   <input type="number" min="0" style={S.inp} value={form.nettoPrice}
                     onChange={e => upd('nettoPrice', parseInt(e.target.value) || 0)} />
                 </div>
@@ -373,6 +376,21 @@ export default function ExcursionBuilder({ toast, role }) {
                   <input type="number" min="0" style={S.inp} value={form.maxPax}
                     onChange={e => upd('maxPax', parseInt(e.target.value) || 0)} />
                 </div>
+                {isPerVehicle && (
+                  <div style={S.field}>
+                    <label style={S.label}>Тип транспорта</label>
+                    <input style={S.inp} value={(form.customFields || []).find(f => f.key === 'vehicle_type')?.value || ''}
+                      placeholder="лодка / минивэн / автобус / катамаран..."
+                      onChange={e => {
+                        const cf = [...(form.customFields || [])]
+                        const idx = cf.findIndex(f => f.key === 'vehicle_type')
+                        if (idx >= 0) cf[idx] = { ...cf[idx], value: e.target.value }
+                        else cf.push({ key: 'vehicle_type', label: 'Тип транспорта', value: e.target.value, fieldType: 'text' })
+                        upd('customFields', cf)
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
