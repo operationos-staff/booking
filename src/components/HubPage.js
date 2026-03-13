@@ -14,7 +14,7 @@ export default function HubPage({ packages, onSelect, role }) {
     return acc
   }, {})
 
-  const cats = EXCURSION_CATEGORIES.filter(c => countByCat[c.key] > 0 || c.key === 'Групповые туры')
+  const cats = EXCURSION_CATEGORIES
 
   return (
     <div style={{
