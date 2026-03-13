@@ -13,6 +13,15 @@ export const CAT_ICONS = {
   'Эко-туры': '🌿',
 }
 
+export const EXCURSION_CATEGORIES = [
+  { key: 'Групповые туры',           icon: '🚐', color: '#60a5fa' },
+  { key: 'Сухопутные',               icon: '🏔️', color: '#a78bfa' },
+  { key: 'Обзорные',                 icon: '🗺️', color: '#f59e0b' },
+  { key: 'Рыбалка',                  icon: '🎣', color: '#22d3ee' },
+  { key: 'Индивидуальные',           icon: '👤', color: '#fb923c' },
+  { key: 'Из Као Лака',              icon: '🌴', color: '#4ade80' },
+]
+
 export const PACKAGE_TYPE_META = {
   base:     { label: 'Стандарт (Минивэн)',  icon: '🚐', color: '#60a5fa' },
   vip:      { label: 'VIP (Alphard)',        icon: '⭐', color: '#d4af37' },

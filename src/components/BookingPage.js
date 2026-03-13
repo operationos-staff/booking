@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { ALL_CATS, PACKAGE_TYPE_META } from '@/lib/constants'
+import { ALL_CATS, PACKAGE_TYPE_META, EXCURSION_CATEGORIES } from '@/lib/constants'
 import { fmt, saveToLS } from '@/lib/utils'
 import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB, saveBrandSettings, loadBrandSettings, loadActivityLog } from '@/lib/db'
 
@@ -116,6 +116,14 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
               {packages.map((p, i) => (
                 <div key={p.id} className="bk-card">
                   <div className="bk-card-row">
+                    <span className="bk-card-label">Категория</span>
+                    <select value={p.category || 'Групповые туры'} onChange={e => updPkg(i, 'category', e.target.value)} className="bk-card-select">
+                      {EXCURSION_CATEGORIES.map(c => (
+                        <option key={c.key} value={c.key}>{c.icon} {c.key}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="bk-card-row">
                     <span className="bk-card-label">Тип</span>
                     <select value={p.type} onChange={e => updPkg(i, 'type', e.target.value)} className="bk-card-select">
                       {Object.entries(PACKAGE_TYPE_META).map(([val, m]) => (
@@ -158,7 +166,7 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
             <div className="bk-table-desktop" style={{ overflowX: 'auto' }}>
             <table className="pe" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr>
-                <th>#</th><th>Тип</th><th>Провайдер</th><th>Часы</th><th>Название</th>
+                <th>#</th><th>Категория</th><th>Тип</th><th>Провайдер</th><th>Часы</th><th>Название</th>
                 <th style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>Цена менедж. ฿</th>
                 <th>Нетто ฿</th><th>Прим.</th><th>Нетто детали</th><th>Доп.час</th><th></th>
               </tr></thead>
@@ -166,6 +174,13 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                 {packages.map((p, i) => (
                   <tr key={p.id}>
                     <td style={{ width: '30px', textAlign: 'center', color: 'var(--txl)', fontSize: '9px' }}>{String(p.id)}</td>
+                    <td style={{ width: '120px' }}>
+                      <select value={p.category || 'Групповые туры'} onChange={e => updPkg(i, 'category', e.target.value)}>
+                        {EXCURSION_CATEGORIES.map(c => (
+                          <option key={c.key} value={c.key}>{c.icon} {c.key}</option>
+                        ))}
+                      </select>
+                    </td>
                     <td style={{ width: '100px' }}>
                       <select value={p.type} onChange={e => updPkg(i, 'type', e.target.value)}>
                         {Object.entries(PACKAGE_TYPE_META).map(([val, m]) => (

@@ -14,6 +14,7 @@ export async function loadPackagesFromDB() {
     id:          p.id,
     _dbId:       p.id,
     type:        p.type,
+    category:    p.category    || 'Групповые туры',
     provider:    p.provider    || '',
     hours:       p.hours,
     name:        p.name_ru,
@@ -30,6 +31,7 @@ export async function savePackagesToDB(packages) {
   for (const pkg of packages) {
     const row = {
       type:         pkg.type,
+      category:     pkg.category    || 'Групповые туры',
       provider:     pkg.provider    || '',
       hours:        pkg.hours,
       name_ru:      pkg.name,

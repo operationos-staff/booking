@@ -1,6 +1,6 @@
 'use client'
 import { useState, useMemo, useCallback } from 'react'
-import { CAT_ICONS, CAT_COLORS, PACKAGE_TYPE_META } from '@/lib/constants'
+import { CAT_ICONS, CAT_COLORS, PACKAGE_TYPE_META, EXCURSION_CATEGORIES } from '@/lib/constants'
 import { fmt, fmtDate, todayISO, computeCalc, buildClientData, doPrint, clipCopy } from '@/lib/utils'
 import { saveCalculation } from '@/lib/db'
 import { TextModal, LinkModal, AddOptModal } from './Modals'
@@ -184,6 +184,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
   const [pkgMkB, setPkgMkB] = useState(0)
   const [pkgMkP, setPkgMkP] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeCat, setActiveCat] = useState('Групповые туры')
   const [client, setClient] = useState({ name: '', date: todayISO(), phone: '', note: '' })
   const [modal, setModal] = useState(null) // 'text' | 'link' | 'addOpt'
   const [shareUrl, setShareUrl] = useState('')
@@ -254,8 +255,15 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
     .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   const is5 = selBase !== null && calc.act && calc.act.hours < 8
 
-  // Filter packages based on search
-  const filteredPackages = packages.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.type.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Categories that have at least one package
+  const usedCats = EXCURSION_CATEGORIES.filter(c => packages.some(p => (p.category || 'Групповые туры') === c.key))
+  // If activeCat has no packages, fallback to first used
+  const resolvedCat = usedCats.find(c => c.key === activeCat) ? activeCat : (usedCats[0]?.key || 'Групповые туры')
+
+  // Filter packages by category + search
+  const filteredPackages = packages
+    .filter(p => (p.category || 'Групповые туры') === resolvedCat)
+    .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.type.toLowerCase().includes(searchQuery.toLowerCase()))
   const pkgTypes = [...new Set(filteredPackages.map(p => p.type))]
   const byType = pkgTypes.reduce((acc, t) => { acc[t] = filteredPackages.filter(p => p.type === t); return acc }, {})
 
@@ -302,7 +310,22 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
           {/* ── LEFT SIDEBAR (Master) ── */}
           <aside className={styles.sidebar}>
             <div className={styles.panelHeader}>
-              <div className={styles.panelTitle}><span>🚐</span> Пакеты туров</div>
+              <div className={styles.panelTitle}><span>🗂️</span> Экскурсии</div>
+              {usedCats.length > 1 && (
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {usedCats.map(c => (
+                    <button key={c.key} onClick={() => setActiveCat(c.key)} style={{
+                      padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700,
+                      border: '1px solid', cursor: 'pointer', fontFamily: 'inherit',
+                      background: resolvedCat === c.key ? `rgba(${hexToRgb(c.color)},0.2)` : 'transparent',
+                      borderColor: resolvedCat === c.key ? c.color : 'rgba(255,255,255,0.1)',
+                      color: resolvedCat === c.key ? c.color : 'var(--txl)',
+                    }}>
+                      {c.icon} {c.key}
+                    </button>
+                  ))}
+                </div>
+              )}
               <input type="text" className={styles.searchInput} placeholder="Поиск пакета..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             </div>
             <div className={styles.tourList}>
