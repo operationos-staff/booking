@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { CAT_ICONS, CAT_COLORS, PACKAGE_TYPE_META, EXCURSION_CATEGORIES } from '@/lib/constants'
 import { fmt, fmtDate, todayISO, computeCalc, buildClientData, doPrint, clipCopy } from '@/lib/utils'
 import { saveCalculation } from '@/lib/db'
@@ -173,7 +173,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────
-export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings }) {
+export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings, defaultCategory }) {
   const isBk = role === 'booking'
   const [activeTab, setActiveTab] = useState('calc')
 
@@ -184,7 +184,11 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
   const [pkgMkB, setPkgMkB] = useState(0)
   const [pkgMkP, setPkgMkP] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeCat, setActiveCat] = useState('Групповые туры')
+  const [activeCat, setActiveCat] = useState(defaultCategory || 'Групповые туры')
+
+  useEffect(() => {
+    if (defaultCategory) setActiveCat(defaultCategory)
+  }, [defaultCategory])
   const [client, setClient] = useState({ name: '', date: todayISO(), phone: '', note: '' })
   const [modal, setModal] = useState(null) // 'text' | 'link' | 'addOpt'
   const [shareUrl, setShareUrl] = useState('')

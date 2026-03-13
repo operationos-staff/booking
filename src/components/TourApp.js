@@ -9,6 +9,7 @@ import { useToast } from '@/lib/useToast'
 import AuroraBackground from './AuroraBackground'
 import LoginPage from './LoginPage'
 import Header from './Header'
+import HubPage from './HubPage'
 import CalculatorPage from './CalculatorPage'
 import ClientPage from './ClientPage'
 import CharterPage from './CharterPage'
@@ -21,7 +22,8 @@ import ToastContainer from './ToastContainer'
 export default function TourApp() {
   const [user, setUser] = useState(null)
   const [role, setRole] = useState(null)
-  const [page, setPage] = useState('calculator')
+  const [page, setPage] = useState('hub')
+  const [hubCategory, setHubCategory] = useState('Групповые туры')
   const [packages, setPackages] = useState(() => JSON.parse(JSON.stringify(DEF_PACKAGES)))
   const [options, setOptions] = useState(() => JSON.parse(JSON.stringify(DEF_OPTIONS)))
   const [clientData, setClientData] = useState(null)
@@ -141,13 +143,14 @@ export default function TourApp() {
     setUser(u); setRole(r); setDisplayName(dn || '')
     await loadAppData()
     logActivity(u.id, u.email, 'login', { role: r })
+    setPage('hub')
     toast('Вход выполнен: ' + ({ manager: 'Менеджер', booking: 'Операционный отдел' }[r] || r), 'ok')
   }
 
   const handleLogout = async () => {
     if (user) logActivity(user.id, user.email, 'logout', { role })
     await supabase.auth.signOut()
-    setUser(null); setRole(null); setPage('calculator')
+    setUser(null); setRole(null); setPage('hub')
     setPackages(JSON.parse(JSON.stringify(DEF_PACKAGES)))
     setOptions(JSON.parse(JSON.stringify(DEF_OPTIONS)))
     toast('Вы вышли')
@@ -182,6 +185,17 @@ export default function TourApp() {
       <AuroraBackground />
       {!user && page !== 'client' && <LoginPage onLogin={handleLogin} />}
       {user && page !== 'client' && <Header role={role} page={page} onPage={(p) => { setPage(p); if (p === 'calculations') setNewCalcBadge(0) }} onLogout={handleLogout} newCalcBadge={newCalcBadge} theme={theme} onToggleTheme={toggleTheme} />}
+      {page === 'hub' && user && (
+        <HubPage
+          packages={packages}
+          role={role}
+          onSelect={(cat) => {
+            if (cat === 'charter') { setPage('charter'); return }
+            setHubCategory(cat)
+            setPage('calculator')
+          }}
+        />
+      )}
       {page === 'calculator' && user && (
         <CalculatorPage
           packages={packages} options={options} role={role} user={user} toast={toast}
@@ -189,6 +203,7 @@ export default function TourApp() {
           onOptionsChange={o => { setOptions(o); saveToLS({ packages, options: o }) }}
           onReloadData={loadAppData}
           brandSettings={brandSettings}
+          defaultCategory={hubCategory}
         />
       )}
       {page === 'client'       && <ClientPage data={clientData} />}

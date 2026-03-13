@@ -73,7 +73,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
       <header className="header no-print">
         <div className="header-inner">
 
-          <div className="logo" onClick={() => { if (!isClient) onPage('calculator') }}>
+          <div className="logo" onClick={() => { if (!isClient) onPage('hub') }}>
             <div className="logo-icon">🏝</div>
             <div>
               <div className="logo-title">Портал бронирования</div>
