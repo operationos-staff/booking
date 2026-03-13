@@ -208,7 +208,7 @@ export default function TourApp() {
         />
       )}
       {page === 'client'       && <ClientPage data={clientData} />}
-      {page === 'charter'      && user && <CharterPage role={role} toast={toast} user={user} brandSettings={brandSettings} />}
+      {page === 'charter'      && user && <CharterPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}

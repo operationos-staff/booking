@@ -583,7 +583,7 @@ function getTourBType(t, boatTypes) {
     return null;
 }
 
-export default function CharterPage({ role, toast: externalToast, user, brandSettings }) {
+export default function CharterPage({ role, toast: externalToast, user, brandSettings, onPage }) {
     const isAdmin = role === 'booking';
     const showToast = externalToast || ((msg) => alert(msg));
     const [db, setDb] = useState(DEFAULT_DB);
@@ -1016,6 +1016,24 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                     <aside className={`${styles.sidebar} charter-sidebar-mobile`}>
                         <div className={styles.panelHeader}>
                             <div className={styles.panelTitle}><span>📍</span> Чартерные маршруты</div>
+                            {onPage && (
+                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                    <button onClick={() => onPage('hub')} style={{
+                                        padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
+                                        border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontFamily: 'inherit',
+                                        background: 'transparent', color: 'var(--txm)',
+                                    }}>
+                                        ← Все типы
+                                    </button>
+                                    <button onClick={() => onPage('calculator')} style={{
+                                        padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
+                                        border: '1px solid rgba(96,165,250,0.3)', cursor: 'pointer', fontFamily: 'inherit',
+                                        background: 'rgba(96,165,250,0.08)', color: '#60a5fa',
+                                    }}>
+                                        🚐 Групповые
+                                    </button>
+                                </div>
+                            )}
                             <input type="text" className={styles.searchInput} placeholder="Поиск (из 50+ маршрутов)..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
                         <div className={`${styles.tourList} charter-tourlist-mobile`}>
