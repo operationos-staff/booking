@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { loadPackagesFromDB, loadOptionsFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings, saveDisplayName } from '@/lib/db'
+import { loadPackagesFromDB, loadOptionsFromDB, loadExcursionsFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings, saveDisplayName } from '@/lib/db'
 import { saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
@@ -27,6 +27,7 @@ export default function TourApp() {
   const [hubCategory, setHubCategory] = useState('Групповые туры')
   const [packages, setPackages] = useState(() => JSON.parse(JSON.stringify(DEF_PACKAGES)))
   const [options, setOptions] = useState(() => JSON.parse(JSON.stringify(DEF_OPTIONS)))
+  const [excursions, setExcursions] = useState([])
   const [clientData, setClientData] = useState(null)
   const [ready, setReady] = useState(false)
   const [brandSettings, setBrandSettings] = useState(null)
@@ -47,7 +48,8 @@ export default function TourApp() {
   // DB data always takes priority; defaults are only used when DB is empty
   const loadAppData = useCallback(async () => {
     try {
-      const [dbPkgs, dbOpts, dbBrand] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB(), loadBrandSettings()])
+      const [dbPkgs, dbOpts, dbBrand, dbExc] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB(), loadBrandSettings(), loadExcursionsFromDB()])
+      if (dbExc) setExcursions(dbExc)
       if (dbBrand) setBrandSettings(dbBrand)
 
       // For packages: use DB data if available, fall back to defaults
@@ -189,6 +191,7 @@ export default function TourApp() {
       {page === 'hub' && user && (
         <HubPage
           packages={packages}
+          excursions={excursions}
           role={role}
           onSelect={(cat) => {
             if (cat === 'charter') { setPage('charter'); return }
@@ -205,6 +208,7 @@ export default function TourApp() {
           onReloadData={loadAppData}
           brandSettings={brandSettings}
           defaultCategory={hubCategory}
+          excursions={excursions}
           onPage={(p) => { setPage(p); if (p === 'calculations') setNewCalcBadge(0) }}
         />
       )}

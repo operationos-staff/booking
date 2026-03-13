@@ -173,7 +173,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────
-export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings, defaultCategory, onPage }) {
+export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings, defaultCategory, onPage, excursions = [] }) {
   const isBk = role === 'booking'
   const [activeTab, setActiveTab] = useState('calc')
 
@@ -193,9 +193,12 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
   const [modal, setModal] = useState(null) // 'text' | 'link' | 'addOpt'
   const [shareUrl, setShareUrl] = useState('')
 
+  // Merge packages + excursions from constructor into one list
+  const allPackages = useMemo(() => [...packages, ...excursions], [packages, excursions])
+
   const calc = useMemo(() =>
-    computeCalc({ packages, options, selBase, qty, optMk, isBk, pkgMkB, pkgMkP }),
-    [packages, options, selBase, qty, optMk, isBk, pkgMkB, pkgMkP]
+    computeCalc({ packages: allPackages, options, selBase, qty, optMk, isBk, pkgMkB, pkgMkP }),
+    [allPackages, options, selBase, qty, optMk, isBk, pkgMkB, pkgMkP]
   )
 
   // Select / deselect package
@@ -259,13 +262,13 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
     .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   const is5 = selBase !== null && calc.act && calc.act.hours < 8
 
-  // Categories that have at least one package
-  const usedCats = EXCURSION_CATEGORIES.filter(c => packages.some(p => (p.category || 'Групповые туры') === c.key))
+  // Categories that have at least one package or excursion
+  const usedCats = EXCURSION_CATEGORIES.filter(c => allPackages.some(p => (p.category || 'Групповые туры') === c.key))
   // If activeCat has no packages, fallback to first used
   const resolvedCat = usedCats.find(c => c.key === activeCat) ? activeCat : (usedCats[0]?.key || 'Групповые туры')
 
-  // Filter packages by category + search
-  const filteredPackages = packages
+  // Filter by category + search
+  const filteredPackages = allPackages
     .filter(p => (p.category || 'Групповые туры') === resolvedCat)
     .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.type.toLowerCase().includes(searchQuery.toLowerCase()))
   const pkgTypes = [...new Set(filteredPackages.map(p => p.type))]

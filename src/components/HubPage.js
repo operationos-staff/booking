@@ -7,10 +7,11 @@ function hexToRgba(hex, alpha) {
   return `rgba(${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)},${alpha})`
 }
 
-export default function HubPage({ packages, onSelect, role }) {
-  // Count packages per category
+export default function HubPage({ packages, excursions = [], onSelect, role }) {
+  // Count packages + excursions per category
+  const allItems = [...packages, ...excursions]
   const countByCat = EXCURSION_CATEGORIES.reduce((acc, c) => {
-    acc[c.key] = packages.filter(p => (p.category || 'Групповые туры') === c.key).length
+    acc[c.key] = allItems.filter(p => (p.category || 'Групповые туры') === c.key).length
     return acc
   }, {})
 
