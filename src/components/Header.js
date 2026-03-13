@@ -7,14 +7,29 @@ const ROLE_ICONS = { manager: '👤', booking: '📋' }
 export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0, theme, onToggleTheme }) {
   const isClient = page === 'client'
   const [dropOpen, setDropOpen] = useState(false)
+  const [dropPos, setDropPos] = useState({ top: 0, right: 0 })
   const dropRef = useRef(null)
+  const btnRef = useRef(null)
 
   useEffect(() => {
     if (!dropOpen) return
     const close = (e) => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false) }
+    const onScroll = () => setDropOpen(false)
     document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
+    window.addEventListener('scroll', onScroll, true)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      window.removeEventListener('scroll', onScroll, true)
+    }
   }, [dropOpen])
+
+  const openDrop = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect()
+      setDropPos({ top: r.bottom + 8, right: window.innerWidth - r.right })
+    }
+    setDropOpen(o => !o)
+  }
 
   const goTo = (p) => { onPage(p); setDropOpen(false) }
 
@@ -49,7 +64,8 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                 {/* User dropdown */}
                 <div ref={dropRef} style={{ position: 'relative' }}>
                   <button
-                    onClick={() => setDropOpen(o => !o)}
+                    ref={btnRef}
+                    onClick={openDrop}
                     className={`btn-nav ${isSecondaryActive ? 'btn-nav-a' : 'btn-nav-o'}`}
                     style={{ gap: '8px', paddingRight: '10px' }}
                   >
@@ -70,10 +86,10 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
 
                   {dropOpen && (
                     <div className="nav-dropdown" style={{
-                      position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                      position: 'fixed', top: dropPos.top, right: dropPos.right,
                       background: 'var(--bg2)', border: '1px solid var(--brd)',
                       borderRadius: '14px', padding: '6px', minWidth: '210px',
-                      boxShadow: '0 16px 48px rgba(0,0,0,0.45)', zIndex: 200,
+                      boxShadow: '0 16px 48px rgba(0,0,0,0.45)', zIndex: 9999,
                       animation: 'slideUp 0.15s ease',
                     }}>
                       <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goTo('calculations')} />
