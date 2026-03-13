@@ -14,6 +14,7 @@ export async function loadPackagesFromDB() {
     id:          p.id,
     _dbId:       p.id,
     type:        p.type,
+    provider:    p.provider    || '',
     hours:       p.hours,
     name:        p.name_ru,
     mgrPrice:    p.mgr_price,
@@ -29,6 +30,7 @@ export async function savePackagesToDB(packages) {
   for (const pkg of packages) {
     const row = {
       type:         pkg.type,
+      provider:     pkg.provider    || '',
       hours:        pkg.hours,
       name_ru:      pkg.name,
       mgr_price:    pkg.mgrPrice,
@@ -276,7 +278,7 @@ export async function loadActivityLog({ limit = 100, offset = 0, action = null }
   if (action) q = q.eq('action', action)
 
   const { data, error } = await q
-  if (error) { console.warn('loadActivityLog:', error.message); return [] }
+  if (error) { console.warn('loadActivityLog:', error.message); throw new Error(error.message) }
   return data || []
 }
 
