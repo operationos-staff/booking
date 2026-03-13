@@ -1383,6 +1383,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                         <tr>
                                                                             <th style={{ width: '24px' }}></th>
                                                                             <th>Маршрут</th>
+                                                                            <th style={{ width: '140px' }}>Провайдер</th>
                                                                             <th>Нетто ฿</th>
                                                                             <th>Продажа ฿</th>
                                                                             <th style={{ width: '120px' }}>Действия</th>
@@ -1415,6 +1416,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                                         <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} style={{ flex: 1 }} />
                                                                                     </div>
                                                                                 </td>
+                                                                                <td><input type="text" value={t.provider || ''} onChange={e => updTour(t.id, 'provider', e.target.value)} placeholder="провайдер" /></td>
                                                                                 <td><input type="number" value={t.net === 0 ? '' : t.net} placeholder="0" onChange={e => updTour(t.id, 'net', e.target.value)} /></td>
                                                                                 <td><input type="number" value={t.sell === 0 ? '' : t.sell} placeholder="0" onChange={e => updTour(t.id, 'sell', e.target.value)} style={{ color: 'var(--ok)', fontWeight: 700 }} /></td>
                                                                                 <td>
@@ -1440,6 +1442,10 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                                 <input type="text" value={t.icon} onChange={e => updTour(t.id, 'icon', e.target.value)} style={{ width: '40px', textAlign: 'center', fontSize: '1.2rem' }} maxLength="4" />
                                                                                 <input type="text" value={t.name} onChange={e => updTour(t.id, 'name', e.target.value)} style={{ flex: 1, fontWeight: 700 }} />
                                                                                 <button className={`${styles.btn} ${styles.btnErr} ${styles.btnSm}`} onClick={() => delTour(t.id)} style={{ padding: '6px 8px' }}>🗑</button>
+                                                                            </div>
+                                                                            <div style={{ marginBottom: '6px' }}>
+                                                                                <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--txl)', textTransform: 'uppercase', marginBottom: '2px' }}>Провайдер</div>
+                                                                                <input type="text" value={t.provider || ''} onChange={e => updTour(t.id, 'provider', e.target.value)} placeholder="провайдер" style={{ width: '100%' }} />
                                                                             </div>
                                                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                                                 <div style={{ flex: 1 }}>
