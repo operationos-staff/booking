@@ -50,101 +50,98 @@ export default function HubPage({ packages, onSelect, role }) {
         maxWidth: '900px',
         padding: '0 20px',
       }}>
-        {cats.map(cat => {
+        {cats.map((cat, idx) => {
           const count = countByCat[cat.key] || 0
           return (
-            <button
-              key={cat.key}
-              onClick={() => onSelect(cat.key)}
-              style={{
-                background: hexToRgba(cat.color, 0.08),
-                border: `1.5px solid ${hexToRgba(cat.color, 0.25)}`,
-                borderRadius: '20px',
-                padding: '28px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '10px',
-                transition: 'all 0.18s ease',
-                fontFamily: 'inherit',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = hexToRgba(cat.color, 0.16)
-                e.currentTarget.style.borderColor = hexToRgba(cat.color, 0.55)
-                e.currentTarget.style.transform = 'translateY(-3px)'
-                e.currentTarget.style.boxShadow = `0 12px 40px ${hexToRgba(cat.color, 0.25)}`
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = hexToRgba(cat.color, 0.08)
-                e.currentTarget.style.borderColor = hexToRgba(cat.color, 0.25)
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              <span style={{ fontSize: '36px', lineHeight: 1 }}>{cat.icon}</span>
-              <span style={{
-                fontSize: '15px', fontWeight: 700,
-                color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3,
-              }}>
-                {cat.key}
-              </span>
-              {count > 0 && (
-                <span style={{
-                  fontSize: '11px', fontWeight: 600,
-                  color: cat.color, opacity: 0.9,
-                }}>
-                  {count} {count === 1 ? 'пакет' : count < 5 ? 'пакета' : 'пакетов'}
+            <>
+              <button
+                key={cat.key}
+                onClick={() => onSelect(cat.key)}
+                style={{
+                  background: hexToRgba(cat.color, 0.08),
+                  border: `1.5px solid ${hexToRgba(cat.color, 0.25)}`,
+                  borderRadius: '20px',
+                  padding: '28px 20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  transition: 'all 0.18s ease',
+                  fontFamily: 'inherit',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = hexToRgba(cat.color, 0.16)
+                  e.currentTarget.style.borderColor = hexToRgba(cat.color, 0.55)
+                  e.currentTarget.style.transform = 'translateY(-3px)'
+                  e.currentTarget.style.boxShadow = `0 12px 40px ${hexToRgba(cat.color, 0.25)}`
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = hexToRgba(cat.color, 0.08)
+                  e.currentTarget.style.borderColor = hexToRgba(cat.color, 0.25)
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <span style={{ fontSize: '36px', lineHeight: 1 }}>{cat.icon}</span>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3 }}>
+                  {cat.key}
                 </span>
+                {count > 0 && (
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: cat.color, opacity: 0.9 }}>
+                    {count} {count === 1 ? 'пакет' : count < 5 ? 'пакета' : 'пакетов'}
+                  </span>
+                )}
+                {count === 0 && (
+                  <span style={{ fontSize: '11px', color: 'var(--txm)', opacity: 0.6 }}>скоро</span>
+                )}
+              </button>
+
+              {/* Charter tile — right after "Групповые туры" */}
+              {idx === 0 && (
+                <button
+                  key="charter"
+                  onClick={() => onSelect('charter')}
+                  style={{
+                    background: 'rgba(139,92,246,0.08)',
+                    border: '1.5px solid rgba(139,92,246,0.25)',
+                    borderRadius: '20px',
+                    padding: '28px 20px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '10px',
+                    transition: 'all 0.18s ease',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(139,92,246,0.16)'
+                    e.currentTarget.style.borderColor = 'rgba(139,92,246,0.55)'
+                    e.currentTarget.style.transform = 'translateY(-3px)'
+                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(139,92,246,0.25)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(139,92,246,0.08)'
+                    e.currentTarget.style.borderColor = 'rgba(139,92,246,0.25)'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '36px', lineHeight: 1 }}>🚤</span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3 }}>
+                    Спидбот туры
+                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#8b5cf6', opacity: 0.9 }}>
+                    чартер
+                  </span>
+                </button>
               )}
-              {count === 0 && (
-                <span style={{ fontSize: '11px', color: 'var(--txm)', opacity: 0.6 }}>
-                  скоро
-                </span>
-              )}
-            </button>
+            </>
           )
         })}
-
-        {/* Charter tile */}
-        <button
-          onClick={() => onSelect('charter')}
-          style={{
-            background: 'rgba(139,92,246,0.08)',
-            border: '1.5px solid rgba(139,92,246,0.25)',
-            borderRadius: '20px',
-            padding: '28px 20px',
-            cursor: 'pointer',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '10px',
-            transition: 'all 0.18s ease',
-            fontFamily: 'inherit',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(139,92,246,0.16)'
-            e.currentTarget.style.borderColor = 'rgba(139,92,246,0.55)'
-            e.currentTarget.style.transform = 'translateY(-3px)'
-            e.currentTarget.style.boxShadow = '0 12px 40px rgba(139,92,246,0.25)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'rgba(139,92,246,0.08)'
-            e.currentTarget.style.borderColor = 'rgba(139,92,246,0.25)'
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = 'none'
-          }}
-        >
-          <span style={{ fontSize: '36px', lineHeight: 1 }}>🚤</span>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3 }}>
-            Спидбот туры
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: '#8b5cf6', opacity: 0.9 }}>
-            чартер
-          </span>
-        </button>
       </div>
     </div>
   )
