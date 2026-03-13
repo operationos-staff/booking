@@ -1,5 +1,6 @@
 'use client'
 import { fmt, fmtDate } from '@/lib/utils'
+import { PACKAGE_TYPE_META } from '@/lib/constants'
 
 export default function ClientPage({ data }) {
   if (!data) {
@@ -84,15 +85,19 @@ export default function ClientPage({ data }) {
               ))
             ) : (
               <>
-                {pkgs.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--brd)' }}>
-                    <span style={{ fontSize: '18px' }}>{p.type === 'vip' ? '⭐' : '🚐'}</span>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '14px' }}>{p.name}</div>
-                      {p.note && <div style={{ fontSize: '11px', color: 'var(--txl)', marginTop: '1px' }}>{p.note}</div>}
+                {pkgs.map((p, i) => {
+                  const meta = PACKAGE_TYPE_META[p.type] || { icon: '📦', label: p.type }
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--brd)' }}>
+                      <span style={{ fontSize: '18px' }}>{meta.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px' }}>{p.name}</div>
+                        {p.note && <div style={{ fontSize: '11px', color: 'var(--txl)', marginTop: '1px' }}>{p.note}</div>}
+                        {p.provider && <div style={{ fontSize: '10px', color: 'var(--txl)', marginTop: '1px' }}>{p.provider}</div>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
                 {opts.map((o, i) => {
                   const det = [o.aQ > 0 ? o.aQ + ' взр.' : '', o.cQ > 0 ? o.cQ + ' дет.' : ''].filter(Boolean).join(', ')
                   return (

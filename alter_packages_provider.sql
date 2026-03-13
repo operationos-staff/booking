@@ -1,0 +1,1 @@
+ALTER TABLE public.packages ADD COLUMN IF NOT EXISTS provider TEXT NOT NULL DEFAULT '';

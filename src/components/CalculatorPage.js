@@ -1,11 +1,16 @@
 'use client'
 import { useState, useMemo, useCallback } from 'react'
-import { CAT_ICONS, CAT_COLORS } from '@/lib/constants'
+import { CAT_ICONS, CAT_COLORS, PACKAGE_TYPE_META } from '@/lib/constants'
 import { fmt, fmtDate, todayISO, computeCalc, buildClientData, doPrint, clipCopy } from '@/lib/utils'
 import { saveCalculation } from '@/lib/db'
 import { TextModal, LinkModal, AddOptModal } from './Modals'
 import BookingPage from './BookingPage'
 import styles from './Portal.module.css'
+
+function hexToRgb(hex) {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return r ? `${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}` : '0,0,0'
+}
 
 // ─── OPTIONS TABLE ─────────────────────────────────────────────
 function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
@@ -251,8 +256,8 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
 
   // Filter packages based on search
   const filteredPackages = packages.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.type.toLowerCase().includes(searchQuery.toLowerCase()))
-  const bases = filteredPackages.filter(p => p.type === 'base')
-  const vips = filteredPackages.filter(p => p.type === 'vip')
+  const pkgTypes = [...new Set(filteredPackages.map(p => p.type))]
+  const byType = pkgTypes.reduce((acc, t) => { acc[t] = filteredPackages.filter(p => p.type === t); return acc }, {})
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -301,36 +306,31 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
               <input type="text" className={styles.searchInput} placeholder="Поиск пакета..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             </div>
             <div className={styles.tourList}>
-              {bases.length > 0 && <div className="pkg-group-label" style={{ fontSize: '10px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', margin: '8px 0 4px 8px' }}>Стандарт (Минивэн)</div>}
-              {bases.map(p => {
-                const isSel = String(selBase) === String(p.id)
-                const price = isBk ? p.nettoPrice : p.mgrPrice
+              {pkgTypes.map((type, ti) => {
+                const meta = PACKAGE_TYPE_META[type] || { label: type, icon: '📦', color: 'var(--muted)' }
+                const isVipLike = type === 'vip'
                 return (
-                  <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)}>
-                    <div className={styles.tourIcon}>{p.hours >= 8 ? '🕗' : '🕐'}</div>
-                    <div className={styles.tourInfo}>
-                      <div className={styles.tourName}>{p.name}</div>
-                      <div className={styles.tourPrice}>От: <span>{fmt(price)} ฿</span></div>
+                  <div key={type}>
+                    <div className="pkg-group-label" style={{ fontSize: '10px', fontWeight: 800, color: meta.color, textTransform: 'uppercase', margin: `${ti > 0 ? 16 : 8}px 0 4px 8px` }}>
+                      {meta.icon} {meta.label}
                     </div>
+                    {byType[type].map(p => {
+                      const isSel = String(selBase) === String(p.id)
+                      const price = isBk ? p.nettoPrice : p.mgrPrice
+                      return (
+                        <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)}
+                          style={isSel && isVipLike ? { borderColor: meta.color, background: `rgba(${hexToRgb(meta.color)},0.12)` } : {}}>
+                          <div className={styles.tourIcon}>{meta.icon}</div>
+                          <div className={styles.tourInfo}>
+                            <div className={styles.tourName}>{p.name}</div>
+                            <div className={styles.tourPrice}>От: <span>{fmt(price)} ฿</span></div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               })}
-
-              {vips.length > 0 && <div className="pkg-group-label" style={{ fontSize: '10px', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', margin: '16px 0 4px 8px' }}>VIP Тойота Альфард</div>}
-              {vips.map(p => {
-                const isSel = String(selBase) === String(p.id)
-                const price = isBk ? p.nettoPrice : p.mgrPrice
-                return (
-                  <div key={p.id} className={`${styles.tourItem} ${isSel ? styles.active : ''}`} onClick={() => selPkg(p.id)} style={isSel ? { borderColor: '#d4af37', background: 'rgba(212,175,55,0.12)' } : {}}>
-                    <div className={styles.tourIcon}>⭐</div>
-                    <div className={styles.tourInfo}>
-                      <div className={styles.tourName}>{p.name}</div>
-                      <div className={styles.tourPrice}>От: <span>{fmt(price)} ฿</span></div>
-                    </div>
-                  </div>
-                )
-              })}
-
               {filteredPackages.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px' }}>Не найдено</div>}
             </div>
           </aside>

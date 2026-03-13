@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { ALL_CATS } from '@/lib/constants'
+import { ALL_CATS, PACKAGE_TYPE_META } from '@/lib/constants'
 import { fmt, saveToLS } from '@/lib/utils'
 import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB, saveBrandSettings, loadBrandSettings, loadActivityLog } from '@/lib/db'
 
@@ -118,13 +118,18 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                   <div className="bk-card-row">
                     <span className="bk-card-label">Тип</span>
                     <select value={p.type} onChange={e => updPkg(i, 'type', e.target.value)} className="bk-card-select">
-                      <option value="base">🚐 base</option>
-                      <option value="vip">⭐ vip</option>
+                      {Object.entries(PACKAGE_TYPE_META).map(([val, m]) => (
+                        <option key={val} value={val}>{m.icon} {val}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="bk-card-row">
                     <span className="bk-card-label">Название</span>
                     <input type="text" value={p.name} onChange={e => updPkg(i, 'name', e.target.value)} className="bk-card-input" />
+                  </div>
+                  <div className="bk-card-row">
+                    <span className="bk-card-label">Провайдер</span>
+                    <input type="text" value={p.provider || ''} onChange={e => updPkg(i, 'provider', e.target.value)} className="bk-card-input" placeholder="напр. Dive Thailand" />
                   </div>
                   <div className="bk-card-row">
                     <span className="bk-card-label">Часы</span>
@@ -153,7 +158,7 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
             <div className="bk-table-desktop" style={{ overflowX: 'auto' }}>
             <table className="pe" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr>
-                <th>#</th><th>Тип</th><th>Часы</th><th>Название</th>
+                <th>#</th><th>Тип</th><th>Провайдер</th><th>Часы</th><th>Название</th>
                 <th style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>Цена менедж. ฿</th>
                 <th>Нетто ฿</th><th>Прим.</th><th>Нетто детали</th><th>Доп.час</th><th></th>
               </tr></thead>
@@ -161,12 +166,14 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
                 {packages.map((p, i) => (
                   <tr key={p.id}>
                     <td style={{ width: '30px', textAlign: 'center', color: 'var(--txl)', fontSize: '9px' }}>{String(p.id)}</td>
-                    <td style={{ width: '90px' }}>
+                    <td style={{ width: '100px' }}>
                       <select value={p.type} onChange={e => updPkg(i, 'type', e.target.value)}>
-                        <option value="base">base</option>
-                        <option value="vip">vip</option>
+                        {Object.entries(PACKAGE_TYPE_META).map(([val, m]) => (
+                          <option key={val} value={val}>{m.icon} {val}</option>
+                        ))}
                       </select>
                     </td>
+                    <td style={{ width: '120px' }}><input type="text" value={p.provider || ''} onChange={e => updPkg(i, 'provider', e.target.value)} placeholder="провайдер" /></td>
                     <td style={{ width: '50px' }}><input type="number" value={p.hours} onChange={e => updPkg(i, 'hours', parseInt(e.target.value) || 0)} /></td>
                     <td><input type="text" value={p.name} onChange={e => updPkg(i, 'name', e.target.value)} /></td>
                     <td style={{ width: '90px', background: 'rgba(245,158,11,0.1)' }}>

@@ -8,6 +8,17 @@ export const CAT_ICONS = {
   'Питание': '🍜',
   'Природа': '🌿',
   'Пляжи': '🏖️',
+  'Дайвинг': '🤿',
+  'ATV': '🏍️',
+  'Эко-туры': '🌿',
+}
+
+export const PACKAGE_TYPE_META = {
+  base:     { label: 'Стандарт (Минивэн)',  icon: '🚐', color: '#60a5fa' },
+  vip:      { label: 'VIP (Alphard)',        icon: '⭐', color: '#d4af37' },
+  diving:   { label: 'Дайвинг / Снорклинг', icon: '🤿', color: '#22d3ee' },
+  atv:      { label: 'ATV / Квадроциклы',   icon: '🏍️', color: '#f97316' },
+  elephant: { label: 'Слоны / Джунгли',     icon: '🐘', color: '#4ade80' },
 }
 
 export const CAT_COLORS = {
