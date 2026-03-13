@@ -90,7 +90,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                   🚐 Групповые туры
                 </button>
                 <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('charter')}>
-                  🚤 Спидбот туры
+                  🚤 Морские туры
                 </button>
 
                 {/* User dropdown trigger */}
@@ -132,7 +132,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
           </button>
           <button className={`mob-bottom-btn ${page === 'charter' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('charter')}>
             <span className="mob-bottom-icon">🚤</span>
-            <span className="mob-bottom-label">Чартер</span>
+            <span className="mob-bottom-label">Морские</span>
           </button>
           <button className={`mob-bottom-btn ${page === 'calculations' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('calculations')}>
             <span className="mob-bottom-icon">📂</span>

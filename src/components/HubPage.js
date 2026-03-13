@@ -132,7 +132,7 @@ export default function HubPage({ packages, onSelect, role }) {
                 >
                   <span style={{ fontSize: '36px', lineHeight: 1 }}>🚤</span>
                   <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3 }}>
-                    Спидбот туры
+                    Морские туры
                   </span>
                   <span style={{ fontSize: '11px', fontWeight: 600, color: '#8b5cf6', opacity: 0.9 }}>
                     чартер

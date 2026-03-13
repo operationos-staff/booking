@@ -1015,7 +1015,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                     {/* SIDEBAR */}
                     <aside className={`${styles.sidebar} charter-sidebar-mobile`}>
                         <div className={styles.panelHeader}>
-                            <div className={styles.panelTitle}><span>📍</span> Чартерные маршруты</div>
+                            <div className={styles.panelTitle}><span>🚤</span> Морские маршруты</div>
                             {onPage && (
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                     <button onClick={() => onPage('hub')} style={{

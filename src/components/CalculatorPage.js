@@ -333,7 +333,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                     background: 'rgba(139,92,246,0.08)', color: '#a78bfa',
                     display: 'flex', alignItems: 'center', gap: '4px',
                   }}>
-                    🚤 Чартер
+                    🚤 Морские
                   </button>
                 </div>
               )}
