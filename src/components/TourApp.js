@@ -204,6 +204,7 @@ export default function TourApp() {
           onReloadData={loadAppData}
           brandSettings={brandSettings}
           defaultCategory={hubCategory}
+          onPage={(p) => { setPage(p); if (p === 'calculations') setNewCalcBadge(0) }}
         />
       )}
       {page === 'client'       && <ClientPage data={clientData} />}

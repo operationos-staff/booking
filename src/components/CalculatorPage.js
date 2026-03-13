@@ -173,7 +173,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────
-export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings, defaultCategory }) {
+export default function CalculatorPage({ packages, options, role, user, toast, onPackagesChange, onOptionsChange, onReloadData, brandSettings, defaultCategory, onPage }) {
   const isBk = role === 'booking'
   const [activeTab, setActiveTab] = useState('calc')
 
@@ -315,6 +315,29 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
           <aside className={styles.sidebar}>
             <div className={styles.panelHeader}>
               <div className={styles.panelTitle}><span>🗂️</span> Экскурсии</div>
+
+              {/* Hub navigation */}
+              {onPage && (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <button onClick={() => onPage('hub')} style={{
+                    padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
+                    border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontFamily: 'inherit',
+                    background: 'transparent', color: 'var(--txm)',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}>
+                    ← Все типы
+                  </button>
+                  <button onClick={() => onPage('charter')} style={{
+                    padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
+                    border: '1px solid rgba(139,92,246,0.3)', cursor: 'pointer', fontFamily: 'inherit',
+                    background: 'rgba(139,92,246,0.08)', color: '#a78bfa',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}>
+                    🚤 Чартер
+                  </button>
+                </div>
+              )}
+
               {usedCats.length > 1 && (
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                   {usedCats.map(c => (
