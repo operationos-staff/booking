@@ -5,12 +5,14 @@ import { fmt, saveToLS } from '@/lib/utils'
 import { savePackagesToDB, saveOptionsToDB, deleteOptionFromDB, saveBrandSettings, loadBrandSettings, loadActivityLog } from '@/lib/db'
 
 const EMPTY_OPT = { name: '', mgrA: 0, mgrC: 0, netA: 0, netC: 0, cat: 'Достопримечательности', only8h: false }
+const EMPTY_PKG = { name: '', category: 'Групповые туры', type: 'base', provider: '', hours: 8, mgrPrice: 0, nettoPrice: 0, extraHour: 1000, note: '', nettoDetail: '' }
 const EMPTY_BRAND = { whatsapp: '', telegram: '', website: '', instagram: '', tg_chat_id: '' }
 
 export default function BookingPage({ packages, options, onPackagesChange, onOptionsChange, onPageChange, role, toast, onReloadData }) {
   const [tab, setTab] = useState('calc')
   const [saving, setSaving] = useState(false)
   const [newOpt, setNewOpt] = useState(EMPTY_OPT)
+  const [newPkg, setNewPkg] = useState(EMPTY_PKG)
   const nextId = useRef(Date.now())
   const [brand, setBrand] = useState(EMPTY_BRAND)
   const [savingBrand, setSavingBrand] = useState(false)
@@ -56,6 +58,19 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
     onOptionsChange([...options, { ...newOpt, id: nextId.current++ }])
     setNewOpt(EMPTY_OPT)
     toast('Опция добавлена', 'ok')
+  }
+
+  const addPkg = () => {
+    if (!newPkg.name.trim()) { toast('Введите название пакета', 'err'); return }
+    onPackagesChange([...packages, { ...newPkg, id: nextId.current++ }])
+    setNewPkg(EMPTY_PKG)
+    toast('Пакет добавлен — сохраните в базу', 'ok')
+  }
+
+  const delPkg = (id) => {
+    if (!confirm('Удалить пакет?')) return
+    onPackagesChange(packages.filter(p => String(p.id) !== String(id)))
+    toast('Удалено', 'ok')
   }
 
   const saveAll = async () => {
@@ -352,6 +367,95 @@ export default function BookingPage({ packages, options, onPackagesChange, onOpt
       {/* ── TAB: ADD / REMOVE ── */}
       {tab === 'addrem' && (
         <>
+          {/* ── Добавить пакет ── */}
+          <div className="card">
+            <div className="card-h">
+              <div className="card-h-icon" style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}>🚐</div>
+              <div><h2>Добавить новый пакет</h2><p>Базовый пакет тура с ценами</p></div>
+            </div>
+            <div className="card-b">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', maxWidth: '600px' }}>
+                <div className="field" style={{ gridColumn: '1/-1' }}>
+                  <label>Название пакета</label>
+                  <input type="text" value={newPkg.name} placeholder="напр. 8 часов (вэн + гид + лодка)"
+                    onChange={e => setNewPkg(f => ({ ...f, name: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Категория</label>
+                  <select value={newPkg.category} onChange={e => setNewPkg(f => ({ ...f, category: e.target.value }))}>
+                    {EXCURSION_CATEGORIES.map(c => (
+                      <option key={c.key} value={c.key}>{c.icon} {c.key}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Тип пакета</label>
+                  <select value={newPkg.type} onChange={e => setNewPkg(f => ({ ...f, type: e.target.value }))}>
+                    {Object.entries(PACKAGE_TYPE_META).map(([val, m]) => (
+                      <option key={val} value={val}>{m.icon} {m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field" style={{ gridColumn: '1/-1' }}>
+                  <label>Провайдер / оператор</label>
+                  <input type="text" value={newPkg.provider} placeholder="напр. Dive Thailand"
+                    onChange={e => setNewPkg(f => ({ ...f, provider: e.target.value }))} />
+                </div>
+                <div className="field">
+                  <label>Часы</label>
+                  <input type="number" min="1" value={newPkg.hours}
+                    onChange={e => setNewPkg(f => ({ ...f, hours: parseInt(e.target.value) || 8 }))} />
+                </div>
+                <div className="field">
+                  <label>Доп. час ฿</label>
+                  <input type="number" min="0" value={newPkg.extraHour}
+                    onChange={e => setNewPkg(f => ({ ...f, extraHour: parseInt(e.target.value) || 1000 }))} />
+                </div>
+                <div className="field">
+                  <label>Цена менеджер ฿</label>
+                  <input type="number" min="0" value={newPkg.mgrPrice}
+                    onChange={e => setNewPkg(f => ({ ...f, mgrPrice: parseInt(e.target.value) || 0 }))} />
+                </div>
+                <div className="field">
+                  <label>Нетто ฿</label>
+                  <input type="number" min="0" value={newPkg.nettoPrice}
+                    onChange={e => setNewPkg(f => ({ ...f, nettoPrice: parseInt(e.target.value) || 0 }))} />
+                </div>
+                <div className="field" style={{ gridColumn: '1/-1' }}>
+                  <label>Примечание</label>
+                  <input type="text" value={newPkg.note} placeholder="Доп. информация..."
+                    onChange={e => setNewPkg(f => ({ ...f, note: e.target.value }))} />
+                </div>
+              </div>
+              <button className="btn btn-p" onClick={addPkg} style={{ width: 'auto', padding: '10px 24px', marginTop: '8px' }}>
+                ➕ Добавить пакет
+              </button>
+            </div>
+          </div>
+
+          {/* ── Удалить пакет ── */}
+          <div className="card">
+            <div className="card-h">
+              <div className="card-h-icon" style={{ background: 'linear-gradient(135deg,#7c3aed,#4c1d95)' }}>🗑️</div>
+              <div><h2>Удалить пакеты</h2><p>Нажмите ✕ чтобы удалить</p></div>
+            </div>
+            <div className="card-b">
+              {packages.map(p => {
+                const meta = PACKAGE_TYPE_META[p.type] || { icon: '📦', label: p.type }
+                return (
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '1px solid var(--brd)' }}>
+                    <button className="btn-del" onClick={() => delPkg(p.id)}>✕</button>
+                    <div style={{ flex: 1, fontSize: '12px', fontWeight: '600' }}>{p.name}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--txl)' }}>
+                      {meta.icon} {p.category || 'Групповые туры'} · {p.hours}ч
+                    </div>
+                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--pr)' }}>{fmt(p.mgrPrice)} ฿</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
           <div className="card">
             <div className="card-h">
               <div className="card-h-icon" style={{ background: 'linear-gradient(135deg,var(--ok),#059669)' }}>➕</div>
