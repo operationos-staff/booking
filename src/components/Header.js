@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, createPortal } from 'react'
 
 const ROLE_NAMES = { manager: 'Менеджер', booking: 'Операционный отдел' }
 const ROLE_ICONS = { manager: '👤', booking: '📋' }
@@ -8,12 +8,17 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
   const isClient = page === 'client'
   const [dropOpen, setDropOpen] = useState(false)
   const [dropPos, setDropPos] = useState({ top: 0, right: 0 })
-  const dropRef = useRef(null)
   const btnRef = useRef(null)
+  const menuRef = useRef(null)
 
   useEffect(() => {
     if (!dropOpen) return
-    const close = (e) => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false) }
+    const close = (e) => {
+      if (
+        btnRef.current && !btnRef.current.contains(e.target) &&
+        menuRef.current && !menuRef.current.contains(e.target)
+      ) setDropOpen(false)
+    }
     const onScroll = () => setDropOpen(false)
     document.addEventListener('mousedown', close)
     window.addEventListener('scroll', onScroll, true)
@@ -35,6 +40,32 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
 
   const secondaryPages = ['calculations', 'stats', 'logs', 'profile']
   const isSecondaryActive = secondaryPages.includes(page)
+
+  const dropMenu = dropOpen ? (
+    <div ref={menuRef} style={{
+      position: 'fixed', top: dropPos.top, right: dropPos.right,
+      background: 'var(--bg2)', border: '1px solid var(--brd)',
+      borderRadius: '14px', padding: '6px', minWidth: '210px',
+      boxShadow: '0 16px 48px rgba(0,0,0,0.45)', zIndex: 99999,
+      animation: 'slideUp 0.15s ease',
+    }}>
+      <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goTo('calculations')} />
+      {role === 'booking' && (
+        <>
+          <DropItem icon="📊" label="Статистика" active={page === 'stats'} onClick={() => goTo('stats')} />
+          <DropItem icon="📋" label="Логи" active={page === 'logs'} onClick={() => goTo('logs')} />
+        </>
+      )}
+      <DropItem icon="👤" label="Профиль" active={page === 'profile'} onClick={() => goTo('profile')} />
+      <div style={{ margin: '6px 4px', height: '1px', background: 'var(--brd2)' }} />
+      <DropItem
+        icon={theme === 'light' ? '🌙' : '☀️'}
+        label={theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
+        onClick={() => { onToggleTheme?.(); setDropOpen(false) }}
+      />
+      <DropItem icon="🚪" label="Выйти" onClick={() => { onLogout(); setDropOpen(false) }} danger />
+    </div>
+  ) : null
 
   return (
     <>
@@ -61,55 +92,30 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                   🚤 Спидбот туры
                 </button>
 
-                {/* User dropdown */}
-                <div ref={dropRef} style={{ position: 'relative' }}>
-                  <button
-                    ref={btnRef}
-                    onClick={openDrop}
-                    className={`btn-nav ${isSecondaryActive ? 'btn-nav-a' : 'btn-nav-o'}`}
-                    style={{ gap: '8px', paddingRight: '10px' }}
-                  >
-                    <span className={`rbadge ${role === 'booking' ? 'rb' : 'rm'}`} style={{ margin: 0, padding: '2px 8px', fontSize: '9px' }}>
-                      {ROLE_ICONS[role]} {ROLE_NAMES[role]}
-                    </span>
-                    {newCalcBadge > 0 && (
-                      <span style={{
-                        background: '#f59e0b', color: '#111', borderRadius: '50%',
-                        width: '16px', height: '16px', fontSize: '9px', fontWeight: 900,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                      }}>
-                        {newCalcBadge > 9 ? '9+' : newCalcBadge}
-                      </span>
-                    )}
-                    <span style={{ fontSize: '9px', opacity: 0.5 }}>{dropOpen ? '▲' : '▼'}</span>
-                  </button>
-
-                  {dropOpen && (
-                    <div className="nav-dropdown" style={{
-                      position: 'fixed', top: dropPos.top, right: dropPos.right,
-                      background: 'var(--bg2)', border: '1px solid var(--brd)',
-                      borderRadius: '14px', padding: '6px', minWidth: '210px',
-                      boxShadow: '0 16px 48px rgba(0,0,0,0.45)', zIndex: 9999,
-                      animation: 'slideUp 0.15s ease',
+                {/* User dropdown trigger */}
+                <button
+                  ref={btnRef}
+                  onClick={openDrop}
+                  className={`btn-nav ${isSecondaryActive ? 'btn-nav-a' : 'btn-nav-o'}`}
+                  style={{ gap: '8px', paddingRight: '10px' }}
+                >
+                  <span className={`rbadge ${role === 'booking' ? 'rb' : 'rm'}`} style={{ margin: 0, padding: '2px 8px', fontSize: '9px' }}>
+                    {ROLE_ICONS[role]} {ROLE_NAMES[role]}
+                  </span>
+                  {newCalcBadge > 0 && (
+                    <span style={{
+                      background: '#f59e0b', color: '#111', borderRadius: '50%',
+                      width: '16px', height: '16px', fontSize: '9px', fontWeight: 900,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
-                      <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goTo('calculations')} />
-                      {role === 'booking' && (
-                        <>
-                          <DropItem icon="📊" label="Статистика" active={page === 'stats'} onClick={() => goTo('stats')} />
-                          <DropItem icon="📋" label="Логи" active={page === 'logs'} onClick={() => goTo('logs')} />
-                        </>
-                      )}
-                      <DropItem icon="👤" label="Профиль" active={page === 'profile'} onClick={() => goTo('profile')} />
-                      <div style={{ margin: '6px 4px', height: '1px', background: 'var(--brd2)' }} />
-                      <DropItem
-                        icon={theme === 'light' ? '🌙' : '☀️'}
-                        label={theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
-                        onClick={() => { onToggleTheme?.(); setDropOpen(false) }}
-                      />
-                      <DropItem icon="🚪" label="Выйти" onClick={() => { onLogout(); setDropOpen(false) }} danger />
-                    </div>
+                      {newCalcBadge > 9 ? '9+' : newCalcBadge}
+                    </span>
                   )}
-                </div>
+                  <span style={{ fontSize: '9px', opacity: 0.5 }}>{dropOpen ? '▲' : '▼'}</span>
+                </button>
+
+                {/* Dropdown rendered via Portal at document.body */}
+                {typeof document !== 'undefined' && createPortal(dropMenu, document.body)}
               </>
             ) : null}
           </nav>
@@ -169,7 +175,6 @@ function DropItem({ icon, label, active, onClick, badge, danger }) {
   return (
     <button
       onClick={onClick}
-      className="nav-dropdown-item"
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         width: '100%', padding: '9px 12px', borderRadius: '9px',
