@@ -334,11 +334,11 @@
 
 /* ===== QUOTE/SUMMARY BOX ===== */
 .resBox {
-    background: rgba(15, 15, 15, 0.95);
+    background: var(--bg2);
     color: var(--txt);
     border-radius: 14px;
     padding: 22px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.15);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(245,158,11,0.15);
     position: sticky;
     top: 0;
     border: 1px solid rgba(245, 158, 11, 0.2);
@@ -360,7 +360,7 @@
     justify-content: space-between;
     align-items: flex-start;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--brd);
     font-size: 0.85rem;
     gap: 8px;
 }
