@@ -17,6 +17,7 @@ import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
 import ProfilePage from './ProfilePage'
+import ExcursionBuilder from './ExcursionBuilder'
 import ToastContainer from './ToastContainer'
 
 export default function TourApp() {
@@ -212,6 +213,11 @@ export default function TourApp() {
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}
+      {page === 'builder'      && user && (
+        <div style={{ position: 'relative', zIndex: 1, padding: '80px 20px 40px' }}>
+          <ExcursionBuilder toast={toast} role={role} />
+        </div>
+      )}
       {page === 'profile'      && user && (
         <ProfilePage
           user={user} role={role} displayName={displayName}

@@ -337,6 +337,74 @@ export async function saveBrandSettings(settings) {
   }
 }
 
+// ─── EXCURSIONS ───────────────────────────────────────────────
+export async function loadExcursionsFromDB() {
+  const { data, error } = await supabase
+    .from('excursions')
+    .select('*')
+    .order('sort_order')
+    .order('created_at')
+  if (error) { console.warn('loadExcursions:', error.message); return [] }
+  return (data || []).map(e => ({
+    _dbId:            e.id,
+    id:               e.id,
+    name:             e.name,
+    category:         e.category,
+    type:             e.excursion_type,
+    provider:         e.provider || '',
+    pricingModel:     e.pricing_model,
+    mgrPrice:         e.mgr_price,
+    nettoPrice:       e.netto_price,
+    mgrPriceChild:    e.mgr_price_child,
+    nettoPriceChild:  e.netto_price_child,
+    hours:            e.duration_hours,
+    extraHour:        e.extra_hour,
+    maxPax:           e.max_pax,
+    note:             e.note || '',
+    nettoDetail:      e.netto_detail || '',
+    isActive:         e.is_active,
+    sortOrder:        e.sort_order,
+    customFields:     e.custom_fields || [],
+  }))
+}
+
+export async function saveExcursionToDB(exc) {
+  const row = {
+    name:               exc.name,
+    category:           exc.category || 'Групповые туры',
+    excursion_type:     exc.type || 'base',
+    provider:           exc.provider || '',
+    pricing_model:      exc.pricingModel || 'per_person',
+    mgr_price:          exc.mgrPrice || 0,
+    netto_price:        exc.nettoPrice || 0,
+    mgr_price_child:    exc.mgrPriceChild || 0,
+    netto_price_child:  exc.nettoPriceChild || 0,
+    duration_hours:     exc.hours || 8,
+    extra_hour:         exc.extraHour || 1000,
+    max_pax:            exc.maxPax || 0,
+    note:               exc.note || '',
+    netto_detail:       exc.nettoDetail || '',
+    is_active:          exc.isActive !== false,
+    sort_order:         exc.sortOrder || 0,
+    custom_fields:      exc.customFields || [],
+    updated_at:         new Date().toISOString(),
+  }
+  if (exc._dbId) {
+    const { error } = await supabase.from('excursions').update(row).eq('id', exc._dbId)
+    if (error) { console.error('saveExcursion update:', error.message); return null }
+    return exc._dbId
+  } else {
+    const { data, error } = await supabase.from('excursions').insert(row).select().single()
+    if (error) { console.error('saveExcursion insert:', error.message); return null }
+    return data?.id ?? null
+  }
+}
+
+export async function deleteExcursionFromDB(id) {
+  const { error } = await supabase.from('excursions').delete().eq('id', id)
+  if (error) console.error('deleteExcursion:', error.message)
+}
+
 // ─── AUTH ─────────────────────────────────────────────────────
 export async function fetchUserRole(userId) {
   const { data, error } = await supabase
