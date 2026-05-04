@@ -39,7 +39,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
 
   const goTo = (p) => { onPage(p); setDropOpen(false) }
 
-  const secondaryPages = ['calculations', 'stats', 'logs', 'profile', 'builder']
+  const secondaryPages = ['calculations', 'stats', 'logs', 'profile']
   const isSecondaryActive = secondaryPages.includes(page)
 
   const dropMenu = dropOpen ? (
@@ -53,7 +53,9 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
       <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goTo('calculations')} />
       {role === 'booking' && (
         <>
-          <DropItem icon="🏗️" label="Конструктор" active={page === 'builder'} onClick={() => goTo('builder')} />
+          {/* Конструктор экскурсий (ExcursionBuilder) скрыт из меню — он не интегрирован в калькуляторы.
+              Сухопутные настраиваются в LandTourPage / Морские в CharterPage / Групповые в BookingPage. */}
+          {/* <DropItem icon="🏗️" label="Конструктор" active={page === 'builder'} onClick={() => goTo('builder')} /> */}
           <DropItem icon="📊" label="Статистика" active={page === 'stats'} onClick={() => goTo('stats')} />
           <DropItem icon="📋" label="Логи" active={page === 'logs'} onClick={() => goTo('logs')} />
         </>
