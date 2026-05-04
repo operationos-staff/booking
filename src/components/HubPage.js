@@ -34,7 +34,7 @@ export default function HubPage({ packages, excursions = [], landRoutesCount = 0
         <div style={{ fontSize: '48px', marginBottom: '12px', filter: 'drop-shadow(0 0 20px rgba(245,158,11,0.6))' }}>🏝</div>
         <h1 style={{
           fontSize: 'clamp(22px, 4vw, 36px)', fontWeight: 800,
-          color: 'var(--tx)', margin: '0 0 8px',
+          color: 'var(--txt)', margin: '0 0 8px',
           letterSpacing: '-0.02em',
         }}>
           Портал бронирования
@@ -89,7 +89,7 @@ export default function HubPage({ packages, excursions = [], landRoutesCount = 0
                 }}
               >
                 <span style={{ fontSize: '36px', lineHeight: 1 }}>{cat.icon}</span>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3 }}>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--txt)', textAlign: 'center', lineHeight: 1.3 }}>
                   {cat.key}
                 </span>
                 {count > 0 && (
@@ -136,7 +136,7 @@ export default function HubPage({ packages, excursions = [], landRoutesCount = 0
                   }}
                 >
                   <span style={{ fontSize: '36px', lineHeight: 1 }}>🚤</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx)', textAlign: 'center', lineHeight: 1.3 }}>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--txt)', textAlign: 'center', lineHeight: 1.3 }}>
                     Морские туры
                   </span>
                   <span style={{ fontSize: '11px', fontWeight: 600, color: '#8b5cf6', opacity: 0.9 }}>
