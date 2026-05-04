@@ -1020,7 +1020,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                     <button onClick={() => onPage('hub')} style={{
                                         padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                                        border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontFamily: 'inherit',
+                                        border: '1px solid var(--brd2)', cursor: 'pointer', fontFamily: 'inherit',
                                         background: 'transparent', color: 'var(--txm)',
                                     }}>
                                         ← Все типы
@@ -1038,7 +1038,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                         </div>
                         <div className={`${styles.tourList} charter-tourlist-mobile`}>
                             {filteredTours.length === 0 ? (
-                                <div style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>
+                                <div style={{ textAlign: 'center', color: 'var(--txl)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>
                             ) : (() => {
                                 const groups = {};
                                 const groupOrder = [];
@@ -1065,7 +1065,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                     alignItems: 'center',
                                                     justifyContent: 'space-between',
                                                     padding: '9px 12px',
-                                                    background: isOpen ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.03)',
+                                                    background: isOpen ? 'rgba(245,158,11,0.12)' : 'var(--brd2)',
                                                     border: '1px solid ' + (isOpen ? 'rgba(245,158,11,0.35)' : 'rgba(245,158,11,0.1)'),
                                                     borderRadius: '8px',
                                                     cursor: 'pointer',
@@ -1084,7 +1084,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                         fontSize: '0.65rem',
                                                         padding: '1px 6px',
                                                         borderRadius: '99px',
-                                                        background: isOpen ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.07)',
+                                                        background: isOpen ? 'rgba(245,158,11,0.2)' : 'var(--brd2)',
                                                         color: isOpen ? '#f59e0b' : '#737373',
                                                         fontWeight: 700,
                                                     }}>{groups[gName].length}</span>
@@ -1106,7 +1106,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                 key={t.id}
                                                                 className={`${styles.tourItem} ${isSel ? styles.active : ''}`}
                                                                 style={{
-                                                                    background: isSel ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.02)',
+                                                                    background: isSel ? 'rgba(245,158,11,0.15)' : 'var(--brd2)',
                                                                     border: '1px solid ' + (isSel ? 'rgba(245,158,11,0.5)' : 'rgba(245,158,11,0.08)'),
                                                                 }}
                                                                 onClick={() => handleTourSelect(t.id)}>
@@ -1171,7 +1171,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                         <div className={styles.cardTitle}><span>➕</span> Дополнительные опции</div>
                                         <div className={styles.optList}>
                                             {currentItems.filter(i => i.mgr).length === 0 ? (
-                                                <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Дополнительных опций для выбора нет.</div>
+                                                <div style={{ color: 'var(--txl)', fontSize: '0.85rem' }}>Дополнительных опций для выбора нет.</div>
                                             ) : (
                                                 currentItems.filter(i => i.mgr).map(o => {
                                                     const isChecked = !!mgrSelections[o.id];
@@ -1216,7 +1216,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                     <div><div className={styles.rrName}>Опции нетто</div><div className={styles.rrMeta}>Сумма закупочных цен</div></div>
                                                     <div className={styles.rrVal}>{FMT(netTot - currentTourObj.net)}</div>
                                                 </div>
-                                                <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.2)', margin: '10px 0' }}></div>
+                                                <div style={{ borderBottom: '1px dashed var(--brd2)', margin: '10px 0' }}></div>
                                                 <div className={styles.rr}><div>Общая Себестоимость</div><div className={styles.rrVal}>{FMT(netTot)}</div></div>
                                                 <div className={styles.rr} style={{ color: 'var(--ok)', fontWeight: 800 }}><div>Базовая маржа</div><div className={styles.rrVal}>+{FMT(sellTot - netTot)}</div></div>
                                             </>
@@ -1238,9 +1238,9 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                             <div>{FMT(sellTot)}</div>
                                         </div>
 
-                                        <div style={{ marginTop: '24px', background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '12px' }}>
-                                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <div style={{ marginTop: '24px', background: 'var(--bg3)', padding: '16px', borderRadius: '12px' }}>
+                                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--txm)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid var(--brd2)' }}>
                                                 <div style={{ fontWeight: 600 }}>🚤 {currentTourObj.name}</div>
                                                 <div style={{ fontWeight: 700 }}>{FMT(currentTourObj.sell)}</div>
                                             </div>
@@ -1248,7 +1248,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                 <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingTop: '8px' }}>
                                                     <div>
                                                         <div style={{ fontWeight: 600 }}>{o.icon || '•'} {o.name}</div>
-                                                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{o.meta.split(' × ')[0].trim()}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--txm)' }}>{o.meta.split(' × ')[0].trim()}</div>
                                                     </div>
                                                     <div style={{ fontWeight: 700 }}>{FMT(o.val)}</div>
                                                 </div>
@@ -1256,13 +1256,13 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
-                                            <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)' }} onClick={handlePrint}>🖨️ Печать PDF</button>
+                                            <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: 'var(--txt)', borderColor: 'var(--brd2)', background: 'var(--brd2)' }} onClick={handlePrint}>🖨️ Печать PDF</button>
                                             <button className={`${styles.btn} ${styles.btnAcc}`} onClick={handlePublish}>📱 Текст / Мессенджер</button>
                                             <button className={`${styles.btn} ${styles.btnOk}`} onClick={handleLink}>🔗 Создать ссылку</button>
-                                            <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'rgba(255,255,255,0.6)', marginTop: '8px', fontWeight: 600 }} onClick={() => setSTour(null)}>🔄 Сбросить форму</button>
+                                            <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'var(--txm)', marginTop: '8px', fontWeight: 600 }} onClick={() => setSTour(null)}>🔄 Сбросить форму</button>
                                         </div>
 
-                                        <div style={{ marginTop: '32px', borderTop: '1px dashed rgba(255,255,255,0.3)', paddingTop: '20px' }}>
+                                        <div style={{ marginTop: '32px', borderTop: '1px dashed var(--brd2)', paddingTop: '20px' }}>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--warn)', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase' }}>🔒 Внутренний расчёт</div>
                                             {isAdmin ? (
                                                 <>
@@ -1272,7 +1272,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                             <div className={styles.rrVal}>{FMT(r.val)}</div>
                                                         </div>
                                                     ))}
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--brd2)' }}>
                                                         <div>Итого Нетто:</div><div style={{ fontWeight: 700 }}>{FMT(netTot)}</div>
                                                     </div>
                                                     <div style={{ marginTop: '16px', background: 'rgba(0,0,0,0.3)', height: '6px', borderRadius: '10px' }}>
@@ -1291,7 +1291,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                             <div className={styles.rrVal}>{FMT(r.val)}</div>
                                                         </div>
                                                     ))}
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--brd2)' }}>
                                                         <div>К оплате в кассу:</div><div style={{ fontWeight: 700, color: 'var(--warn)' }}>{FMT(mgrTot)}</div>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.85rem', fontWeight: 600 }}>
@@ -1346,7 +1346,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                     <button onClick={addBoatType} style={{ padding: '8px 16px', background: 'rgba(139,92,246,0.3)', border: '1px solid rgba(139,92,246,0.5)', borderRadius: '8px', color: '#c4b5fd', fontWeight: 700, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                                         Создать тип + маршрут
                                     </button>
-                                    <button onClick={() => { setShowAddBoatType(false); setNewBoatTypeName(''); }} style={{ padding: '8px 12px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: '#a3a3a3', cursor: 'pointer', fontSize: '12px' }}>
+                                    <button onClick={() => { setShowAddBoatType(false); setNewBoatTypeName(''); }} style={{ padding: '8px 12px', background: 'transparent', border: '1px solid var(--brd2)', borderRadius: '8px', color: '#a3a3a3', cursor: 'pointer', fontSize: '12px' }}>
                                         Отмена
                                     </button>
                                 </div>
@@ -1380,7 +1380,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                             style={{ background: group.bgColor, padding: '10px 14px', fontWeight: 700, color: '#fbbf24', fontSize: '13px', letterSpacing: '0.05em', borderBottom: isCollapsed ? 'none' : `1px solid ${group.border}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}
                                                         >
                                                             <span onClick={() => setCollapsedBoatGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))} style={{ flex: 1 }}>
-                                                                {group.label} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>({groupTours.length} маршрутов)</span>
+                                                                {group.label} <span style={{ color: 'var(--txl)', fontWeight: 400 }}>({groupTours.length} маршрутов)</span>
                                                             </span>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                                 <button
@@ -1410,7 +1410,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                     <tbody>
                                                                         {groupTours.map(t => (
                                                                             <tr key={t.id}
-                                                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
+                                                                                style={{ background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'var(--brd2)', cursor: dragMode === t.id ? 'move' : 'default', transition: 'background 0.15s' }}
                                                                                 draggable={dragMode === t.id}
                                                                                 onDragStart={(e) => {
                                                                                     setDragTIdx(t._idx);
@@ -1451,7 +1451,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                 <div className="charter-admin-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '8px', padding: '8px' }}>
                                                                     {groupTours.map(t => (
                                                                         <div key={t.id} style={{
-                                                                            background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)',
+                                                                            background: t.id === adminSelTour ? 'rgba(245,158,11,0.1)' : 'var(--brd2)',
                                                                             border: '1px solid rgba(245,158,11,0.15)',
                                                                             borderRadius: '10px',
                                                                             padding: '12px',
@@ -1488,7 +1488,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                             {ungrouped.length > 0 && (
                                                 <div style={{ marginBottom: '16px', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '10px', overflow: 'hidden' }}>
                                                     <div style={{ background: 'rgba(239,68,68,0.1)', padding: '10px 14px', fontWeight: 700, color: '#ef4444', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <span>⚠️ Без группы <span style={{ color: 'var(--muted)', fontWeight: 400 }}>({ungrouped.length} маршрутов — назначьте тип лодки или удалите)</span></span>
+                                                        <span>⚠️ Без группы <span style={{ color: 'var(--txl)', fontWeight: 400 }}>({ungrouped.length} маршрутов — назначьте тип лодки или удалите)</span></span>
                                                     </div>
                                                     {/* Desktop table for ungrouped */}
                                                     <table className={`${styles.tbl} charter-admin-table-desktop`} style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -1603,7 +1603,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
 
                             <div className={styles.optList} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {db.items.filter(i => i.tId === 'ALL').length === 0 ? (
-                                    <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(245,158,11,0.2)' }}>Нет общих опций</div>
+                                    <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '20px', background: 'var(--brd2)', borderRadius: '12px', border: '1px dashed rgba(245,158,11,0.2)' }}>Нет общих опций</div>
                                 ) : (
                                     db.items.filter(i => i.tId === 'ALL').map(i => {
                                         const currentNet = unsavedItems[i.id]?.net ?? i.net;
@@ -1612,7 +1612,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                         const isEdited = !!unsavedItems[i.id];
 
                                         return (
-                                            <div key={i.id} className="charter-opt-item" style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(245,158,11,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
+                                            <div key={i.id} className="charter-opt-item" style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'var(--brd2)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(245,158,11,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
                                                 draggable={dragMode === i.id}
                                                 onDragStart={(e) => {
                                                     const globalIdx = db.items.findIndex(x => x.id === i.id);
@@ -1647,7 +1647,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                         <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто ฿</div>
                                                         <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(239,68,68,0.5)', background: 'rgba(239,68,68,0.1)', color: '#fca5a5', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} title="Закупочная цена (Нетто)" />
                                                     </div>
-                                                    <div style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', padding: '0 4px', paddingTop: '14px' }}>/</div>
+                                                    <div style={{ fontSize: '1.2rem', color: 'var(--brd2)', padding: '0 4px', paddingTop: '14px' }}>/</div>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '80px' }}>
                                                         <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа ฿</div>
                                                         <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(16,185,129,0.5)', background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', textAlign: 'left', fontWeight: 800 }} value={currentSell === 0 ? '' : currentSell} placeholder="0" onChange={(e) => {
@@ -1690,7 +1690,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                             {!collapseRouteOpts && (
                                 <>
                                     <div style={{ maxWidth: '400px', marginBottom: '24px', position: 'relative' }}>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', textTransform: 'uppercase' }}>Выберите маршрут:</label>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--txl)', textTransform: 'uppercase' }}>Выберите маршрут:</label>
                                         <div style={{ position: 'relative' }}>
                                             <div
                                                 onClick={() => setRouteDropOpen(p => !p)}
@@ -1705,7 +1705,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                         <div
                                                             key={t.id}
                                                             onClick={() => { setAdminSelTour(t.id); setRouteDropOpen(false); }}
-                                                            style={{ padding: '10px 14px', cursor: 'pointer', color: adminSelTour === t.id ? 'var(--pri)' : 'var(--txt)', background: adminSelTour === t.id ? 'rgba(245,158,11,0.1)' : 'transparent', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
+                                                            style={{ padding: '10px 14px', cursor: 'pointer', color: adminSelTour === t.id ? 'var(--pri)' : 'var(--txt)', background: adminSelTour === t.id ? 'rgba(245,158,11,0.1)' : 'transparent', fontSize: '13px', borderBottom: '1px solid var(--brd2)', transition: 'background 0.15s' }}
                                                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.07)'}
                                                             onMouseLeave={e => e.currentTarget.style.background = adminSelTour === t.id ? 'rgba(245,158,11,0.1)' : 'transparent'}
                                                         >
@@ -1732,9 +1732,9 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
 
                                     <div className={styles.optList} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {(adminSelTour === '' || adminSelTour === 'ALL') ? (
-                                            <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>Выберите маршрут выше</div>
+                                            <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '20px', background: 'var(--brd2)', borderRadius: '12px', border: '1px dashed var(--brd2)' }}>Выберите маршрут выше</div>
                                         ) : db.items.filter(i => i.tId === adminSelTour).length === 0 ? (
-                                            <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>Нет доплат для этого маршрута</div>
+                                            <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '20px', background: 'var(--brd2)', borderRadius: '12px', border: '1px dashed var(--brd2)' }}>Нет доплат для этого маршрута</div>
                                         ) : (
                                             db.items.filter(i => i.tId === adminSelTour).map(i => {
                                                 const currentNet = unsavedItems[i.id]?.net ?? i.net;
@@ -1742,7 +1742,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                 const currentMgr = unsavedItems[i.id]?.mgr ?? i.mgr;
                                                 const isEdited = !!unsavedItems[i.id];
                                                 return (
-                                                    <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.02)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(16,185,129,0.15)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
+                                                    <div key={i.id} style={{ cursor: dragMode === i.id ? 'move' : 'default', padding: '12px 16px', background: isEdited ? 'rgba(245,158,11,0.1)' : 'var(--brd2)', border: isEdited ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(16,185,129,0.15)', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)', gap: '16px', transition: 'all 0.2s' }}
                                                         draggable={dragMode === i.id}
                                                         onDragStart={(e) => {
                                                             const globalIdx = db.items.findIndex(x => x.id === i.id);
@@ -1774,7 +1774,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                                                 <div style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>Нетто ฿</div>
                                                                 <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(239,68,68,0.5)', background: 'rgba(239,68,68,0.1)', color: '#fca5a5', textAlign: 'right', fontWeight: 700 }} value={currentNet === 0 ? '' : currentNet} placeholder="0" onChange={(e) => updItemInline(i.id, 'net', e.target.value)} />
                                                             </div>
-                                                            <div style={{ fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', padding: '0 4px', paddingTop: '14px' }}>/</div>
+                                                            <div style={{ fontSize: '1.2rem', color: 'var(--brd2)', padding: '0 4px', paddingTop: '14px' }}>/</div>
                                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '80px' }}>
                                                                 <div style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', marginBottom: '2px' }}>Продажа ฿</div>
                                                                 <input type="number" className={styles.optQty} style={{ width: '80px', borderColor: 'rgba(16,185,129,0.5)', background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', textAlign: 'left', fontWeight: 800 }} value={currentSell === 0 ? '' : currentSell} placeholder="0" onChange={(e) => updItemInline(i.id, 'sell', e.target.value)} />
@@ -1810,9 +1810,9 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                 alignItems: 'center',
                                 gap: '8px',
                                 padding: '12px 24px',
-                                background: 'rgba(255,255,255,0.05)',
+                                background: 'var(--brd2)',
                                 color: '#a3a3a3',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                border: '1px solid var(--brd2)',
                                 borderRadius: '10px',
                                 fontWeight: 600,
                                 fontSize: '14px',
@@ -1825,9 +1825,9 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                 e.currentTarget.style.borderColor = 'rgba(245,158,11,0.4)';
                             }}
                             onMouseLeave={e => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                e.currentTarget.style.background = 'var(--brd2)';
                                 e.currentTarget.style.color = '#a3a3a3';
-                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                                e.currentTarget.style.borderColor = 'var(--brd2)';
                             }}
                         >
                             ← Назад к калькулятору
@@ -1866,7 +1866,7 @@ export default function CharterPage({ role, toast: externalToast, user, brandSet
                                 <label className={styles.tglWrap}>
                                     <input type="checkbox" className={styles.srOnly} checked={editItem.mgr} onChange={e => setEditItem({ ...editItem, mgr: e.target.checked })} />
                                     <div className={styles.tgl}></div>
-                                    <div>Выбирает менеджер <span style={{ fontSize: '0.75rem', color: 'var(--muted)', display: 'block', fontWeight: 'normal' }}>Опция будет видна в калькуляторе.</span></div>
+                                    <div>Выбирает менеджер <span style={{ fontSize: '0.75rem', color: 'var(--txl)', display: 'block', fontWeight: 'normal' }}>Опция будет видна в калькуляторе.</span></div>
                                 </label>
                             </div>
                         </div>

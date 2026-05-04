@@ -71,7 +71,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
               <div className="opt-card-total">
                 {isBk
                   ? <><span>Себест.: <b>{costSum > 0 ? fmt(costSum) : '—'}฿</b></span><span className="opt-card-client">Клиент: <b>{clientSum > 0 ? fmt(clientSum) : '—'}฿</b></span></>
-                  : <span>Итого: <b style={{ color: mgrSum > 0 ? 'var(--primary)' : 'var(--muted)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}฿</b></span>
+                  : <span>Итого: <b style={{ color: mgrSum > 0 ? 'var(--primary)' : 'var(--txl)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}฿</b></span>
                 }
               </div>
             </div>
@@ -149,8 +149,8 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
                         <input type="number" min="0" style={{ width: '46px', padding: '4px', border: '1.5px solid rgba(245,158,11,0.4)', borderRadius: '6px', textAlign: 'center', outline: 'none', background: 'rgba(245,158,11,0.1)', color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }} value={mk.c || ''} placeholder="0" onChange={e => onSetMk(key, 'c', e.target.value)} />
                       </div>
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: costSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{costSum > 0 ? fmt(costSum) : '—'}</td>
-                    <td style={{ background: 'rgba(16,185,129,0.06)', textAlign: 'right', fontWeight: 800, color: clientSum === 0 ? 'var(--muted)' : 'var(--ok)' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: costSum === 0 ? 'var(--txl)' : 'var(--pri)' }}>{costSum > 0 ? fmt(costSum) : '—'}</td>
+                    <td style={{ background: 'rgba(16,185,129,0.06)', textAlign: 'right', fontWeight: 800, color: clientSum === 0 ? 'var(--txl)' : 'var(--ok)' }}>{clientSum > 0 ? fmt(clientSum) : '—'}</td>
                   </>
                 ) : (
                   <>
@@ -160,7 +160,7 @@ function OptionsTable({ options, isBk, qty, optMk, avIds, onSetQ, onSetMk }) {
                         <span style={{ color: o.mgrC === 0 ? 'var(--ok)' : 'inherit' }}><span style={{ fontSize: '0.65rem', color: 'var(--txl)', marginRight: '2px' }}>дет:</span>{o.special ? '' : (o.mgrC > 0 ? fmt(o.mgrC) : 'FREE')}</span>
                       </div>
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: mgrSum === 0 ? 'var(--muted)' : 'var(--pri)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: mgrSum === 0 ? 'var(--txl)' : 'var(--pri)' }}>{mgrSum > 0 ? fmt(mgrSum) : '—'}</td>
                   </>
                 )}
               </tr>
@@ -324,7 +324,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <button onClick={() => onPage('hub')} style={{
                     padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                    border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontFamily: 'inherit',
+                    border: '1px solid var(--brd2)', cursor: 'pointer', fontFamily: 'inherit',
                     background: 'transparent', color: 'var(--txm)',
                     display: 'flex', alignItems: 'center', gap: '4px',
                   }}>
@@ -348,7 +348,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                       padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700,
                       border: '1px solid', cursor: 'pointer', fontFamily: 'inherit',
                       background: resolvedCat === c.key ? `rgba(${hexToRgb(c.color)},0.2)` : 'transparent',
-                      borderColor: resolvedCat === c.key ? c.color : 'rgba(255,255,255,0.1)',
+                      borderColor: resolvedCat === c.key ? c.color : 'var(--brd2)',
                       color: resolvedCat === c.key ? c.color : 'var(--txl)',
                     }}>
                       {c.icon} {c.key}
@@ -360,7 +360,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
             </div>
             <div className={styles.tourList}>
               {pkgTypes.map((type, ti) => {
-                const meta = PACKAGE_TYPE_META[type] || { label: type, icon: '📦', color: 'var(--muted)' }
+                const meta = PACKAGE_TYPE_META[type] || { label: type, icon: '📦', color: 'var(--txl)' }
                 const isVipLike = type === 'vip'
                 return (
                   <div key={type}>
@@ -384,7 +384,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                   </div>
                 )
               })}
-              {filteredPackages.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '20px' }}>Не найдено</div>}
+              {filteredPackages.length === 0 && <div style={{ textAlign: 'center', color: 'var(--txl)', padding: '20px' }}>Не найдено</div>}
             </div>
           </aside>
 
@@ -439,13 +439,13 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                         <span>🎯</span> Дополнительные опции
                       </div>
                     </div>
-                    <div style={{ color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
+                    <div style={{ color: 'var(--txl)', fontSize: '0.85rem', marginBottom: '16px' }}>
                       {isBk ? <span>Установите количество и желтую наценку.</span> : <span>Укажите количество взрослых и детей</span>}
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
                       {cats.map(c => (
-                        <button key={c} onClick={() => setCat(c)} className={`${styles.btn} ${styles.btnSm}`} style={{ background: cat === c ? 'var(--pri)' : 'rgba(255,255,255,0.04)', color: cat === c ? '#000' : 'var(--txl)', border: '1px solid var(--border)', borderRadius: '20px' }}>
+                        <button key={c} onClick={() => setCat(c)} className={`${styles.btn} ${styles.btnSm}`} style={{ background: cat === c ? 'var(--pri)' : 'var(--brd2)', color: cat === c ? '#000' : 'var(--txl)', border: '1px solid var(--border)', borderRadius: '20px' }}>
                           {c === 'all' ? '🌐 Все' : (CAT_ICONS[c] || '') + ' ' + c}
                         </button>
                       ))}
@@ -480,7 +480,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                         {calc.pkgMkCalc > 0 && <div className={styles.rr}><div>Наценка на пакет</div><div className={styles.rrVal} style={{ color: 'var(--warn)' }}>+{fmt(calc.pkgMkCalc)} ฿</div></div>}
                         <div className={styles.rr}><div>Опции нетто</div><div className={styles.rrVal}>{fmt(calc.optNet)} ฿</div></div>
                         {calc.optMkT > 0 && <div className={styles.rr}><div>Наценка на опции</div><div className={styles.rrVal} style={{ color: 'var(--warn)' }}>+{fmt(calc.optMkT)} ฿</div></div>}
-                        <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.2)', margin: '10px 0' }}></div>
+                        <div style={{ borderBottom: '1px dashed var(--brd2)', margin: '10px 0' }}></div>
                         <div className={styles.rr}><div>Общая Себестоимость</div><div className={styles.rrVal}>{fmt(calc.pkgNet + calc.optNet)} ฿</div></div>
                         <div className={styles.rr}><div>Общая Доп. Наценка</div><div className={styles.rrVal} style={{ color: 'var(--warn)' }}>+{fmt(calc.pkgMkCalc + calc.optMkT)} ฿</div></div>
                         <div className={styles.rr} style={{ color: 'var(--ok)', fontWeight: 800 }}><div>Базовая маржа пакета</div><div className={styles.rrVal}>+{fmt(calc.pkgMgr - calc.pkgNet)} ฿</div></div>
@@ -499,9 +499,9 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                     </div>
 
                     {/* Selected options list for quick preview */}
-                    <div style={{ marginTop: '24px', background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '12px' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ marginTop: '24px', background: 'var(--bg3)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--txm)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid var(--brd2)' }}>
                         <div style={{ fontWeight: 600 }}>{calc.act.type === 'vip' ? '⭐' : '🚐'} {calc.act.name}</div>
                         <div style={{ fontWeight: 700 }}>{fmt(isBk ? calc.pkgNet + calc.pkgMkCalc : calc.pkgMgr)} ฿</div>
                       </div>
@@ -511,7 +511,7 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
                           <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingTop: '8px' }}>
                             <div>
                               <div style={{ fontWeight: 600 }}>{CAT_ICONS[o.cat] || '•'} {o.name}</div>
-                              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{det}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--txm)' }}>{det}</div>
                             </div>
                             <div style={{ fontWeight: 700 }}>{fmt(isBk ? o.client : o.mgr)} ฿</div>
                           </div>
@@ -521,10 +521,10 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
 
                     {/* Actions */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
-                      <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)' }} onClick={() => doPrint(getClientData())}>🖨️ Печать PDF</button>
+                      <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: 'var(--txt)', borderColor: 'var(--brd2)', background: 'var(--brd2)' }} onClick={() => doPrint(getClientData())}>🖨️ Печать PDF</button>
                       <button className={`${styles.btn} ${styles.btnAcc}`} onClick={() => setModal('text')}>📱 Текст / Мессенджер</button>
                       <button className={`${styles.btn} ${styles.btnOk}`} onClick={genLink}>🔗 Создать ссылку</button>
-                      <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'rgba(255,255,255,0.6)', marginTop: '8px', fontWeight: 600 }} onClick={resetAll}>🔄 Сбросить форму</button>
+                      <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'var(--txm)', marginTop: '8px', fontWeight: 600 }} onClick={resetAll}>🔄 Сбросить форму</button>
                     </div>
                   </div>
                 </div>
