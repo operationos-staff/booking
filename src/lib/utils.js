@@ -437,3 +437,111 @@ export function doPrintCharter(data) {
   window.addEventListener('afterprint', cleanup)
   window.print()
 }
+
+// ─── PRINT LAND TOUR ─────────────────────────────────────────
+export function doPrintLand(data) {
+  if (!data) return
+  const el = document.getElementById('print-area')
+  if (!el) return
+
+  const meta = data.meta || {}
+  const programLines = Array.isArray(data.program) ? data.program : []
+  const included = Array.isArray(data.included) ? data.included : []
+  const items = Array.isArray(data.items) ? data.items : []
+
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PDF_STYLES}</style></head><body>
+  <div class="pdf-wrap">
+    <div class="pdf-wm"></div>
+    <div class="pdf-content">
+
+      <div class="pdf-header">
+        <div>
+          <div class="pdf-logo-title">ОСТРОВ СОКРОВИЩ</div>
+          <div class="pdf-logo-sub">Премиальные экскурсии · Пхукет</div>
+        </div>
+        <div>
+          <div class="pdf-doc-title">Смета сухопутной экскурсии</div>
+          <div class="pdf-doc-date">${data.gen}</div>
+        </div>
+      </div>
+
+      ${(data.name || data.date || data.phone || data.pax) ? `
+      <div class="pdf-client-box">
+        ${data.name ? `<div><div class="pdf-client-label">Клиент</div><div class="pdf-client-value">${data.name}</div></div>` : ''}
+        ${data.date ? `<div><div class="pdf-client-label">Дата</div><div class="pdf-client-value">${fmtDate(data.date)}</div></div>` : ''}
+        ${data.phone ? `<div><div class="pdf-client-label">Телефон</div><div class="pdf-client-value">${data.phone}</div></div>` : ''}
+        ${data.pax ? `<div><div class="pdf-client-label">Гостей</div><div class="pdf-client-value">${data.pax}</div></div>` : ''}
+      </div>` : ''}
+
+      <div class="pdf-route-card">
+        <div class="pdf-route-label">🏔️ Маршрут</div>
+        <div class="pdf-route-name">${data.tourName || ''}</div>
+        ${meta.duration || meta.days || meta.transport || meta.guide || meta.meals ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px;font-size:11px;color:#e5e5e5">
+          ${meta.duration ? `<div>⏱️ <b style="color:#fbbf24">Время:</b> ${meta.duration}</div>` : ''}
+          ${meta.days ? `<div>📅 <b style="color:#fbbf24">Длительность:</b> ${meta.days}</div>` : ''}
+          ${meta.transport ? `<div>🚐 <b style="color:#fbbf24">Транспорт:</b> ${meta.transport}</div>` : ''}
+          ${meta.guide ? `<div>🗣 <b style="color:#fbbf24">Гид:</b> ${meta.guide}</div>` : ''}
+          ${meta.meals ? `<div style="grid-column:1/-1">🍽 <b style="color:#fbbf24">Питание:</b> ${meta.meals}</div>` : ''}
+          ${meta.groupSize ? `<div>👥 <b style="color:#fbbf24">Группа:</b> ${meta.groupSize}</div>` : ''}
+        </div>` : ''}
+      </div>
+
+      ${programLines.length > 0 ? `
+      <div class="pdf-section-title">Программа</div>
+      <div class="pdf-items-box" style="margin-bottom:18px">
+        ${programLines.map(p => `
+          <div class="pdf-item">
+            <span class="pdf-item-icon">📍</span>
+            <span class="pdf-item-name">${p}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      ${included.length > 0 ? `
+      <div class="pdf-section-title">В цену включено</div>
+      <div class="pdf-items-box" style="margin-bottom:18px">
+        ${included.map(p => `
+          <div class="pdf-item">
+            <span class="pdf-item-icon">✓</span>
+            <span class="pdf-item-name">${p}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      ${items.length > 0 ? `
+      <div class="pdf-section-title">Дополнительные опции</div>
+      <div class="pdf-items-box">
+        ${items.map(o => `
+          <div class="pdf-item">
+            <span class="pdf-item-icon">${o.icon || '➕'}</span>
+            <span class="pdf-item-name">${o.name}</span>
+            ${o.meta ? `<span class="pdf-item-meta">${o.meta}</span>` : ''}
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      <div class="pdf-total-box">
+        <div>
+          <div class="pdf-total-label">Итого к оплате</div>
+          <div class="pdf-total-sub">тайских бат (THB)</div>
+        </div>
+        <div class="pdf-total-amount">${fmt(data.total)} ฿</div>
+      </div>
+
+      <div class="pdf-footer">
+        Расчёт от ${data.gen} · Остров Сокровищ · phang-nga-tours.com
+      </div>
+    </div>
+  </div>
+  </body></html>`
+
+  document.body.classList.add('printing')
+  const cleanup = () => {
+    document.body.classList.remove('printing')
+    el.innerHTML = ''
+    window.removeEventListener('afterprint', cleanup)
+  }
+  window.addEventListener('afterprint', cleanup)
+  window.print()
+}

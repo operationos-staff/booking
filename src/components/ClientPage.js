@@ -15,6 +15,9 @@ export default function ClientPage({ data }) {
   const opts = (data.items || []).filter(i => i.type === 'opt')
   const brand = data._brand || {}
   const isExpired = data._savedAt && (Date.now() - new Date(data._savedAt).getTime()) > 7 * 24 * 60 * 60 * 1000
+  const isLand = data._kind === 'land'
+  const routeIcon = isLand ? '🏔️' : '🚤'
+  const routeBaseLabel = isLand ? 'Сухопутная экскурсия по программе' : 'Аренда катера по маршруту'
 
   return (
     <div className="cp" style={{ position: 'relative' }}>
@@ -56,7 +59,7 @@ export default function ClientPage({ data }) {
             boxShadow: '0 0 24px rgba(245,158,11,0.1)',
           }}>
             <div className="card-b" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--txl)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-mono)' }}>🚤 МАРШРУТ</div>
+              <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--txl)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-mono)' }}>{routeIcon} МАРШРУТ</div>
               <div style={{ fontWeight: 800, fontSize: '16px', marginTop: '5px', color: 'var(--primary)' }}>{data.tourName}</div>
             </div>
           </div>
@@ -68,8 +71,8 @@ export default function ClientPage({ data }) {
 
             {data.tourName && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--brd)' }}>
-                <span style={{ fontSize: '18px' }}>🚤</span>
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Аренда катера по маршруту</div>
+                <span style={{ fontSize: '18px' }}>{routeIcon}</span>
+                <div style={{ fontWeight: 700, fontSize: '14px' }}>{routeBaseLabel}</div>
               </div>
             )}
 

@@ -13,6 +13,7 @@ import HubPage from './HubPage'
 import CalculatorPage from './CalculatorPage'
 import ClientPage from './ClientPage'
 import CharterPage from './CharterPage'
+import LandTourPage from './LandTourPage'
 import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
@@ -195,6 +196,7 @@ export default function TourApp() {
           role={role}
           onSelect={(cat) => {
             if (cat === 'charter') { setPage('charter'); return }
+            if (cat === 'Сухопутные') { setPage('land'); return }
             setHubCategory(cat)
             setPage('calculator')
           }}
@@ -214,6 +216,7 @@ export default function TourApp() {
       )}
       {page === 'client'       && <ClientPage data={clientData} />}
       {page === 'charter'      && user && <CharterPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
+      {page === 'land'         && user && <LandTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}

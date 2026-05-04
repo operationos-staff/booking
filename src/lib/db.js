@@ -209,6 +209,42 @@ export async function saveCharterToDB(charterData) {
   }
 }
 
+// ─── LAND TOUR CONFIG ────────────────────────────────────────
+// Сухопутные экскурсии — отдельный ключ в той же таблице charter_config
+const LAND_CONFIG_KEY = 'land_main_config'
+
+export async function loadLandFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', LAND_CONFIG_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  } catch (e) {
+    console.warn('land_config load failed:', e.message)
+    return null
+  }
+}
+
+export async function saveLandToDB(landData) {
+  try {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({
+        config_key: LAND_CONFIG_KEY,
+        payload: landData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('land_config save failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase
