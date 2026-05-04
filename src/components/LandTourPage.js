@@ -1145,7 +1145,18 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                             <button onClick={() => openAddRoute(gName)} style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--brd2)', border: '1px solid var(--brd2)', color: 'var(--txm)', fontSize: '11px', cursor: 'pointer' }}>+</button>
                                         </div>
                                         <div style={{ overflow: 'auto' }}>
-                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px' }}>
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px', tableLayout: 'fixed' }}>
+                                                <colgroup>
+                                                    <col style={{ width: '50px' }} />
+                                                    <col />
+                                                    <col style={{ width: '100px' }} />
+                                                    <col style={{ width: '100px' }} />
+                                                    <col style={{ width: '110px' }} />
+                                                    <col style={{ width: '110px' }} />
+                                                    <col style={{ width: '110px' }} />
+                                                    <col style={{ width: '110px' }} />
+                                                    <col style={{ width: '80px' }} />
+                                                </colgroup>
                                                 <thead>
                                                     <tr style={{ background: 'var(--brd2)' }}>
                                                         <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Иконка</th>
@@ -1202,7 +1213,19 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                             </select>
                         </div>
                         <div style={{ overflow: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '1000px', tableLayout: 'fixed' }}>
+                                <colgroup>
+                                    <col style={{ width: '50px' }} />
+                                    <col />
+                                    <col style={{ width: '130px' }} />
+                                    <col style={{ width: '160px' }} />
+                                    <col style={{ width: '90px' }} />
+                                    <col style={{ width: '90px' }} />
+                                    <col style={{ width: '90px' }} />
+                                    <col style={{ width: '90px' }} />
+                                    <col style={{ width: '80px' }} />
+                                    <col style={{ width: '80px' }} />
+                                </colgroup>
                                 <thead>
                                     <tr style={{ background: 'var(--brd2)' }}>
                                         <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Иконка</th>
@@ -1233,7 +1256,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                         {ITEM_CATS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                                                     </select>
                                                 </td>
-                                                <td style={{ padding: '6px 8px', fontSize: '11px', color: 'var(--txm)' }}>{tName}</td>
+                                                <td style={{ padding: '6px 8px', fontSize: '11px', color: 'var(--txm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={tName}>{tName}</td>
                                                 <td style={{ padding: '6px 8px' }}>
                                                     <select value={cur.type} onChange={e => updItemInline(i.id, 'type', e.target.value)} style={inlineInput}>
                                                         <option value="fixed">шт</option>
