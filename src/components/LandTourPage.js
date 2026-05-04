@@ -803,15 +803,6 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                     <aside className={`${styles.sidebar} charter-sidebar-mobile`}>
                         <div className={styles.panelHeader}>
                             <div className={styles.panelTitle}><span>🏔️</span> Сухопутные туры</div>
-                            {onPage && (
-                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                    <button onClick={() => onPage('hub')} style={{
-                                        padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                                        border: '1px solid var(--brd2)', cursor: 'pointer', fontFamily: 'inherit',
-                                        background: 'transparent', color: 'var(--txm)',
-                                    }}>← Все типы</button>
-                                </div>
-                            )}
                             <input type="text" className={styles.searchInput}
                                 placeholder="Поиск маршрута..."
                                 value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />

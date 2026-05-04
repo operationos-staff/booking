@@ -319,43 +319,6 @@ export default function CalculatorPage({ packages, options, role, user, toast, o
             <div className={styles.panelHeader}>
               <div className={styles.panelTitle}><span>🗂️</span> Экскурсии</div>
 
-              {/* Hub navigation */}
-              {onPage && (
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  <button onClick={() => onPage('hub')} style={{
-                    padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                    border: '1px solid var(--brd2)', cursor: 'pointer', fontFamily: 'inherit',
-                    background: 'transparent', color: 'var(--txm)',
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                  }}>
-                    ← Все типы
-                  </button>
-                  <button onClick={() => onPage('charter')} style={{
-                    padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                    border: '1px solid rgba(139,92,246,0.3)', cursor: 'pointer', fontFamily: 'inherit',
-                    background: 'rgba(139,92,246,0.08)', color: '#a78bfa',
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                  }}>
-                    🚤 Морские
-                  </button>
-                </div>
-              )}
-
-              {usedCats.length > 1 && (
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                  {usedCats.map(c => (
-                    <button key={c.key} onClick={() => setActiveCat(c.key)} style={{
-                      padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700,
-                      border: '1px solid', cursor: 'pointer', fontFamily: 'inherit',
-                      background: resolvedCat === c.key ? `rgba(${hexToRgb(c.color)},0.2)` : 'transparent',
-                      borderColor: resolvedCat === c.key ? c.color : 'var(--brd2)',
-                      color: resolvedCat === c.key ? c.color : 'var(--txl)',
-                    }}>
-                      {c.icon} {c.key}
-                    </button>
-                  ))}
-                </div>
-              )}
               <input type="text" className={styles.searchInput} placeholder="Поиск пакета..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             </div>
             <div className={styles.tourList}>
