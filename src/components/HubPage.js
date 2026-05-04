@@ -7,13 +7,15 @@ function hexToRgba(hex, alpha) {
   return `rgba(${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)},${alpha})`
 }
 
-export default function HubPage({ packages, excursions = [], onSelect, role }) {
+export default function HubPage({ packages, excursions = [], landRoutesCount = 0, onSelect, role }) {
   // Count packages + excursions per category
   const allItems = [...packages, ...excursions]
   const countByCat = EXCURSION_CATEGORIES.reduce((acc, c) => {
     acc[c.key] = allItems.filter(p => (p.category || 'Групповые туры') === c.key).length
     return acc
   }, {})
+  // Сухопутные туры считаются отдельно из land_main_config
+  if (landRoutesCount > 0) countByCat['Сухопутные'] = landRoutesCount
 
   const cats = EXCURSION_CATEGORIES
 
@@ -92,7 +94,9 @@ export default function HubPage({ packages, excursions = [], onSelect, role }) {
                 </span>
                 {count > 0 && (
                   <span style={{ fontSize: '11px', fontWeight: 600, color: cat.color, opacity: 0.9 }}>
-                    {count} {count === 1 ? 'пакет' : count < 5 ? 'пакета' : 'пакетов'}
+                    {count} {cat.key === 'Сухопутные'
+                      ? (count === 1 ? 'маршрут' : count < 5 ? 'маршрута' : 'маршрутов')
+                      : (count === 1 ? 'пакет' : count < 5 ? 'пакета' : 'пакетов')}
                   </span>
                 )}
                 {count === 0 && (

@@ -807,7 +807,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                     <button onClick={() => onPage('hub')} style={{
                                         padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
-                                        border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', fontFamily: 'inherit',
+                                        border: '1px solid var(--brd2)', cursor: 'pointer', fontFamily: 'inherit',
                                         background: 'transparent', color: 'var(--txm)',
                                     }}>← Все типы</button>
                                 </div>
@@ -818,7 +818,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                         </div>
                         <div className={`${styles.tourList} charter-tourlist-mobile`}>
                             {filteredRoutes.length === 0 ? (
-                                <div style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>
+                                <div style={{ textAlign: 'center', color: 'var(--txl)', marginTop: '20px', fontSize: '0.9rem' }}>Не найдено</div>
                             ) : (() => {
                                 const groups = {};
                                 const groupOrder = [];
@@ -839,7 +839,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                 style={{
                                                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                     padding: '9px 12px',
-                                                    background: isOpen ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.03)',
+                                                    background: isOpen ? 'rgba(245,158,11,0.12)' : 'var(--brd2)',
                                                     border: '1px solid ' + (isOpen ? 'rgba(245,158,11,0.35)' : 'rgba(245,158,11,0.1)'),
                                                     borderRadius: '8px', cursor: 'pointer',
                                                     color: isOpen ? '#f59e0b' : '#a3a3a3',
@@ -851,7 +851,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                     <span>{gName}</span>
                                                     <span style={{
                                                         fontSize: '0.65rem', padding: '1px 6px', borderRadius: '99px',
-                                                        background: isOpen ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.07)',
+                                                        background: isOpen ? 'rgba(245,158,11,0.2)' : 'var(--brd2)',
                                                         color: isOpen ? '#f59e0b' : '#737373', fontWeight: 700,
                                                     }}>{groups[gName].length}</span>
                                                 </span>
@@ -869,7 +869,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                             <div key={r.id}
                                                                 className={`${styles.tourItem} ${isSel ? styles.active : ''}`}
                                                                 style={{
-                                                                    background: isSel ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.02)',
+                                                                    background: isSel ? 'rgba(245,158,11,0.15)' : 'var(--brd2)',
                                                                     border: '1px solid ' + (isSel ? 'rgba(245,158,11,0.5)' : 'rgba(245,158,11,0.08)'),
                                                                 }}
                                                                 onClick={() => handleRouteSelect(r.id)}>
@@ -970,7 +970,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                 <input type="number" value={pax.infants} min="0" onChange={(e) => setPax({ ...pax, infants: Number(e.target.value) || 0 })} />
                                             </div>
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '8px' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--txl)', marginTop: '8px' }}>
                                             Младенцы 0-3 — бесплатно, без места в минивэне
                                         </div>
                                     </div>
@@ -980,7 +980,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                         <div className={styles.cardTitle}><span>➕</span> Дополнительные опции</div>
                                         <div className={styles.optList}>
                                             {currentItems.filter(i => i.mgr).length === 0 ? (
-                                                <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Дополнительных опций для этого маршрута нет.</div>
+                                                <div style={{ color: 'var(--txl)', fontSize: '0.85rem' }}>Дополнительных опций для этого маршрута нет.</div>
                                             ) : (
                                                 currentItems.filter(i => i.mgr).map(o => {
                                                     const isChecked = !!mgrSelections[o.id];
@@ -993,7 +993,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                                     <span style={{ fontSize: '1.2rem' }}>{o.icon}</span>
                                                                     <span style={{ lineHeight: 1.2 }}>{o.name}</span>
                                                                     <span className={styles.optBadge}>{o.type === 'fixed' ? 'Шт' : 'Чел'}</span>
-                                                                    {o.note && <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>· {o.note}</span>}
+                                                                    {o.note && <span style={{ fontSize: '0.7rem', color: 'var(--txl)' }}>· {o.note}</span>}
                                                                 </div>
                                                             </div>
                                                             {o.type === 'fixed' && (
@@ -1024,7 +1024,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                     <div><div className={styles.rrName}>Опции нетто</div><div className={styles.rrMeta}>Сумма закупочных цен</div></div>
                                                     <div className={styles.rrVal}>{FMT(netTot - ((currentRoute.netAdult || 0) * pax.adults + (currentRoute.netChild || 0) * pax.children))}</div>
                                                 </div>
-                                                <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.2)', margin: '10px 0' }}></div>
+                                                <div style={{ borderBottom: '1px dashed var(--brd2)', margin: '10px 0' }}></div>
                                                 <div className={styles.rr}><div>Общая Себестоимость</div><div className={styles.rrVal}>{FMT(netTot)}</div></div>
                                                 <div className={styles.rr} style={{ color: 'var(--ok)', fontWeight: 800 }}><div>Базовая маржа</div><div className={styles.rrVal}>+{FMT(sellTot - netTot)}</div></div>
                                             </>
@@ -1048,9 +1048,9 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                             <div>{FMT(sellTot)}</div>
                                         </div>
 
-                                        <div style={{ marginTop: '24px', background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '12px' }}>
-                                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <div style={{ marginTop: '24px', background: 'var(--bg3)', padding: '16px', borderRadius: '12px' }}>
+                                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--txm)', textTransform: 'uppercase', marginBottom: '8px' }}>Выбранные позиции</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingBottom: '6px', borderBottom: '1px solid var(--brd2)' }}>
                                                 <div style={{ fontWeight: 600 }}>{currentRoute.icon} {currentRoute.name}</div>
                                                 <div style={{ fontWeight: 700 }}>{FMT((currentRoute.sellAdult || 0) * pax.adults + (currentRoute.sellChild || 0) * pax.children)}</div>
                                             </div>
@@ -1058,7 +1058,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                 <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingTop: '8px' }}>
                                                     <div>
                                                         <div style={{ fontWeight: 600 }}>{o.icon || '•'} {o.name}</div>
-                                                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)' }}>{o.meta}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--txm)' }}>{o.meta}</div>
                                                     </div>
                                                     <div style={{ fontWeight: 700 }}>{FMT(o.val)}</div>
                                                 </div>
@@ -1066,19 +1066,19 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px' }}>
-                                            <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)' }} onClick={handlePrint}>🖨️ Печать PDF</button>
+                                            <button className={`${styles.btn} ${styles.btnGh}`} style={{ color: '#fff', borderColor: 'var(--brd2)', background: 'var(--brd2)' }} onClick={handlePrint}>🖨️ Печать PDF</button>
                                             <button className={`${styles.btn} ${styles.btnAcc}`} onClick={handlePublish}>📱 Текст / Мессенджер</button>
                                             <button className={`${styles.btn} ${styles.btnOk}`} onClick={handleLink}>🔗 Создать ссылку</button>
-                                            <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'rgba(255,255,255,0.6)', marginTop: '8px', fontWeight: 600 }} onClick={() => setSRoute(null)}>🔄 Сбросить</button>
+                                            <button className={`${styles.btn}`} style={{ background: 'transparent', color: 'var(--txm)', marginTop: '8px', fontWeight: 600 }} onClick={() => setSRoute(null)}>🔄 Сбросить</button>
                                         </div>
 
                                         {isAdmin && (
-                                            <div style={{ marginTop: '32px', borderTop: '1px dashed rgba(255,255,255,0.3)', paddingTop: '20px' }}>
+                                            <div style={{ marginTop: '32px', borderTop: '1px dashed var(--brd2)', paddingTop: '20px' }}>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--warn)', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase' }}>🔒 Внутренний расчёт</div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '4px 0' }}>
                                                     <div>Итого нетто:</div><div style={{ fontWeight: 700 }}>{FMT(netTot)}</div>
                                                 </div>
-                                                <div style={{ marginTop: '12px', background: 'rgba(0,0,0,0.3)', height: '6px', borderRadius: '10px' }}>
+                                                <div style={{ marginTop: '12px', background: 'var(--bg3)', height: '6px', borderRadius: '10px' }}>
                                                     <div style={{ height: '100%', background: profit >= 0 ? 'linear-gradient(90deg, #d4af37, #fde047)' : '#ef4444', borderRadius: '10px', width: `${marginVisualPct}%` }}></div>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.8rem', fontWeight: 600 }}>
@@ -1111,14 +1111,14 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                             </>
                         )}
                         <button onClick={saveLandToCloud} disabled={savingDb} style={{ padding: '10px 16px', borderRadius: '10px', background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.4)', color: '#60a5fa', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}>{savingDb ? '⏳ Сохранение...' : '☁️ Сохранить в БД'}</button>
-                        <button onClick={resetDB} style={{ padding: '10px 16px', borderRadius: '10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--muted)', fontWeight: 600, cursor: 'pointer', fontSize: '12px' }}>↺ Сбросить</button>
+                        <button onClick={resetDB} style={{ padding: '10px 16px', borderRadius: '10px', background: 'var(--bg3)', border: '1px solid var(--brd2)', color: 'var(--txm)', fontWeight: 600, cursor: 'pointer', fontSize: '12px' }}>↺ Сбросить</button>
                     </div>
 
                     {showAddGroup && (
                         <div style={{ marginBottom: '20px', padding: '14px', background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: '10px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <input type="text" value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="Название группы (напр. 3 дня / 2 ночи)" style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.3)', color: 'var(--txt)' }} />
+                            <input type="text" value={newGroupName} onChange={e => setNewGroupName(e.target.value)} placeholder="Название группы (напр. 3 дня / 2 ночи)" style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--brd2)', background: 'var(--bg3)', color: 'var(--txt)' }} />
                             <button onClick={addGroup} style={{ padding: '8px 14px', borderRadius: '8px', background: '#a855f7', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>Создать</button>
-                            <button onClick={() => { setShowAddGroup(false); setNewGroupName(''); }} style={{ padding: '8px 14px', borderRadius: '8px', background: 'transparent', color: 'var(--muted)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer' }}>Отмена</button>
+                            <button onClick={() => { setShowAddGroup(false); setNewGroupName(''); }} style={{ padding: '8px 14px', borderRadius: '8px', background: 'transparent', color: 'var(--txl)', border: '1px solid var(--brd2)', cursor: 'pointer' }}>Отмена</button>
                         </div>
                     )}
 
@@ -1137,26 +1137,26 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                 const meta = GROUPS.find(x => x.key === gName);
                                 return (
                                     <div key={gName} style={{ marginBottom: '20px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', padding: '6px 10px', background: meta?.bgColor || 'rgba(255,255,255,0.04)', border: `1px solid ${meta?.border || 'rgba(255,255,255,0.1)'}`, borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', padding: '6px 10px', background: meta?.bgColor || 'var(--brd2)', border: `1px solid ${meta?.border || 'var(--brd2)'}`, borderRadius: '8px' }}>
                                             <span style={{ fontSize: '14px' }}>{meta?.icon || '🏔️'}</span>
                                             <b style={{ color: meta?.color || 'var(--txt)', fontSize: '13px' }}>{gName}</b>
-                                            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>· {groups[gName].length} маршр.</span>
+                                            <span style={{ fontSize: '11px', color: 'var(--txl)' }}>· {groups[gName].length} маршр.</span>
                                             <div style={{ flex: 1 }} />
-                                            <button onClick={() => openAddRoute(gName)} style={{ padding: '4px 10px', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--txm)', fontSize: '11px', cursor: 'pointer' }}>+</button>
+                                            <button onClick={() => openAddRoute(gName)} style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--brd2)', border: '1px solid var(--brd2)', color: 'var(--txm)', fontSize: '11px', cursor: 'pointer' }}>+</button>
                                         </div>
                                         <div style={{ overflow: 'auto' }}>
                                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px' }}>
                                                 <thead>
-                                                    <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Иконка</th>
-                                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Название</th>
-                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Нетто взр</th>
-                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Нетто дет</th>
-                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Менедж взр</th>
-                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Менедж дет</th>
-                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Продажа взр</th>
-                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Продажа дет</th>
-                                                        <th style={{ padding: '8px', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}></th>
+                                                    <tr style={{ background: 'var(--brd2)' }}>
+                                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Иконка</th>
+                                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Название</th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Нетто взр</th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Нетто дет</th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Менедж взр</th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Менедж дет</th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Продажа взр</th>
+                                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Продажа дет</th>
+                                                        <th style={{ padding: '8px', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1164,7 +1164,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                                         const cur = unsavedRoutes[r.id] || r;
                                                         const dirty = !!unsavedRoutes[r.id];
                                                         return (
-                                                            <tr key={r.id} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: dirty ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
+                                                            <tr key={r.id} style={{ borderTop: '1px solid var(--brd2)', background: dirty ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
                                                                 <td style={{ padding: '6px 8px', fontSize: '16px' }}>{r.icon}</td>
                                                                 <td style={{ padding: '6px 8px' }}>
                                                                     <input type="text" value={cur.name} onChange={e => updRouteInline(r.id, 'name', e.target.value)} style={inlineInput} />
@@ -1195,7 +1195,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                     <div>
                         <h3 style={{ color: 'var(--txt)', fontSize: '15px', marginBottom: '12px', fontWeight: 700 }}>➕ Доплаты и опции ({db.items.length})</h3>
                         <div style={{ marginBottom: '8px' }}>
-                            <select value={adminFilterRoute} onChange={e => setAdminFilterRoute(e.target.value)} style={{ padding: '6px 10px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', color: 'var(--txt)', border: '1px solid rgba(255,255,255,0.15)', fontSize: '12px' }}>
+                            <select value={adminFilterRoute} onChange={e => setAdminFilterRoute(e.target.value)} style={{ padding: '6px 10px', borderRadius: '8px', background: 'var(--bg3)', color: 'var(--txt)', border: '1px solid var(--brd2)', fontSize: '12px' }}>
                                 <option value="">Все опции</option>
                                 <option value="ALL">Только общие (ALL)</option>
                                 {db.routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -1204,17 +1204,17 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                         <div style={{ overflow: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px' }}>
                                 <thead>
-                                    <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Иконка</th>
-                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Название</th>
-                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Категория</th>
-                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Маршрут</th>
-                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Тип</th>
-                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Нетто</th>
-                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Менедж</th>
-                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Продажа</th>
-                                        <th style={{ padding: '8px', textAlign: 'center', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}>Видна Mgr</th>
-                                        <th style={{ padding: '8px', color: 'var(--muted)', fontWeight: 600, fontSize: '11px' }}></th>
+                                    <tr style={{ background: 'var(--brd2)' }}>
+                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Иконка</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Название</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Категория</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Маршрут</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Тип</th>
+                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Нетто</th>
+                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Менедж</th>
+                                        <th style={{ padding: '8px', textAlign: 'right', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Продажа</th>
+                                        <th style={{ padding: '8px', textAlign: 'center', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}>Видна Mgr</th>
+                                        <th style={{ padding: '8px', color: 'var(--txl)', fontWeight: 600, fontSize: '11px' }}></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1223,7 +1223,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
                                         const dirty = !!unsavedItems[i.id];
                                         const tName = i.tId === 'ALL' ? 'Общая' : (db.routes.find(r => r.id === i.tId)?.name || '?');
                                         return (
-                                            <tr key={i.id} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: dirty ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
+                                            <tr key={i.id} style={{ borderTop: '1px solid var(--brd2)', background: dirty ? 'rgba(245,158,11,0.06)' : 'transparent' }}>
                                                 <td style={{ padding: '6px 8px', fontSize: '16px' }}>{i.icon}</td>
                                                 <td style={{ padding: '6px 8px' }}>
                                                     <input type="text" value={cur.name} onChange={e => updItemInline(i.id, 'name', e.target.value)} style={inlineInput} />
@@ -1358,7 +1358,7 @@ export default function LandTourPage({ role, toast: externalToast, user, brandSe
 // ─── small style helpers ──────────────────────────────────────
 const inlineInput = {
     width: '100%', padding: '4px 6px', fontSize: '12px',
-    background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--bg3)', border: '1px solid var(--brd2)',
     borderRadius: '6px', color: 'var(--txt)', fontFamily: 'inherit',
 };
 const inlineInputNum = { ...inlineInput, textAlign: 'right', maxWidth: '90px' };
@@ -1368,7 +1368,7 @@ const smIcon = {
 };
 const modalInput = {
     width: '100%', padding: '8px 10px', fontSize: '13px',
-    background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.15)',
+    background: 'var(--bg3)', border: '1px solid var(--brd2)',
     borderRadius: '8px', color: 'var(--txt)', fontFamily: 'inherit',
 };
 
@@ -1393,13 +1393,13 @@ function ModalShell({ title, children, onClose, onSave }) {
                 borderRadius: '14px', padding: '24px', width: '100%', maxWidth: '600px',
                 maxHeight: '90vh', overflow: 'auto', color: 'var(--txt)',
             }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--brd2)' }}>
                     <h3 style={{ margin: 0, color: '#f59e0b', fontSize: '16px', fontWeight: 800 }}>{title}</h3>
-                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--txl)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
                 </div>
                 <div>{children}</div>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', background: 'transparent', color: 'var(--muted)', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--brd2)' }}>
+                    <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', background: 'transparent', color: 'var(--txl)', border: '1px solid var(--brd2)', fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
                     <button onClick={onSave} style={{ padding: '8px 16px', borderRadius: '8px', background: '#f59e0b', color: '#000', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Сохранить</button>
                 </div>
             </div>
