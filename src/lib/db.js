@@ -390,17 +390,31 @@ export async function saveFishingToDB(fishingData) {
 }
 
 // ─── UNIFIED CATALOG ────────────────────────────────────────
-// Грузим параллельно все 7 источников и собираем каталог на клиенте.
-// Это надёжнее чем materialized view: данные актуальные даже если что-то
-// живёт пока в localStorage и ещё не попало в БД.
+// Грузим параллельно все 7 источников. Если в Supabase пусто — fallback на
+// localStorage той страницы (где админ ещё не нажал «Сохранить в БД»).
+function readLS(key) {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
 export async function getCatalogItems({ source, category, search } = {}) {
   try {
-    const [pkgs, opts, land, sights, indiv, avia, fish, charter] = await Promise.all([
+    const [pkgs, opts, dbLand, dbSights, dbIndiv, dbAvia, dbFish, dbCharter] = await Promise.all([
       loadPackagesFromDB(), loadOptionsFromDB(),
       loadLandFromDB(), loadSightsFromDB(),
       loadIndividualFromDB(), loadAviaFromDB(), loadFishingFromDB(),
       loadCharterFromDB(),
     ])
+    // Если в БД пусто — берём из localStorage, куда фронт пишет DEFAULT_DB
+    const land    = (dbLand?.routes?.length    ? dbLand    : readLS('land_db'))    || dbLand
+    const sights  = (dbSights?.routes?.length  ? dbSights  : readLS('sights_db'))  || dbSights
+    const indiv   = (dbIndiv?.routes?.length   ? dbIndiv   : readLS('individual_db')) || dbIndiv
+    const avia    = (dbAvia?.routes?.length    ? dbAvia    : readLS('avia_db'))    || dbAvia
+    const fish    = (dbFish?.routes?.length    ? dbFish    : readLS('fishing_db')) || dbFish
+    const charter = (dbCharter?.tours?.length  ? dbCharter : readLS('charter_db')) || dbCharter
     return buildCatalogFallback({ pkgs, opts, land, sights, indiv, avia, fish, charter })
       .filter(it => !source   || it.source === source)
       .filter(it => !category || it.category === category)
@@ -472,6 +486,7 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
         source: 'options', source_id: String(i.id),
         name: i.name, icon: i.icon || '➕',
         category: 'Опции (чартер)',
+        is_addon: true, parent_source: 'charter', tId: i.tId || 'ALL',
         pricing_model: i.type === 'per_pax' ? 'per_pax' : 'per_vehicle',
         net_base: i.type === 'per_pax' ? 0 : (i.net || 0),
         sell_base: i.type === 'per_pax' ? 0 : (i.sell || i.mgrPrice || 0),
@@ -525,6 +540,7 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
         source: 'options', source_id: String(i.id),
         name: i.name, icon: i.icon || '➕',
         category: 'Опции (' + cat + ')',
+        is_addon: true, parent_source: src, tId: i.tId || 'ALL',
         pricing_model: i.type === 'per_pax' ? 'per_pax' : 'per_vehicle',
         net_base: i.type === 'per_pax' ? 0 : (i.net || 0),
         sell_base: i.type === 'per_pax' ? 0 : (i.sell || i.mgrPrice || 0),

@@ -81,6 +81,22 @@ export default function CustomTourPage({ role, toast: externalToast, user, brand
         return g;
     }, [filteredCatalog]);
 
+    // Контекстные опции: если в корзине есть маршруты — показываем привязанные к ним items.
+    // Привязка через is_addon + parent_source/tId.
+    const recommendedOptions = useMemo(() => {
+        if (!parts || parts.length === 0) return [];
+        const ctx = parts
+            .filter(p => p.source && !['options'].includes(p.source))
+            .map(p => ({ src: p.source, id: p.source_id }));
+        if (ctx.length === 0) return [];
+        return (catalog || []).filter(it => {
+            if (!it.is_addon) return false;
+            return ctx.some(c =>
+                it.parent_source === c.src && (it.tId === 'ALL' || String(it.tId) === String(c.id))
+            );
+        }).slice(0, 30);
+    }, [catalog, parts]);
+
     // ─── helpers корзины ──────────────────────────────────────
     function addPartFromCatalog(it) {
         const part = {
@@ -267,6 +283,43 @@ export default function CustomTourPage({ role, toast: externalToast, user, brand
                     </div>
 
                     <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px' }}>
+                        {/* 🎯 Подходящие опции к выбранным маршрутам */}
+                        {recommendedOptions.length > 0 && (
+                            <div style={{
+                                marginBottom: '14px', padding: '10px',
+                                background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.25)',
+                                borderRadius: '10px',
+                            }}>
+                                <div style={{
+                                    fontSize: '10px', fontWeight: 800, color: '#10b981',
+                                    textTransform: 'uppercase', letterSpacing: '0.5px',
+                                    marginBottom: '6px',
+                                }}>
+                                    🎯 Подходящие к выбранным маршрутам · {recommendedOptions.length}
+                                </div>
+                                {recommendedOptions.map(it => (
+                                    <div key={it.global_id} style={{
+                                        background: 'var(--bg2)', border: '1px solid var(--brd2)',
+                                        borderRadius: '8px', padding: '6px 10px', marginBottom: '4px',
+                                        display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                                    }} onClick={() => addPartFromCatalog(it)}>
+                                        <span style={{ fontSize: '14px' }}>{it.icon}</span>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--txl)' }}>
+                                                {it.pricing_model === 'per_pax' && it.sell_adult ? `${FMT(it.sell_adult)} /чел` :
+                                                 it.sell_base ? `${FMT(it.sell_base)} (фикс)` : 'входит / уточнить'}
+                                            </div>
+                                        </div>
+                                        <button style={{
+                                            background: '#10b981', color: '#fff', border: 'none',
+                                            borderRadius: '6px', padding: '4px 8px', fontSize: '12px',
+                                            fontWeight: 800, cursor: 'pointer',
+                                        }}>+</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         {catalogLoading ? (
                             <div style={{ color: 'var(--txl)', textAlign: 'center', padding: '24px', fontSize: '12px' }}>Загрузка…</div>
                         ) : filteredCatalog.length === 0 ? (
