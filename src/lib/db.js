@@ -281,6 +281,42 @@ export async function saveSightsToDB(sightsData) {
   }
 }
 
+// ─── INDIVIDUAL TOUR CONFIG ─────────────────────────────────
+// Индивидуальные экскурсии — отдельный ключ, модель цен base + extraPax
+const INDIVIDUAL_CONFIG_KEY = 'individual_main_config'
+
+export async function loadIndividualFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', INDIVIDUAL_CONFIG_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  } catch (e) {
+    console.warn('individual_config load failed:', e.message)
+    return null
+  }
+}
+
+export async function saveIndividualToDB(individualData) {
+  try {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({
+        config_key: INDIVIDUAL_CONFIG_KEY,
+        payload: individualData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('individual_config save failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase
