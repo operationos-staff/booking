@@ -533,13 +533,14 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
                 description: r.description, group: r.group, icon: r.icon }
       })
     }
-    // items этой категории (трансферы, отели, входы и т.п.) — все в общий пул «Опции»
+    // items этой категории (трансферы, отели, входы и т.п.) — относим к своей категории,
+    // НЕ в общий пул «Опции», чтобы при фильтре «Сухопутные» юзер видел и маршруты, и доплаты Land.
     for (const i of (data.items || [])) {
       list.push({
         global_id: src + '_addon:' + i.id,
-        source: 'options', source_id: String(i.id),
+        source: src, source_id: 'addon_' + String(i.id),
         name: i.name, icon: i.icon || '➕',
-        category: 'Опции (' + cat + ')',
+        category: cat,
         is_addon: true, parent_source: src, tId: i.tId || 'ALL',
         pricing_model: i.type === 'per_pax' ? 'per_pax' : 'per_vehicle',
         net_base: i.type === 'per_pax' ? 0 : (i.net || 0),

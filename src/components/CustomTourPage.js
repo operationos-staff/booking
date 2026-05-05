@@ -108,6 +108,10 @@ export default function CustomTourPage({ role, toast: externalToast, user, brand
             icon: it.icon || SOURCE_META[it.source]?.icon || '📦',
             category: it.category,
             pricing_model: it.pricing_model,
+            // Признаки доплаты для группировки в корзине
+            is_addon: !!it.is_addon,
+            parent_source: it.parent_source || null,
+            tId: it.tId || null,
             // Снэпшот цен
             sell_base: it.sell_base, net_base: it.net_base,
             extra_pax_sell: it.extra_pax_sell, extra_pax_net: it.extra_pax_net,
@@ -120,7 +124,6 @@ export default function CustomTourPage({ role, toast: externalToast, user, brand
             meta: it.meta || {},
             snapshotTime: new Date().toISOString(),
         };
-        // Пересчитываем
         part.calculated = calcCustomPart(part, part.qty);
         setParts(prev => [...prev, part]);
         showToast(`Добавлено: ${it.name}`, 'ok');
@@ -421,11 +424,11 @@ export default function CustomTourPage({ role, toast: externalToast, user, brand
                                 Кликни на карточки в каталоге слева, чтобы добавить активности в тур
                             </div>
                         ) : (
-                            parts.map((p, idx) => (
-                                <PartRow key={p.uid} part={p} idx={idx}
-                                    onUpdate={patch => updatePart(p.uid, patch)}
-                                    onRemove={() => removePart(p.uid)}
+                            groupParts(parts).map((group, gi) => (
+                                <PartGroup key={group.key} group={group} groupIndex={gi}
                                     isAdmin={isAdmin}
+                                    onUpdate={(uid, patch) => updatePart(uid, patch)}
+                                    onRemove={(uid) => removePart(uid)}
                                 />
                             ))
                         )}
@@ -599,4 +602,107 @@ function chipStyle(active, color) {
         color: active ? (color || '#f59e0b') : 'var(--txm)',
         cursor: 'pointer', fontFamily: 'inherit',
     };
+}
+
+// ─── ГРУППИРОВКА: маршрут + его опции в корзине ───────────
+function groupParts(parts) {
+    // Идём по списку. Маршруты (НЕ is_addon) — открывают новую группу.
+    // Опции (is_addon) — кладутся:
+    //   - в текущую группу, если их parent_source совпадает с group.route.source
+    //     и (tId === route.source_id || tId === 'ALL')
+    //   - иначе в группу 'unattached' (Прочие опции)
+    const groups = [];
+    const unattached = { key: 'unattached', route: null, items: [] };
+    let current = null;
+
+    for (const p of (parts || [])) {
+        const isAddon = !!p.is_addon || p.source === 'options';
+        if (!isAddon) {
+            // Маршрут → новая группа
+            current = { key: p.uid, route: p, items: [] };
+            groups.push(current);
+            continue;
+        }
+        // Опция: пытаемся прикрепить к текущей группе
+        const r = current?.route;
+        const matches = r && p.parent_source && p.parent_source === r.source
+            && (p.tId === 'ALL' || String(p.tId) === String(r.source_id));
+        if (matches) current.items.push(p);
+        else if (r && !p.parent_source && r.source !== 'options') {
+            // Просто положим в текущую группу (опция без явной привязки добавлена после маршрута)
+            current.items.push(p);
+        } else {
+            unattached.items.push(p);
+        }
+    }
+    if (unattached.items.length > 0) groups.push(unattached);
+    return groups;
+}
+
+function PartGroup({ group, groupIndex, isAdmin, onUpdate, onRemove }) {
+    if (group.key === 'unattached') {
+        return (
+            <div style={{ marginTop: groupIndex > 0 ? '14px' : 0, marginBottom: '8px' }}>
+                <div style={{
+                    fontSize: '10px', fontWeight: 800, color: 'var(--txl)',
+                    textTransform: 'uppercase', letterSpacing: '0.5px',
+                    margin: '4px 0 6px 4px',
+                }}>
+                    📌 Прочее (не привязано к маршруту)
+                </div>
+                {group.items.map((p) => (
+                    <PartRow key={p.uid} part={p}
+                        onUpdate={patch => onUpdate(p.uid, patch)}
+                        onRemove={() => onRemove(p.uid)}
+                        isAdmin={isAdmin}
+                    />
+                ))}
+            </div>
+        );
+    }
+
+    const meta = SOURCE_META[group.route?.source] || {};
+    const groupColor = meta.color || '#f59e0b';
+
+    return (
+        <div style={{
+            marginTop: groupIndex > 0 ? '12px' : 0,
+            border: `1px solid ${groupColor}33`,
+            borderRadius: '12px',
+            background: `${groupColor}05`,
+            padding: '6px',
+        }}>
+            {/* Заголовок группы — сам маршрут */}
+            <PartRow part={group.route}
+                onUpdate={patch => onUpdate(group.route.uid, patch)}
+                onRemove={() => onRemove(group.route.uid)}
+                isAdmin={isAdmin}
+            />
+            {/* Опции под маршрутом, с отступом и связкой */}
+            {group.items.length > 0 && (
+                <div style={{
+                    paddingLeft: '20px',
+                    borderLeft: `2px solid ${groupColor}`,
+                    marginLeft: '14px', marginTop: '4px',
+                    position: 'relative',
+                }}>
+                    <div style={{
+                        position: 'absolute', left: '-8px', top: '-6px',
+                        fontSize: '10px', color: groupColor, fontWeight: 700,
+                        background: 'var(--card-solid)', padding: '0 6px',
+                    }}>
+                        ↳ Опции к маршруту · {group.items.length}
+                    </div>
+                    {group.items.map((p) => (
+                        <PartRow key={p.uid} part={p}
+                            onUpdate={patch => onUpdate(p.uid, patch)}
+                            onRemove={() => onRemove(p.uid)}
+                            isAdmin={isAdmin}
+                            isAttachedAddon
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
