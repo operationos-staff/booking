@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { loadPackagesFromDB, loadOptionsFromDB, loadExcursionsFromDB, loadLandFromDB, loadSightsFromDB, loadIndividualFromDB, loadAviaFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings, saveDisplayName } from '@/lib/db'
+import { loadPackagesFromDB, loadOptionsFromDB, loadExcursionsFromDB, loadLandFromDB, loadSightsFromDB, loadIndividualFromDB, loadAviaFromDB, loadFishingFromDB, loadCalculation, fetchUserRole, logActivity, loadBrandSettings, saveDisplayName } from '@/lib/db'
 import { saveToLS } from '@/lib/utils'
 import { DEF_PACKAGES, DEF_OPTIONS } from '@/lib/constants'
 import { useToast } from '@/lib/useToast'
@@ -17,6 +17,7 @@ import LandTourPage from './LandTourPage'
 import OverviewTourPage from './OverviewTourPage'
 import IndividualTourPage from './IndividualTourPage'
 import AviaTourPage from './AviaTourPage'
+import FishingTourPage from './FishingTourPage'
 import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
@@ -36,6 +37,7 @@ export default function TourApp() {
   const [sightsRoutesCount, setSightsRoutesCount] = useState(8) // дефолт = число записей в DEFAULT_SIGHTS_DB
   const [individualRoutesCount, setIndividualRoutesCount] = useState(30) // дефолт = число записей в DEFAULT_INDIVIDUAL_DB
   const [aviaRoutesCount, setAviaRoutesCount] = useState(22) // дефолт = число записей в DEFAULT_AVIA_DB
+  const [fishingRoutesCount, setFishingRoutesCount] = useState(5) // дефолт = число записей в DEFAULT_FISHING_DB
   const [clientData, setClientData] = useState(null)
   const [ready, setReady] = useState(false)
   const [brandSettings, setBrandSettings] = useState(null)
@@ -56,13 +58,14 @@ export default function TourApp() {
   // DB data always takes priority; defaults are only used when DB is empty
   const loadAppData = useCallback(async () => {
     try {
-      const [dbPkgs, dbOpts, dbBrand, dbExc, dbLand, dbSights, dbIndiv, dbAvia] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB(), loadBrandSettings(), loadExcursionsFromDB(), loadLandFromDB(), loadSightsFromDB(), loadIndividualFromDB(), loadAviaFromDB()])
+      const [dbPkgs, dbOpts, dbBrand, dbExc, dbLand, dbSights, dbIndiv, dbAvia, dbFish] = await Promise.all([loadPackagesFromDB(), loadOptionsFromDB(), loadBrandSettings(), loadExcursionsFromDB(), loadLandFromDB(), loadSightsFromDB(), loadIndividualFromDB(), loadAviaFromDB(), loadFishingFromDB()])
       if (dbExc) setExcursions(dbExc)
       if (dbBrand) setBrandSettings(dbBrand)
       if (dbLand?.routes?.length) setLandRoutesCount(dbLand.routes.length)
       if (dbSights?.routes?.length) setSightsRoutesCount(dbSights.routes.length)
       if (dbIndiv?.routes?.length) setIndividualRoutesCount(dbIndiv.routes.length)
       if (dbAvia?.routes?.length) setAviaRoutesCount(dbAvia.routes.length)
+      if (dbFish?.routes?.length) setFishingRoutesCount(dbFish.routes.length)
 
       // For packages: use DB data if available, fall back to defaults
       if (dbPkgs && dbPkgs.length) {
@@ -208,6 +211,7 @@ export default function TourApp() {
           sightsRoutesCount={sightsRoutesCount}
           individualRoutesCount={individualRoutesCount}
           aviaRoutesCount={aviaRoutesCount}
+          fishingRoutesCount={fishingRoutesCount}
           role={role}
           onSelect={(cat) => {
             if (cat === 'charter') { setPage('charter'); return }
@@ -215,6 +219,7 @@ export default function TourApp() {
             if (cat === 'Обзорные') { setPage('sights'); return }
             if (cat === 'Индивидуальные') { setPage('individual'); return }
             if (cat === 'Авиатуры в ЮВА') { setPage('avia'); return }
+            if (cat === 'Рыбалка') { setPage('fishing'); return }
             setHubCategory(cat)
             setPage('calculator')
           }}
@@ -238,6 +243,7 @@ export default function TourApp() {
       {page === 'sights'       && user && <OverviewTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'individual'   && user && <IndividualTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'avia'         && user && <AviaTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
+      {page === 'fishing'      && user && <FishingTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}

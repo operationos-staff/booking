@@ -7,7 +7,7 @@ function hexToRgba(hex, alpha) {
   return `rgba(${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)},${alpha})`
 }
 
-export default function HubPage({ packages, excursions = [], landRoutesCount = 0, sightsRoutesCount = 0, individualRoutesCount = 0, aviaRoutesCount = 0, onSelect, role }) {
+export default function HubPage({ packages, excursions = [], landRoutesCount = 0, sightsRoutesCount = 0, individualRoutesCount = 0, aviaRoutesCount = 0, fishingRoutesCount = 0, onSelect, role }) {
   // Count packages + excursions per category
   const allItems = [...packages, ...excursions]
   const countByCat = EXCURSION_CATEGORIES.reduce((acc, c) => {
@@ -19,6 +19,7 @@ export default function HubPage({ packages, excursions = [], landRoutesCount = 0
   if (sightsRoutesCount > 0) countByCat['Обзорные'] = sightsRoutesCount
   if (individualRoutesCount > 0) countByCat['Индивидуальные'] = individualRoutesCount
   if (aviaRoutesCount > 0) countByCat['Авиатуры в ЮВА'] = aviaRoutesCount
+  if (fishingRoutesCount > 0) countByCat['Рыбалка'] = fishingRoutesCount
 
   const cats = EXCURSION_CATEGORIES
 

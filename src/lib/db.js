@@ -353,6 +353,42 @@ export async function saveAviaToDB(aviaData) {
   }
 }
 
+// ─── FISHING TOUR CONFIG ────────────────────────────────────
+// Рыбалка — отдельный ключ, модель цен per_pax (взр/дет/мл)
+const FISHING_CONFIG_KEY = 'fishing_main_config'
+
+export async function loadFishingFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', FISHING_CONFIG_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  } catch (e) {
+    console.warn('fishing_config load failed:', e.message)
+    return null
+  }
+}
+
+export async function saveFishingToDB(fishingData) {
+  try {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({
+        config_key: FISHING_CONFIG_KEY,
+        payload: fishingData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('fishing_config save failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase
