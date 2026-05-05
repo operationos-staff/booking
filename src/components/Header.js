@@ -25,10 +25,11 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
   const opsBtnRef = useRef(null)
   const opsMenuRef = useRef(null)
 
-  // dropdown «Экскурсии» (левый)
+  // dropdown «Экскурсии» — отдельные ref'ы для desktop/mobile
   const [excOpen, setExcOpen] = useState(false)
   const [excPos, setExcPos] = useState({ top: 0, left: 0 })
-  const excBtnRef = useRef(null)
+  const excDeskRef = useRef(null)
+  const excMobRef = useRef(null)
   const excMenuRef = useRef(null)
 
   useEffect(() => {
@@ -36,8 +37,11 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
     const close = (e) => {
       if (opsOpen && opsBtnRef.current && !opsBtnRef.current.contains(e.target)
           && opsMenuRef.current && !opsMenuRef.current.contains(e.target)) setOpsOpen(false)
-      if (excOpen && excBtnRef.current && !excBtnRef.current.contains(e.target)
-          && excMenuRef.current && !excMenuRef.current.contains(e.target)) setExcOpen(false)
+      if (excOpen
+          && (!excDeskRef.current || !excDeskRef.current.contains(e.target))
+          && (!excMobRef.current  || !excMobRef.current.contains(e.target))
+          && excMenuRef.current && !excMenuRef.current.contains(e.target)
+        ) setExcOpen(false)
     }
     const onScroll = () => { setOpsOpen(false); setExcOpen(false) }
     document.addEventListener('mousedown', close)
@@ -57,11 +61,33 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
     setExcOpen(false)
   }
 
-  const openExc = () => {
-    if (excBtnRef.current) {
-      const r = excBtnRef.current.getBoundingClientRect()
+  // Позиционируем меню под видимой кнопкой (desktop / mobile)
+  const positionExc = () => {
+    // выбираем тот ref, который реально виден на странице
+    const desk = excDeskRef.current
+    const mob  = excMobRef.current
+    let target = null
+    if (desk) {
+      const r = desk.getBoundingClientRect()
+      if (r.width > 0 && r.height > 0) target = desk
+    }
+    if (!target && mob) {
+      const r = mob.getBoundingClientRect()
+      if (r.width > 0 && r.height > 0) target = mob
+    }
+    if (!target) return
+    const r = target.getBoundingClientRect()
+    // На мобильном открываем НАД кнопкой (нижний бар), на десктопе — ПОД
+    const isMobile = target === mob
+    if (isMobile) {
+      setExcPos({ top: Math.max(60, r.top - 360), left: Math.max(8, r.left) })
+    } else {
       setExcPos({ top: r.bottom + 8, left: r.left })
     }
+  }
+
+  const openExc = () => {
+    positionExc()
     setExcOpen(o => !o)
     setOpsOpen(false)
   }
@@ -137,7 +163,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
               <>
                 {/* 1. Экскурсии (выпадающий список 7 типов) */}
                 <button
-                  ref={excBtnRef}
+                  ref={excDeskRef}
                   onClick={openExc}
                   className={`btn-nav ${isExcursionActive ? 'btn-nav-a' : 'btn-nav-o'}`}
                   style={{ gap: '6px' }}
@@ -151,10 +177,6 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                 <button
                   className={`btn-nav ${page === 'constructor' ? 'btn-nav-a' : 'btn-nav-o'}`}
                   onClick={() => onPage('constructor')}
-                  style={{
-                    background: page === 'constructor' ? undefined : 'rgba(245,158,11,0.10)',
-                    borderColor: page === 'constructor' ? undefined : '#f59e0b',
-                  }}
                 >
                   🧩 Конструктор
                 </button>
@@ -196,7 +218,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
             <span className="mob-bottom-icon">🏝</span>
             <span className="mob-bottom-label">Hub</span>
           </button>
-          <button className={`mob-bottom-btn ${isExcursionActive ? 'mob-bottom-active' : ''}`} onClick={openExc} ref={excBtnRef}>
+          <button className={`mob-bottom-btn ${isExcursionActive ? 'mob-bottom-active' : ''}`} onClick={openExc} ref={excMobRef}>
             <span className="mob-bottom-icon">{activeTourMeta?.icon || '🌴'}</span>
             <span className="mob-bottom-label">{activeTourMeta ? 'Тип' : 'Экскур.'}</span>
           </button>
