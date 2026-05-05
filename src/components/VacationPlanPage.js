@@ -43,8 +43,39 @@ function isoBetween(from, to) {
     return out;
 }
 
-function makeEmptyDay(date, dayNumber) {
-    return { date, title: `День ${dayNumber}`, parts: [], notes: '' };
+const DAY_TYPES = {
+    arrival:   { icon: '✈️', label: 'Прилёт',   color: '#22d3ee', defaultTitle: 'Прилёт',   defaultNotes: 'Встреча в аэропорту, трансфер в отель, заселение, отдых.' },
+    active:    { icon: '🎯', label: 'Активный', color: '#f59e0b', defaultTitle: 'Активный день', defaultNotes: '' },
+    rest:      { icon: '🏖',  label: 'Отдых',   color: '#10b981', defaultTitle: 'Свободный день', defaultNotes: 'Отдых на пляже / у бассейна. Рекомендации опциональны.' },
+    transfer:  { icon: '🚐', label: 'Переезд', color: '#a78bfa', defaultTitle: 'Переезд',   defaultNotes: 'Трансфер между локациями.' },
+    departure: { icon: '👋', label: 'Отъезд',   color: '#fb923c', defaultTitle: 'Отъезд',    defaultNotes: 'Выселение, трансфер в аэропорт, вылет.' },
+};
+
+function makeEmptyDay(date, dayNumber, type = 'active') {
+    const meta = DAY_TYPES[type] || DAY_TYPES.active;
+    return {
+        date,
+        title: `День ${dayNumber}. ${meta.defaultTitle}`,
+        type,
+        parts: [],
+        notes: meta.defaultNotes || '',
+    };
+}
+
+// Шаблон автогенерации: первый = arrival, последний = departure, остальные = active
+function autoTypeForIndex(idx, total) {
+    if (total <= 1) return 'active';
+    if (idx === 0) return 'arrival';
+    if (idx === total - 1) return 'departure';
+    return 'active';
+}
+
+function nDaysWord(n) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m100 >= 11 && m100 <= 14) return 'дней';
+    if (m10 === 1) return 'день';
+    if (m10 >= 2 && m10 <= 4) return 'дня';
+    return 'дней';
 }
 
 export default function VacationPlanPage({ role, toast: externalToast, user, brandSettings, onPage }) {
@@ -118,13 +149,56 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
         if (isoList.length === 0) {
             showToast('Укажи корректные даты от-до', 'err'); return;
         }
-        // Сохраняем существующие даты
         const existingByDate = new Map();
         for (const d of days) existingByDate.set(d.date, d);
-        const newDays = isoList.map((date, i) => existingByDate.get(date) || makeEmptyDay(date, i + 1));
+        const newDays = isoList.map((date, i) =>
+            existingByDate.get(date) || makeEmptyDay(date, i + 1, autoTypeForIndex(i, isoList.length))
+        );
         setDays(newDays);
         setActiveDayIdx(0);
         showToast(`Создано ${newDays.length} дней`, 'ok');
+    };
+
+    // Шаблон на N дней: ставит date_to = date_from + N-1, генерирует с автотипами
+    const applyTemplate = (n) => {
+        if (!dateFrom) { showToast('Сначала укажи дату прибытия', 'err'); return; }
+        if (days.length > 0 && !confirm(`Заменить текущий план шаблоном на ${n} ${nDaysWord(n)}?`)) return;
+        const start = new Date(dateFrom + 'T00:00:00');
+        const end = new Date(start.getTime() + (n - 1) * 86400000);
+        const endIso = end.toISOString().split('T')[0];
+        setDateTo(endIso);
+        const isoList = [];
+        for (let i = 0; i < n; i++) {
+            const d = new Date(start.getTime() + i * 86400000);
+            isoList.push(d.toISOString().split('T')[0]);
+        }
+        const newDays = isoList.map((date, i) => makeEmptyDay(date, i + 1, autoTypeForIndex(i, n)));
+        // Для туров 5+ дней автоматически отметим один из дней как rest (середина)
+        if (n >= 5) {
+            const midIdx = Math.floor(n / 2);
+            if (newDays[midIdx]?.type === 'active') {
+                newDays[midIdx] = { ...newDays[midIdx], type: 'rest', title: `День ${midIdx + 1}. Свободный день`, notes: DAY_TYPES.rest.defaultNotes };
+            }
+        }
+        setDays(newDays);
+        setActiveDayIdx(0);
+        showToast(`Шаблон на ${n} ${nDaysWord(n)} применён`, 'ok');
+    };
+
+    const setDayType = (idx, newType) => {
+        setDays(prev => prev.map((d, i) => {
+            if (i !== idx) return d;
+            const meta = DAY_TYPES[newType] || DAY_TYPES.active;
+            // Title обновляем только если он остался дефолтным
+            const wasDefault = (d.title || '').match(/^День \d+\.?\s*(.*)?$/);
+            const newTitle = wasDefault ? `День ${idx + 1}. ${meta.defaultTitle}` : d.title;
+            // Notes обновляем только если они пустые или дефолтные от старого типа
+            const oldType = d.type || 'active';
+            const oldDefaultNotes = DAY_TYPES[oldType]?.defaultNotes || '';
+            const wasDefaultNotes = !d.notes || d.notes === oldDefaultNotes;
+            const newNotes = wasDefaultNotes ? meta.defaultNotes : d.notes;
+            return { ...d, type: newType, title: newTitle, notes: newNotes };
+        }));
     };
 
     const addDay = () => {
@@ -162,6 +236,10 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
             icon: item.icon || SOURCE_META[item.source]?.icon || '📦',
             category: item.category,
             pricing_model: item.pricing_model,
+            // Признаки доплаты для группировки в дне
+            is_addon: !!item.is_addon,
+            parent_source: item.parent_source || null,
+            tId: item.tId || null,
             sell_base: item.sell_base, net_base: item.net_base,
             extra_pax_sell: item.extra_pax_sell, extra_pax_net: item.extra_pax_net,
             inclusive_pax: item.inclusive_pax,
@@ -532,6 +610,23 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
                             </div>
                             <button onClick={generateDays} className={`${styles.btn} ${styles.btnAcc}`} style={{ height: '38px' }}>🪄 Сгенерировать дни</button>
                         </div>
+
+                        {/* Шаблоны */}
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--txl)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>📋 Шаблоны:</span>
+                            {[3, 5, 7, 10].map(n => (
+                                <button key={n} onClick={() => applyTemplate(n)} style={{
+                                    padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                                    border: '1px solid var(--brd2)', background: 'var(--bg3)', color: 'var(--txm)',
+                                    cursor: 'pointer', fontFamily: 'inherit',
+                                }}>
+                                    {n} {nDaysWord(n)}
+                                </button>
+                            ))}
+                            <span style={{ fontSize: '10px', color: 'var(--txl)', marginLeft: '4px' }}>
+                                · автоматически расставит Прилёт / Активные / Отъезд
+                            </span>
+                        </div>
                     </div>
 
                     {/* Лента дней */}
@@ -549,6 +644,7 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
                                     const t = dayTotals[idx] || { sell: 0 };
                                     const isActive = idx === activeDayIdx;
                                     const isOver = dragOverDayIdx === idx;
+                                    const dt = DAY_TYPES[d.type || 'active'] || DAY_TYPES.active;
                                     return (
                                         <div key={idx}
                                             onClick={() => setActiveDayIdx(idx)}
@@ -556,13 +652,15 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
                                             onDragLeave={() => setDragOverDayIdx(null)}
                                             onDrop={onDropDay(idx)}
                                             style={{
-                                                minWidth: '140px', cursor: 'pointer',
+                                                minWidth: '150px', cursor: 'pointer',
                                                 padding: '10px 12px', borderRadius: '10px',
-                                                background: isActive ? 'rgba(245,158,11,0.18)' : (isOver ? 'rgba(16,185,129,0.18)' : 'var(--bg2)'),
-                                                border: '1.5px solid ' + (isActive ? '#f59e0b' : (isOver ? '#10b981' : 'var(--brd2)')),
+                                                background: isActive ? `${dt.color}33` : (isOver ? 'rgba(16,185,129,0.18)' : `${dt.color}11`),
+                                                border: '1.5px solid ' + (isActive ? dt.color : (isOver ? '#10b981' : `${dt.color}55`)),
                                                 transition: 'all 0.15s',
                                             }}>
-                                            <div style={{ fontSize: '10px', color: 'var(--txl)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>День {idx + 1}</div>
+                                            <div style={{ fontSize: '10px', color: dt.color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                {dt.icon} День {idx + 1} · {dt.label}
+                                            </div>
                                             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--txt)' }}>{d.date ? fmtDate(d.date).split(' ').slice(0, 2).join(' ') : '—'}</div>
                                             <div style={{ fontSize: '10px', color: 'var(--txl)', marginTop: '4px' }}>
                                                 {(d.parts || []).length} активн.
@@ -604,6 +702,25 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
                                         <button onClick={() => removeDay(activeDayIdx)} style={{ background: 'transparent', border: '1px solid var(--brd2)', color: '#ef4444', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer' }}>🗑</button>
                                     </div>
 
+                                    {/* Тип дня */}
+                                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '10px', color: 'var(--txl)', fontWeight: 700, textTransform: 'uppercase', marginRight: '4px' }}>Тип дня:</span>
+                                        {Object.entries(DAY_TYPES).map(([key, m]) => {
+                                            const isActive = (activeDay.type || 'active') === key;
+                                            return (
+                                                <button key={key} onClick={() => setDayType(activeDayIdx, key)} style={{
+                                                    padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                                                    border: `1px solid ${isActive ? m.color : 'var(--brd2)'}`,
+                                                    background: isActive ? `${m.color}22` : 'transparent',
+                                                    color: isActive ? m.color : 'var(--txm)',
+                                                    cursor: 'pointer', fontFamily: 'inherit',
+                                                }}>
+                                                    {m.icon} {m.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
                                     {(activeDay.parts || []).length === 0 ? (
                                         <div style={{
                                             padding: '24px', textAlign: 'center',
@@ -613,12 +730,13 @@ export default function VacationPlanPage({ role, toast: externalToast, user, bra
                                             Перетащи активность из каталога слева, или кликни по карточке в каталоге — она добавится в этот день.
                                         </div>
                                     ) : (
-                                        (activeDay.parts || []).map((p, idx) => (
-                                            <PartRow key={p.uid} part={p} dayIdx={activeDayIdx} idx={idx}
+                                        groupParts(activeDay.parts || []).map((group, gi) => (
+                                            <PartGroup key={group.key} group={group} groupIndex={gi}
                                                 isAdmin={isAdmin}
-                                                onUpdate={patch => updatePart(activeDayIdx, p.uid, patch)}
-                                                onRemove={() => removePart(activeDayIdx, p.uid)}
-                                                onDragStart={onDragStartPart(activeDayIdx, p)} />
+                                                onUpdate={(uid, patch) => updatePart(activeDayIdx, uid, patch)}
+                                                onRemove={(uid) => removePart(activeDayIdx, uid)}
+                                                onDragStartPart={(p) => onDragStartPart(activeDayIdx, p)}
+                                            />
                                         ))
                                     )}
 
@@ -799,4 +917,93 @@ function chipStyle(active, color) {
         color: active ? (color || '#f59e0b') : 'var(--txm)',
         cursor: 'pointer', fontFamily: 'inherit',
     };
+}
+
+// ─── Группировка маршрут+опции в дне ─────────────────────────
+function groupParts(parts) {
+    const groups = [];
+    const unattached = { key: 'unattached', route: null, items: [] };
+    let current = null;
+    for (const p of (parts || [])) {
+        const isAddon = !!p.is_addon || p.source === 'options';
+        if (!isAddon) {
+            current = { key: p.uid, route: p, items: [] };
+            groups.push(current);
+            continue;
+        }
+        const r = current?.route;
+        const matches = r && p.parent_source && p.parent_source === r.source
+            && (p.tId === 'ALL' || String(p.tId) === String(r.source_id));
+        if (matches) current.items.push(p);
+        else if (r && !p.parent_source && r.source !== 'options') current.items.push(p);
+        else unattached.items.push(p);
+    }
+    if (unattached.items.length > 0) groups.push(unattached);
+    return groups;
+}
+
+function PartGroup({ group, groupIndex, isAdmin, onUpdate, onRemove, onDragStartPart }) {
+    if (group.key === 'unattached') {
+        return (
+            <div style={{ marginTop: groupIndex > 0 ? '14px' : 0, marginBottom: '8px' }}>
+                <div style={{
+                    fontSize: '10px', fontWeight: 800, color: 'var(--txl)',
+                    textTransform: 'uppercase', letterSpacing: '0.5px',
+                    margin: '4px 0 6px 4px',
+                }}>
+                    📌 Прочее (не привязано к маршруту)
+                </div>
+                {group.items.map((p) => (
+                    <PartRow key={p.uid} part={p}
+                        onUpdate={patch => onUpdate(p.uid, patch)}
+                        onRemove={() => onRemove(p.uid)}
+                        onDragStart={onDragStartPart(p)}
+                        isAdmin={isAdmin}
+                    />
+                ))}
+            </div>
+        );
+    }
+    const meta = SOURCE_META[group.route?.source] || {};
+    const groupColor = meta.color || '#f59e0b';
+    return (
+        <div style={{
+            marginTop: groupIndex > 0 ? '12px' : 0,
+            border: `1px solid ${groupColor}33`,
+            borderRadius: '12px',
+            background: `${groupColor}05`,
+            padding: '6px',
+        }}>
+            <PartRow part={group.route}
+                onUpdate={patch => onUpdate(group.route.uid, patch)}
+                onRemove={() => onRemove(group.route.uid)}
+                onDragStart={onDragStartPart(group.route)}
+                isAdmin={isAdmin}
+            />
+            {group.items.length > 0 && (
+                <div style={{
+                    paddingLeft: '20px',
+                    borderLeft: `2px solid ${groupColor}`,
+                    marginLeft: '14px', marginTop: '4px',
+                    position: 'relative',
+                }}>
+                    <div style={{
+                        position: 'absolute', left: '-8px', top: '-6px',
+                        fontSize: '10px', color: groupColor, fontWeight: 700,
+                        background: 'var(--card-solid)', padding: '0 6px',
+                    }}>
+                        ↳ Опции к маршруту · {group.items.length}
+                    </div>
+                    {group.items.map((p) => (
+                        <PartRow key={p.uid} part={p}
+                            onUpdate={patch => onUpdate(p.uid, patch)}
+                            onRemove={() => onRemove(p.uid)}
+                            onDragStart={onDragStartPart(p)}
+                            isAdmin={isAdmin}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
