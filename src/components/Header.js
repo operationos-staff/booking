@@ -95,7 +95,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
   const goToOps = (p) => { onPage(p); setOpsOpen(false) }
   const goToExc = (p) => { onPage(p); setExcOpen(false) }
 
-  const secondaryPages = ['calculations', 'stats', 'logs', 'profile']
+  const secondaryPages = ['calculations', 'stats', 'logs', 'profile', 'partners']
   const isSecondaryActive = secondaryPages.includes(page)
   const isExcursionActive = TOUR_PAGES.includes(page)
   const activeTourMeta = TOUR_TYPES.find(t => t.page === page)
@@ -111,6 +111,7 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
       <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goToOps('calculations')} />
       {role === 'booking' && (
         <>
+          <DropItem icon="👥" label="Партнёры" active={page === 'partners'} onClick={() => goToOps('partners')} />
           <DropItem icon="📊" label="Статистика" active={page === 'stats'} onClick={() => goToOps('stats')} />
           <DropItem icon="📋" label="Логи" active={page === 'logs'} onClick={() => goToOps('logs')} />
         </>

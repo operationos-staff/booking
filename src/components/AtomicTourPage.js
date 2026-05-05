@@ -9,6 +9,7 @@ import {
 import {
     loadAtoms, saveAtom, deleteAtom,
     saveAtomicTour, loadAtomicTour, loadAtomicTours, deleteAtomicTour,
+    loadPartners,
     saveCalculation,
 } from '@/lib/db';
 import { LinkModal, TextModal } from './Modals';
@@ -56,6 +57,7 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
     const showToast = externalToast || ((msg) => alert(msg));
 
     const [atoms, setAtoms] = useState([]);
+    const [partners, setPartners] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterGroup, setFilterGroup] = useState('all');
     const [searchQ, setSearchQ] = useState('');
@@ -81,14 +83,21 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
         let cancelled = false;
         (async () => {
             setLoading(true);
-            const data = await loadAtoms();
+            const [as, ps] = await Promise.all([loadAtoms(), loadPartners()]);
             if (!cancelled) {
-                setAtoms(data || []);
+                setAtoms(as || []);
+                setPartners(ps || []);
                 setLoading(false);
             }
         })();
         return () => { cancelled = true; };
     }, []);
+
+    const partnerById = useMemo(() => {
+        const m = new Map();
+        for (const p of partners) m.set(p.id, p);
+        return m;
+    }, [partners]);
 
     const groups = useMemo(() => {
         const set = new Set();
@@ -331,6 +340,7 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
                                     </div>
                                     {groupedAtoms[g].map(a => {
                                         const isSel = !!selected[a.id];
+                                        const partner = a.partner_id ? partnerById.get(a.partner_id) : null;
                                         return (
                                             <div key={a.id} style={{
                                                 background: isSel ? 'rgba(245,158,11,0.12)' : 'var(--bg2)',
@@ -342,8 +352,16 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
                                                 <span style={{ fontSize: '15px' }}>{a.icon || '•'}</span>
                                                 <div style={{ flex: 1, minWidth: 0 }}>
                                                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--txt)' }}>{a.name}</div>
-                                                    <div style={{ fontSize: '10px', color: 'var(--txl)' }}>
-                                                        {a.sell ? FMT(a.sell) : 'входит'} · {a.pricing_unit === 'per_pax' ? 'на чел' : a.pricing_unit === 'per_vehicle' ? 'за маш' : 'фикс'}
+                                                    <div style={{ fontSize: '10px', color: 'var(--txl)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                        <span>{a.sell ? FMT(a.sell) : 'входит'} · {a.pricing_unit === 'per_pax' ? 'на чел' : a.pricing_unit === 'per_vehicle' ? 'за маш' : 'фикс'}</span>
+                                                        {isAdmin && partner && (
+                                                            <span style={{
+                                                                background: `${partner.color}22`, color: partner.color,
+                                                                padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700,
+                                                            }}>
+                                                                {partner.icon} {partner.short_name || partner.name}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 {isAdmin && showAdmin && (
@@ -569,6 +587,22 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
                         <Row label="Продажа"><input type="number" value={editAtom.sell} onChange={e => setEditAtom({ ...editAtom, sell: Number(e.target.value) || 0 })} style={mInput} /></Row>
                     </div>
                     <Row label="Длительность (часов)"><input type="number" value={editAtom.duration_hours || ''} onChange={e => setEditAtom({ ...editAtom, duration_hours: e.target.value ? Number(e.target.value) : null })} style={mInput} /></Row>
+                    <Row label="Поставщик / Партнёр">
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <select value={editAtom.partner_id || ''} onChange={e => setEditAtom({ ...editAtom, partner_id: e.target.value || null })} style={mInput}>
+                                <option value="">— не выбран —</option>
+                                {partners.map(p => (
+                                    <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                                ))}
+                            </select>
+                            {onPage && (
+                                <button onClick={() => onPage('partners')} title="Открыть раздел партнёров" style={{
+                                    padding: '7px 10px', borderRadius: '8px', background: 'var(--brd2)',
+                                    border: '1px solid var(--brd2)', color: 'var(--txm)', cursor: 'pointer', fontSize: '12px',
+                                }}>👥 Партнёры</button>
+                            )}
+                        </div>
+                    </Row>
                     <Row label="Заметка"><input value={editAtom.notes || ''} onChange={e => setEditAtom({ ...editAtom, notes: e.target.value })} style={mInput} /></Row>
                 </ModalShell>
             )}

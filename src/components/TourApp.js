@@ -21,6 +21,7 @@ import FishingTourPage from './FishingTourPage'
 import CustomTourPage from './CustomTourPage'
 import VacationPlanPage from './VacationPlanPage'
 import AtomicTourPage from './AtomicTourPage'
+import PartnersPage from './PartnersPage'
 import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
@@ -253,6 +254,7 @@ export default function TourApp() {
       {page === 'constructor'  && user && <CustomTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'vacation'     && user && <VacationPlanPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'atomic'       && user && <AtomicTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
+      {page === 'partners'     && user && role === 'booking' && <PartnersPage role={role} toast={toast} onPage={(p) => setPage(p)} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}

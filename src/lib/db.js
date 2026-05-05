@@ -772,6 +772,39 @@ export async function deleteAtomicTour(id) {
   } catch (e) { console.error('deleteAtomicTour failed:', e.message); return false }
 }
 
+// ─── PARTNERS (поставщики) ──────────────────────────────────
+export async function loadPartners() {
+  try {
+    const { data, error } = await supabase.from('partners')
+      .select('*').eq('active', true).order('sort_order').order('name')
+    if (error) throw error
+    return data || []
+  } catch (e) { console.warn('loadPartners failed:', e.message); return [] }
+}
+
+export async function savePartner(p) {
+  try {
+    const row = { ...p, updated_at: new Date().toISOString() }
+    if (p.id) {
+      const { error } = await supabase.from('partners').update(row).eq('id', p.id)
+      if (error) throw error
+      return p.id
+    } else {
+      const { data, error } = await supabase.from('partners').insert(row).select('id').single()
+      if (error) throw error
+      return data.id
+    }
+  } catch (e) { console.error('savePartner failed:', e.message); return null }
+}
+
+export async function deletePartner(id) {
+  try {
+    const { error } = await supabase.from('partners').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (e) { console.error('deletePartner failed:', e.message); return false }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase
