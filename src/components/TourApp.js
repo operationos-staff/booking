@@ -221,6 +221,7 @@ export default function TourApp() {
             if (cat === 'Индивидуальные') { setPage('individual'); return }
             if (cat === 'Авиатуры в ЮВА') { setPage('avia'); return }
             if (cat === 'Рыбалка') { setPage('fishing'); return }
+            if (cat === 'constructor') { setPage('constructor'); return }
             setHubCategory(cat)
             setPage('calculator')
           }}
