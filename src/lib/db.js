@@ -317,6 +317,42 @@ export async function saveIndividualToDB(individualData) {
   }
 }
 
+// ─── AVIA TOUR CONFIG ───────────────────────────────────────
+// Авиатуры в ЮВА — отдельный ключ, гибридная модель цен (per_pax | base+extra)
+const AVIA_CONFIG_KEY = 'avia_main_config'
+
+export async function loadAviaFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', AVIA_CONFIG_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  } catch (e) {
+    console.warn('avia_config load failed:', e.message)
+    return null
+  }
+}
+
+export async function saveAviaToDB(aviaData) {
+  try {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({
+        config_key: AVIA_CONFIG_KEY,
+        payload: aviaData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('avia_config save failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase

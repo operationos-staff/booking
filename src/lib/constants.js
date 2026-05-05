@@ -17,8 +17,9 @@ export const EXCURSION_CATEGORIES = [
   { key: 'Групповые туры',           icon: '🚐', color: '#60a5fa' },
   { key: 'Сухопутные',               icon: '🏔️', color: '#a78bfa' },
   { key: 'Обзорные',                 icon: '🗺️', color: '#f59e0b' },
-  { key: 'Рыбалка',                  icon: '🎣', color: '#22d3ee' },
   { key: 'Индивидуальные',           icon: '👤', color: '#fb923c' },
+  { key: 'Авиатуры в ЮВА',           icon: '✈️', color: '#22d3ee' },
+  { key: 'Рыбалка',                  icon: '🎣', color: '#0ea5e9' },
   { key: 'Из Као Лака',              icon: '🌴', color: '#4ade80' },
 ]
 
