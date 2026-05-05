@@ -155,6 +155,46 @@ export default function HubPage({ packages, excursions = [], landRoutesCount = 0
             </>
           )
         })}
+
+        {/* Constructor tile — выделенная отдельно */}
+        <button
+          key="constructor"
+          onClick={() => onSelect('constructor')}
+          style={{
+            background: 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(245,158,11,0.06))',
+            border: '1.5px solid rgba(245,158,11,0.45)',
+            borderRadius: '20px',
+            padding: '28px 20px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '10px',
+            transition: 'all 0.18s ease',
+            fontFamily: 'inherit',
+            gridColumn: 'span 2',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.26), rgba(245,158,11,0.1))'
+            e.currentTarget.style.borderColor = 'rgba(245,158,11,0.7)'
+            e.currentTarget.style.transform = 'translateY(-3px)'
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(245,158,11,0.3)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(245,158,11,0.06))'
+            e.currentTarget.style.borderColor = 'rgba(245,158,11,0.45)'
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = 'none'
+          }}
+        >
+          <span style={{ fontSize: '36px', lineHeight: 1 }}>🧩</span>
+          <span style={{ fontSize: '16px', fontWeight: 800, color: '#f59e0b', textAlign: 'center', lineHeight: 1.3 }}>
+            Конструктор кастомного тура
+          </span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--txm)' }}>
+            собери из всех 100+ активностей
+          </span>
+        </button>
       </div>
     </div>
   )

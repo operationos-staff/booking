@@ -110,6 +110,9 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                 <button className={`btn-nav ${page === 'fishing' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('fishing')}>
                   🎣 Рыбалка
                 </button>
+                <button className={`btn-nav ${page === 'constructor' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('constructor')} style={{ background: page === 'constructor' ? undefined : 'rgba(245,158,11,0.10)', borderColor: '#f59e0b' }}>
+                  🧩 Конструктор
+                </button>
 
                 {/* User dropdown trigger */}
                 <button
@@ -171,6 +174,10 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
           <button className={`mob-bottom-btn ${page === 'fishing' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('fishing')}>
             <span className="mob-bottom-icon">🎣</span>
             <span className="mob-bottom-label">Рыбалка</span>
+          </button>
+          <button className={`mob-bottom-btn ${page === 'constructor' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('constructor')}>
+            <span className="mob-bottom-icon">🧩</span>
+            <span className="mob-bottom-label">Конструктор</span>
           </button>
           <button className={`mob-bottom-btn ${page === 'calculations' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('calculations')}>
             <span className="mob-bottom-icon">📂</span>

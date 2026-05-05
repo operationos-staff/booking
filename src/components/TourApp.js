@@ -18,6 +18,7 @@ import OverviewTourPage from './OverviewTourPage'
 import IndividualTourPage from './IndividualTourPage'
 import AviaTourPage from './AviaTourPage'
 import FishingTourPage from './FishingTourPage'
+import CustomTourPage from './CustomTourPage'
 import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
@@ -244,6 +245,7 @@ export default function TourApp() {
       {page === 'individual'   && user && <IndividualTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'avia'         && user && <AviaTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'fishing'      && user && <FishingTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
+      {page === 'constructor'  && user && <CustomTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}

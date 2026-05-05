@@ -389,6 +389,170 @@ export async function saveFishingToDB(fishingData) {
   }
 }
 
+// ─── UNIFIED CATALOG (Materialized View catalog_items) ─────
+// Возвращает унифицированный список всех 110+ туров/опций из 7 источников.
+// Если view ещё не создано в БД — fallback: грузим 7 источников параллельно
+// и собираем каталог в памяти на клиенте.
+export async function getCatalogItems({ source, category, search } = {}) {
+  // 1. Сначала пробуем view
+  try {
+    let query = supabase.from('catalog_items').select('*')
+    if (source)   query = query.eq('source', source)
+    if (category) query = query.eq('category', category)
+    if (search)   query = query.ilike('name', `%${search}%`)
+    const { data, error } = await query.order('category').order('name').limit(500)
+    if (!error && data) return data
+    if (error) console.warn('catalog_items view not available:', error.message)
+  } catch (e) {
+    console.warn('catalog_items query failed, falling back:', e.message)
+  }
+  // 2. Fallback — собираем из 7 источников
+  try {
+    const [pkgs, opts, land, sights, indiv, avia, fish] = await Promise.all([
+      loadPackagesFromDB(), loadOptionsFromDB(),
+      loadLandFromDB(), loadSightsFromDB(),
+      loadIndividualFromDB(), loadAviaFromDB(), loadFishingFromDB(),
+    ])
+    return buildCatalogFallback({ pkgs, opts, land, sights, indiv, avia, fish })
+      .filter(it => !source   || it.source === source)
+      .filter(it => !category || it.category === category)
+      .filter(it => !search   || (it.name || '').toLowerCase().includes(search.toLowerCase()))
+  } catch (e) {
+    console.error('catalog fallback failed:', e.message)
+    return []
+  }
+}
+
+// In-memory fallback builder
+function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia, fish }) {
+  const list = []
+  // packages
+  for (const p of (pkgs || [])) {
+    list.push({
+      global_id: 'packages:' + p.id,
+      source: 'packages', source_id: String(p.id),
+      name: p.name, icon: p.type === 'vip' ? '⭐' : '🚐',
+      category: 'Групповые туры',
+      pricing_model: 'per_vehicle',
+      net_base: p.nettoPrice || 0, sell_base: p.mgrPrice || 0,
+      extra_pax_sell: 0, extra_pax_net: 0, inclusive_pax: 0,
+      sell_adult: 0, sell_child: 0, sell_infant: 0,
+      net_adult: 0, net_child: 0, net_infant: 0,
+      meta: { hours: p.hours, type: p.type, note: p.note }
+    })
+  }
+  // options
+  for (const o of (opts || [])) {
+    list.push({
+      global_id: 'options:' + o.id,
+      source: 'options', source_id: String(o.id),
+      name: o.name, icon: '📍',
+      category: o.cat || 'Опции',
+      pricing_model: 'per_pax',
+      net_base: 0, sell_base: 0,
+      extra_pax_sell: 0, extra_pax_net: 0, inclusive_pax: 0,
+      sell_adult: o.mgrA || 0, sell_child: o.mgrC || 0, sell_infant: 0,
+      net_adult: o.netA || 0,  net_child: o.netC || 0,  net_infant: 0,
+      meta: { only_8h: o.only8h, note: o.note }
+    })
+  }
+  // JSONB категории (5)
+  const jsonSources = [
+    { src: 'land',       cat: 'Сухопутные',     data: land },
+    { src: 'sights',     cat: 'Обзорные',       data: sights },
+    { src: 'individual', cat: 'Индивидуальные', data: indiv },
+    { src: 'avia',       cat: 'Авиатуры в ЮВА', data: avia },
+    { src: 'fishing',    cat: 'Рыбалка',        data: fish },
+  ]
+  for (const { src, cat, data } of jsonSources) {
+    if (!data?.routes) continue
+    for (const r of data.routes) {
+      list.push({
+        global_id: src + ':' + r.id,
+        source: src, source_id: String(r.id),
+        name: r.name, icon: r.icon || '📦',
+        category: cat,
+        pricing_model: r.pricingMode || (['land','sights','fishing'].includes(src) ? 'per_pax' : 'base_plus_extra'),
+        net_base: r.baseNet || 0, sell_base: r.baseSell || 0,
+        extra_pax_sell: r.extraPaxSell || 0, extra_pax_net: r.extraPaxNet || 0,
+        inclusive_pax: r.inclusivePax || 0,
+        sell_adult: r.extraAdult || r.sellAdult || 0,
+        sell_child: r.extraChild || r.sellChild || 0,
+        sell_infant: r.extraInfant || 0,
+        net_adult:  r.extraAdultNet || r.netAdult || 0,
+        net_child:  r.extraChildNet || r.netChild || 0,
+        net_infant: r.extraInfantNet || 0,
+        meta: { days: r.days, duration: r.duration, transport: r.transport,
+                description: r.description, group: r.group, icon: r.icon }
+      })
+    }
+  }
+  return list
+}
+
+// ─── CUSTOM TOURS (конструктор) ─────────────────────────────
+export async function saveCustomTour(tour) {
+  // tour: { id?, client_name, status, parts, total_sell, total_net, total_margin, pricing_snapshot, notes, metadata }
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('not authenticated')
+    const row = {
+      ...tour,
+      created_by: user.id,
+      updated_at: new Date().toISOString(),
+    }
+    if (tour.id) {
+      const { error } = await supabase.from('custom_tours').update(row).eq('id', tour.id)
+      if (error) throw error
+      return tour.id
+    } else {
+      const { data, error } = await supabase.from('custom_tours').insert(row).select('id').single()
+      if (error) throw error
+      return data.id
+    }
+  } catch (e) {
+    console.error('saveCustomTour failed:', e.message)
+    return null
+  }
+}
+
+export async function loadCustomTour(id) {
+  try {
+    const { data, error } = await supabase.from('custom_tours').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data
+  } catch (e) {
+    console.warn('loadCustomTour failed:', e.message)
+    return null
+  }
+}
+
+export async function loadCustomTours({ status, limit = 50 } = {}) {
+  try {
+    let q = supabase.from('custom_tours').select('id,client_name,status,total_sell,total_margin,created_at,updated_at,sent_at')
+      .order('updated_at', { ascending: false })
+      .limit(limit)
+    if (status) q = q.eq('status', status)
+    const { data, error } = await q
+    if (error) throw error
+    return data || []
+  } catch (e) {
+    console.warn('loadCustomTours failed:', e.message)
+    return []
+  }
+}
+
+export async function deleteCustomTour(id) {
+  try {
+    const { error } = await supabase.from('custom_tours').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('deleteCustomTour failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase

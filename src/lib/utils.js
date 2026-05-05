@@ -547,3 +547,268 @@ export function doPrintLand(data) {
   window.addEventListener('afterprint', cleanup)
   window.print()
 }
+
+// ─── CUSTOM TOUR PRICING ENGINE ──────────────────────────────
+// Считает одну часть кастомного тура по её модели (per_pax | base_plus_extra | per_vehicle).
+// Возвращает { sell, net, margin }.
+export function calcCustomPart(part, pax = { adults: 0, children: 0, infants: 0 }) {
+  const a = pax.adults || 0
+  const c = pax.children || 0
+  const inf = pax.infants || 0
+  const totalPax = a + c
+
+  // Если override.sell_total задан — продажа равна ему
+  let sell, net
+  const model = part.pricing_model || part.pricingModel || 'per_pax'
+
+  if (model === 'per_pax') {
+    sell = (part.sell_adult || 0) * a + (part.sell_child || 0) * c + (part.sell_infant || 0) * inf
+    net  = (part.net_adult  || 0) * a + (part.net_child  || 0) * c + (part.net_infant  || 0) * inf
+  } else if (model === 'base_plus_extra') {
+    const inc = part.inclusive_pax || 0
+    const extraN = Math.max(0, totalPax - inc)
+    sell = (part.sell_base || 0) + extraN * (part.extra_pax_sell || 0)
+    net  = (part.net_base  || 0) + extraN * (part.extra_pax_net  || 0)
+  } else {
+    // per_vehicle: фиксированная цена за машину/лодку
+    sell = (part.sell_base || 0)
+    net  = (part.net_base  || 0)
+  }
+
+  // Override
+  if (part.override?.sell_total != null) sell = Number(part.override.sell_total) || 0
+  if (part.override?.net_total  != null) net  = Number(part.override.net_total)  || 0
+
+  return { sell, net, margin: sell - net }
+}
+
+// Считает итог по списку частей и pax.
+export function calcCustomTotal(parts, pax) {
+  let sell = 0, net = 0
+  for (const p of (parts || [])) {
+    const r = calcCustomPart(p, p.qty || pax)
+    sell += r.sell
+    net  += r.net
+  }
+  return { sell, net, margin: sell - net }
+}
+
+// ─── PRINT CUSTOM CLIENT (премиальный для клиента) ──────────
+export function doPrintCustomClient(data) {
+  if (!data) return
+  const el = document.getElementById('print-area')
+  if (!el) return
+
+  // Группируем части по category для красоты
+  const groups = {}
+  for (const p of (data.parts || [])) {
+    const cat = p.category || 'Активности'
+    if (!groups[cat]) groups[cat] = []
+    groups[cat].push(p)
+  }
+
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PDF_STYLES}</style></head><body>
+  <div class="pdf-wrap">
+    <div class="pdf-wm"></div>
+    <div class="pdf-content">
+
+      <div class="pdf-header">
+        <div>
+          <div class="pdf-logo-title">ОСТРОВ СОКРОВИЩ</div>
+          <div class="pdf-logo-sub">Премиальные экскурсии · Пхукет</div>
+        </div>
+        <div>
+          <div class="pdf-doc-title">${data.printTitle || 'Индивидуальная программа'}</div>
+          <div class="pdf-doc-date">${data.gen}</div>
+        </div>
+      </div>
+
+      ${(data.name || data.date || data.phone || data.pax) ? `
+      <div class="pdf-client-box">
+        ${data.name  ? `<div><div class="pdf-client-label">Клиент</div><div class="pdf-client-value">${data.name}</div></div>` : ''}
+        ${data.date  ? `<div><div class="pdf-client-label">Дата</div><div class="pdf-client-value">${fmtDate(data.date)}</div></div>` : ''}
+        ${data.phone ? `<div><div class="pdf-client-label">Телефон</div><div class="pdf-client-value">${data.phone}</div></div>` : ''}
+        ${data.pax   ? `<div><div class="pdf-client-label">Гостей</div><div class="pdf-client-value">${data.pax}</div></div>` : ''}
+      </div>` : ''}
+
+      ${data.tourName ? `
+      <div class="pdf-route-card">
+        <div class="pdf-route-label">🧩 Программа</div>
+        <div class="pdf-route-name">${data.tourName}</div>
+      </div>` : ''}
+
+      ${Object.keys(groups).map(cat => `
+        <div class="pdf-section-title">${cat}</div>
+        <div class="pdf-items-box" style="margin-bottom:14px">
+          ${groups[cat].map(p => `
+            <div class="pdf-item">
+              <span class="pdf-item-icon">${p.icon || '•'}</span>
+              <span class="pdf-item-name">
+                ${p.name}
+                ${p.qty ? `<span style="color:#a3a3a3;font-weight:500;font-size:11px"> · ${p.qty.adults || 0} взр${p.qty.children ? ' + '+p.qty.children+' дет' : ''}${p.qty.infants ? ' + '+p.qty.infants+' млд' : ''}</span>` : ''}
+              </span>
+              <span class="pdf-item-meta">${fmt(p.calculated?.sell || 0)} ฿</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+
+      <div class="pdf-total-box">
+        <div>
+          <div class="pdf-total-label">Итого к оплате</div>
+          <div class="pdf-total-sub">тайских бат (THB)</div>
+        </div>
+        <div class="pdf-total-amount">${fmt(data.total)} ฿</div>
+      </div>
+
+      <div class="pdf-footer">
+        Расчёт от ${data.gen} · Остров Сокровищ · phang-nga-tours.com
+      </div>
+    </div>
+  </div>
+  </body></html>`
+
+  document.body.classList.add('printing')
+  const cleanup = () => {
+    document.body.classList.remove('printing')
+    el.innerHTML = ''
+    window.removeEventListener('afterprint', cleanup)
+  }
+  window.addEventListener('afterprint', cleanup)
+  window.print()
+}
+
+// ─── PRINT CUSTOM OPS (для оперейшена с нетто и маржой) ────
+export function doPrintCustomOps(data) {
+  if (!data) return
+  const el = document.getElementById('print-area')
+  if (!el) return
+
+  const totSell = data.total || 0
+  const totNet  = data.totalNet || 0
+  const totMargin = totSell - totNet
+  const margin = totSell > 0 ? (totMargin / totSell * 100) : 0
+
+  const opsStyles = `
+    body { background: #fafafa; }
+    .ops-wrap {
+      font-family: 'Inter', sans-serif;
+      background: #ffffff;
+      color: #0f172a;
+      min-height: 100vh;
+      padding: 28px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .ops-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 14px; border-bottom: 2px solid #ef4444;
+      margin-bottom: 18px;
+    }
+    .ops-logo { font-size: 16px; font-weight: 900; letter-spacing: 0.08em; color: #ef4444; text-transform: uppercase; }
+    .ops-sub  { font-size: 9px; color: #64748b; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; }
+    .ops-doc  { text-align: right; font-size: 14px; font-weight: 700; color: #0f172a; }
+    .ops-date { font-size: 10px; color: #64748b; margin-top: 2px; }
+    .ops-client { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; font-size: 11px; }
+    .ops-client b { color: #ef4444; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; display: block; }
+    table.ops { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 18px; }
+    table.ops thead th { background: #fef2f2; color: #7f1d1d; padding: 8px; text-align: left; font-weight: 700; border-bottom: 2px solid #ef4444; }
+    table.ops tbody td { padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    table.ops tbody tr:nth-child(even) { background: #fafafa; }
+    .ops-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .ops-net { color: #b91c1c; font-weight: 600; }
+    .ops-sell { color: #059669; font-weight: 700; }
+    .ops-margin-pos { color: #16a34a; font-weight: 700; }
+    .ops-margin-neg { color: #dc2626; font-weight: 700; }
+    .ops-totals { margin-top: 12px; display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+    .ops-tot-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    .ops-tot-card.profit { background: #f0fdf4; border-color: #86efac; }
+    .ops-tot-card.warn { background: #fef2f2; border-color: #fecaca; }
+    .ops-tot-lbl { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; }
+    .ops-tot-val { font-size: 18px; font-weight: 900; margin-top: 4px; color: #0f172a; }
+    .ops-footer { margin-top: 28px; text-align: center; font-size: 9px; color: #64748b; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+    .src-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; background: #ddd6fe; color: #5b21b6; margin-left: 6px; }
+    .ovr-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; background: #fef3c7; color: #92400e; margin-left: 4px; }
+    @media print { body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  `
+
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap'); ${opsStyles}</style>
+  </head><body>
+  <div class="ops-wrap">
+    <div class="ops-header">
+      <div>
+        <div class="ops-logo">🔒 Внутренний расчёт · ОПЕРЕЙШЕН</div>
+        <div class="ops-sub">Не показывать клиенту</div>
+      </div>
+      <div>
+        <div class="ops-doc">Кастомный тур (для опс)</div>
+        <div class="ops-date">${data.gen}</div>
+      </div>
+    </div>
+
+    <div class="ops-client">
+      ${data.name  ? `<div><b>Клиент</b>${data.name}</div>` : ''}
+      ${data.date  ? `<div><b>Дата</b>${fmtDate(data.date)}</div>` : ''}
+      ${data.phone ? `<div><b>Телефон</b>${data.phone}</div>` : ''}
+      ${data.pax   ? `<div><b>Гостей</b>${data.pax}</div>` : ''}
+    </div>
+
+    <table class="ops">
+      <thead>
+        <tr>
+          <th style="width:40px"></th>
+          <th>Активность</th>
+          <th>Категория / Поставщик</th>
+          <th class="ops-num">Нетто</th>
+          <th class="ops-num">Продажа</th>
+          <th class="ops-num">Маржа</th>
+          <th class="ops-num">%</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${(data.parts || []).map(p => {
+          const calc = p.calculated || { sell: 0, net: 0, margin: 0 }
+          const m = calc.sell > 0 ? (calc.margin / calc.sell * 100) : 0
+          const ovr = (p.override?.sell_total != null) || (p.override?.net_total != null)
+          return `<tr>
+            <td>${p.icon || '•'}</td>
+            <td>
+              <div style="font-weight:700">${p.name || ''}</div>
+              <div style="font-size:10px;color:#64748b">${p.qty ? `${p.qty.adults || 0} взр${p.qty.children ? ' + '+p.qty.children+' дет' : ''}${p.qty.infants ? ' + '+p.qty.infants+' млд' : ''}` : ''}</div>
+            </td>
+            <td>
+              <div>${p.category || ''}</div>
+              <div style="font-size:10px;color:#64748b">${p.source || ''}<span class="src-tag">${p.source_id || ''}</span>${ovr ? '<span class="ovr-tag">override</span>' : ''}</div>
+              ${p.override?.comment ? `<div style="font-size:10px;color:#92400e;margin-top:2px">💬 ${p.override.comment}</div>` : ''}
+            </td>
+            <td class="ops-num ops-net">${fmt(calc.net)} ฿</td>
+            <td class="ops-num ops-sell">${fmt(calc.sell)} ฿</td>
+            <td class="ops-num ${calc.margin >= 0 ? 'ops-margin-pos' : 'ops-margin-neg'}">${fmt(calc.margin)} ฿</td>
+            <td class="ops-num ${m >= 0 ? 'ops-margin-pos' : 'ops-margin-neg'}">${m.toFixed(1)}%</td>
+          </tr>`
+        }).join('')}
+      </tbody>
+    </table>
+
+    <div class="ops-totals">
+      <div class="ops-tot-card warn"><div class="ops-tot-lbl">Себестоимость</div><div class="ops-tot-val">${fmt(totNet)} ฿</div></div>
+      <div class="ops-tot-card"><div class="ops-tot-lbl">К оплате</div><div class="ops-tot-val">${fmt(totSell)} ฿</div></div>
+      <div class="ops-tot-card profit"><div class="ops-tot-lbl">Маржа</div><div class="ops-tot-val">${fmt(totMargin)} ฿</div></div>
+      <div class="ops-tot-card profit"><div class="ops-tot-lbl">% маржи</div><div class="ops-tot-val">${margin.toFixed(1)}%</div></div>
+    </div>
+
+    <div class="ops-footer">${data.gen} · Внутренний документ · Остров Сокровищ</div>
+  </div>
+  </body></html>`
+
+  document.body.classList.add('printing')
+  const cleanup = () => {
+    document.body.classList.remove('printing')
+    el.innerHTML = ''
+    window.removeEventListener('afterprint', cleanup)
+  }
+  window.addEventListener('afterprint', cleanup)
+  window.print()
+}
