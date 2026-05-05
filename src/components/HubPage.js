@@ -233,6 +233,45 @@ export default function HubPage({ packages, excursions = [], landRoutesCount = 0
             расписание по дням
           </span>
         </button>
+
+        {/* Atomic tile — атомный конструктор */}
+        <button
+          key="atomic"
+          onClick={() => onSelect('atomic')}
+          style={{
+            background: 'rgba(34,211,238,0.08)',
+            border: '1.5px solid rgba(34,211,238,0.25)',
+            borderRadius: '20px',
+            padding: '28px 20px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '10px',
+            transition: 'all 0.18s ease',
+            fontFamily: 'inherit',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(34,211,238,0.16)'
+            e.currentTarget.style.borderColor = 'rgba(34,211,238,0.55)'
+            e.currentTarget.style.transform = 'translateY(-3px)'
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(34,211,238,0.25)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(34,211,238,0.08)'
+            e.currentTarget.style.borderColor = 'rgba(34,211,238,0.25)'
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = 'none'
+          }}
+        >
+          <span style={{ fontSize: '36px', lineHeight: 1 }}>🧬</span>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--txt)', textAlign: 'center', lineHeight: 1.3 }}>
+            Атомный тур
+          </span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: '#22d3ee', opacity: 0.9 }}>
+            собери из ингредиентов
+          </span>
+        </button>
       </div>
     </div>
   )

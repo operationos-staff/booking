@@ -189,6 +189,14 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                   📅 План отдыха
                 </button>
 
+                {/* 4. Атомный конструктор */}
+                <button
+                  className={`btn-nav ${page === 'atomic' ? 'btn-nav-a' : 'btn-nav-o'}`}
+                  onClick={() => onPage('atomic')}
+                >
+                  🧬 Атомы
+                </button>
+
                 {/* 3. Операционный отдел / Менеджер (правый dropdown) */}
                 <button
                   ref={opsBtnRef}

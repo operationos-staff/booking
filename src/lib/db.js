@@ -682,6 +682,96 @@ export async function deleteVacationPlan(id) {
   }
 }
 
+// ─── TOUR ATOMS (атомарные компоненты тура) ─────────────────
+export async function loadAtoms() {
+  try {
+    const { data, error } = await supabase.from('tour_atoms').select('*')
+      .eq('active', true).order('sort_order').order('name')
+    if (error) throw error
+    return data || []
+  } catch (e) {
+    console.warn('loadAtoms failed:', e.message)
+    return []
+  }
+}
+
+export async function saveAtom(atom) {
+  try {
+    const row = { ...atom, updated_at: new Date().toISOString() }
+    if (atom.id) {
+      const { error } = await supabase.from('tour_atoms').update(row).eq('id', atom.id)
+      if (error) throw error
+      return atom.id
+    } else {
+      const newId = 'a' + Date.now() + Math.floor(Math.random() * 1000)
+      const { error } = await supabase.from('tour_atoms').insert({ ...row, id: newId })
+      if (error) throw error
+      return newId
+    }
+  } catch (e) {
+    console.error('saveAtom failed:', e.message)
+    return null
+  }
+}
+
+export async function deleteAtom(id) {
+  try {
+    const { error } = await supabase.from('tour_atoms').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('deleteAtom failed:', e.message)
+    return false
+  }
+}
+
+// ─── ATOMIC TOURS (собранные атомные туры) ──────────────────
+export async function saveAtomicTour(tour) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('not authenticated')
+    const row = { ...tour, created_by: user.id, updated_at: new Date().toISOString() }
+    if (tour.id) {
+      const { error } = await supabase.from('atomic_tours').update(row).eq('id', tour.id)
+      if (error) throw error
+      return tour.id
+    } else {
+      const { data, error } = await supabase.from('atomic_tours').insert(row).select('id').single()
+      if (error) throw error
+      return data.id
+    }
+  } catch (e) {
+    console.error('saveAtomicTour failed:', e.message)
+    return null
+  }
+}
+
+export async function loadAtomicTour(id) {
+  try {
+    const { data, error } = await supabase.from('atomic_tours').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data
+  } catch (e) { console.warn('loadAtomicTour failed:', e.message); return null }
+}
+
+export async function loadAtomicTours({ limit = 50 } = {}) {
+  try {
+    const { data, error } = await supabase.from('atomic_tours')
+      .select('id,client_name,status,mode,total_sell,total_margin,created_at,updated_at')
+      .order('updated_at', { ascending: false }).limit(limit)
+    if (error) throw error
+    return data || []
+  } catch (e) { console.warn('loadAtomicTours failed:', e.message); return [] }
+}
+
+export async function deleteAtomicTour(id) {
+  try {
+    const { error } = await supabase.from('atomic_tours').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (e) { console.error('deleteAtomicTour failed:', e.message); return false }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase
