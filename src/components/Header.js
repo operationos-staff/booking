@@ -181,6 +181,14 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                   🧩 Конструктор
                 </button>
 
+                {/* 3. План отдыха */}
+                <button
+                  className={`btn-nav ${page === 'vacation' ? 'btn-nav-a' : 'btn-nav-o'}`}
+                  onClick={() => onPage('vacation')}
+                >
+                  📅 План отдыха
+                </button>
+
                 {/* 3. Операционный отдел / Менеджер (правый dropdown) */}
                 <button
                   ref={opsBtnRef}

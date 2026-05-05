@@ -812,3 +812,217 @@ export function doPrintCustomOps(data) {
   window.addEventListener('afterprint', cleanup)
   window.print()
 }
+
+// ─── PRINT VACATION CLIENT (программа отдыха для клиента) ──
+export function doPrintVacationClient(data) {
+  if (!data) return
+  const el = document.getElementById('print-area')
+  if (!el) return
+  const days = Array.isArray(data.days) ? data.days : []
+
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PDF_STYLES}</style></head><body>
+  <div class="pdf-wrap">
+    <div class="pdf-wm"></div>
+    <div class="pdf-content">
+
+      <div class="pdf-header">
+        <div>
+          <div class="pdf-logo-title">ОСТРОВ СОКРОВИЩ</div>
+          <div class="pdf-logo-sub">Премиальные экскурсии · Пхукет</div>
+        </div>
+        <div>
+          <div class="pdf-doc-title">Программа отдыха</div>
+          <div class="pdf-doc-date">${data.gen}</div>
+        </div>
+      </div>
+
+      ${(data.name || data.dateFrom || data.dateTo || data.pax) ? `
+      <div class="pdf-client-box">
+        ${data.name     ? `<div><div class="pdf-client-label">Клиент</div><div class="pdf-client-value">${data.name}</div></div>` : ''}
+        ${data.dateFrom ? `<div><div class="pdf-client-label">С</div><div class="pdf-client-value">${fmtDate(data.dateFrom)}</div></div>` : ''}
+        ${data.dateTo   ? `<div><div class="pdf-client-label">По</div><div class="pdf-client-value">${fmtDate(data.dateTo)}</div></div>` : ''}
+        ${data.pax      ? `<div><div class="pdf-client-label">Гостей</div><div class="pdf-client-value">${data.pax}</div></div>` : ''}
+      </div>` : ''}
+
+      ${days.map((day, idx) => `
+        <div class="pdf-route-card" style="margin-bottom: 14px;">
+          <div class="pdf-route-label">📅 День ${idx + 1}${day.date ? ' · ' + fmtDate(day.date) : ''}</div>
+          <div class="pdf-route-name">${day.title || ('День ' + (idx + 1))}</div>
+        </div>
+        ${(day.parts || []).length > 0 ? `
+        <div class="pdf-items-box" style="margin-bottom: 18px">
+          ${(day.parts || []).map(p => `
+            <div class="pdf-item">
+              <span class="pdf-item-icon">${p.icon || '•'}</span>
+              <span class="pdf-item-name">
+                ${p.name || ''}
+                ${p.qty ? `<span style="color:#a3a3a3;font-weight:500;font-size:11px"> · ${p.qty.adults || 0} взр${p.qty.children ? ' + '+p.qty.children+' дет' : ''}${p.qty.infants ? ' + '+p.qty.infants+' млд' : ''}</span>` : ''}
+              </span>
+              <span class="pdf-item-meta">${fmt(p.calculated?.sell || 0)} ฿</span>
+            </div>
+          `).join('')}
+        </div>` : `<div style="margin-bottom: 18px; padding: 8px 16px; color: #737373; font-size: 11px; font-style: italic;">— свободный день / отдых —</div>`}
+        ${day.notes ? `<div style="margin: -10px 0 18px; padding: 8px 16px; color: #fbbf24; font-size: 11px;">📝 ${day.notes}</div>` : ''}
+      `).join('')}
+
+      <div class="pdf-total-box">
+        <div>
+          <div class="pdf-total-label">Итого за весь отдых</div>
+          <div class="pdf-total-sub">тайских бат (THB)</div>
+        </div>
+        <div class="pdf-total-amount">${fmt(data.total)} ฿</div>
+      </div>
+
+      <div class="pdf-footer">
+        Программа от ${data.gen} · Остров Сокровищ · phang-nga-tours.com
+      </div>
+    </div>
+  </div>
+  </body></html>`
+
+  document.body.classList.add('printing')
+  const cleanup = () => {
+    document.body.classList.remove('printing')
+    el.innerHTML = ''
+    window.removeEventListener('afterprint', cleanup)
+  }
+  window.addEventListener('afterprint', cleanup)
+  window.print()
+}
+
+// ─── PRINT VACATION OPS (для оперейшена с маржой по дням) ──
+export function doPrintVacationOps(data) {
+  if (!data) return
+  const el = document.getElementById('print-area')
+  if (!el) return
+  const days = Array.isArray(data.days) ? data.days : []
+  const totSell = data.total || 0
+  const totNet  = data.totalNet || 0
+  const totMargin = totSell - totNet
+  const margin = totSell > 0 ? (totMargin / totSell * 100) : 0
+
+  const opsStyles = `
+    body { background: #fafafa; }
+    .ops-wrap { font-family: 'Inter', sans-serif; background: #ffffff; color: #0f172a; min-height: 100vh; padding: 28px; max-width: 980px; margin: 0 auto; }
+    .ops-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 2px solid #ef4444; margin-bottom: 18px; }
+    .ops-logo { font-size: 16px; font-weight: 900; letter-spacing: 0.08em; color: #ef4444; text-transform: uppercase; }
+    .ops-sub  { font-size: 9px; color: #64748b; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; }
+    .ops-doc  { text-align: right; font-size: 14px; font-weight: 700; color: #0f172a; }
+    .ops-date { font-size: 10px; color: #64748b; margin-top: 2px; }
+    .ops-client { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; font-size: 11px; }
+    .ops-client b { color: #ef4444; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; display: block; }
+    .day-block { margin-bottom: 18px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+    .day-head { background: #f1f5f9; padding: 8px 14px; font-size: 12px; font-weight: 800; color: #0f172a; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+    .day-tot { font-size: 11px; color: #64748b; font-weight: 600; }
+    .day-tot b { color: #0f172a; }
+    table.ops { width: 100%; border-collapse: collapse; font-size: 11px; }
+    table.ops thead th { background: #fef2f2; color: #7f1d1d; padding: 7px 8px; text-align: left; font-weight: 700; }
+    table.ops tbody td { padding: 7px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .ops-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .ops-net { color: #b91c1c; font-weight: 600; }
+    .ops-sell { color: #059669; font-weight: 700; }
+    .ops-margin-pos { color: #16a34a; font-weight: 700; }
+    .ops-margin-neg { color: #dc2626; font-weight: 700; }
+    .ops-totals { margin-top: 14px; display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+    .ops-tot-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    .ops-tot-card.profit { background: #f0fdf4; border-color: #86efac; }
+    .ops-tot-card.warn { background: #fef2f2; border-color: #fecaca; }
+    .ops-tot-lbl { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; }
+    .ops-tot-val { font-size: 18px; font-weight: 900; margin-top: 4px; color: #0f172a; }
+    .ops-footer { margin-top: 28px; text-align: center; font-size: 9px; color: #64748b; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+    .empty-day { padding: 14px; color: #94a3b8; font-style: italic; font-size: 11px; }
+    @media print { body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  `
+
+  el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap'); ${opsStyles}</style>
+  </head><body>
+  <div class="ops-wrap">
+    <div class="ops-header">
+      <div>
+        <div class="ops-logo">🔒 План отдыха · ОПЕРЕЙШЕН</div>
+        <div class="ops-sub">Внутренний документ. Не показывать клиенту</div>
+      </div>
+      <div>
+        <div class="ops-doc">${data.name || 'План'}</div>
+        <div class="ops-date">${data.gen}</div>
+      </div>
+    </div>
+
+    <div class="ops-client">
+      ${data.name     ? `<div><b>Клиент</b>${data.name}</div>` : ''}
+      ${data.dateFrom ? `<div><b>С</b>${fmtDate(data.dateFrom)}</div>` : ''}
+      ${data.dateTo   ? `<div><b>По</b>${fmtDate(data.dateTo)}</div>` : ''}
+      ${data.pax      ? `<div><b>Гостей</b>${data.pax}</div>` : ''}
+    </div>
+
+    ${days.map((day, idx) => {
+      const dayTot = (day.parts || []).reduce((acc, p) => {
+        const c = p.calculated || { sell: 0, net: 0 }
+        return { sell: acc.sell + (c.sell || 0), net: acc.net + (c.net || 0) }
+      }, { sell: 0, net: 0 })
+      const dayMargin = dayTot.sell - dayTot.net
+      return `
+      <div class="day-block">
+        <div class="day-head">
+          <span>📅 День ${idx + 1}${day.date ? ' · ' + fmtDate(day.date) : ''} ${day.title ? ' · ' + day.title : ''}</span>
+          <span class="day-tot">
+            нетто <b class="ops-net">${fmt(dayTot.net)} ฿</b> ·
+            продажа <b class="ops-sell">${fmt(dayTot.sell)} ฿</b> ·
+            маржа <b class="${dayMargin >= 0 ? 'ops-margin-pos' : 'ops-margin-neg'}">${fmt(dayMargin)} ฿</b>
+          </span>
+        </div>
+        ${(day.parts || []).length > 0 ? `
+        <table class="ops">
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th>Активность</th>
+              <th>Категория</th>
+              <th class="ops-num">Нетто</th>
+              <th class="ops-num">Продажа</th>
+              <th class="ops-num">Маржа</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(day.parts || []).map(p => {
+              const c = p.calculated || { sell: 0, net: 0, margin: 0 }
+              const ovr = (p.override?.sell_total != null) || (p.override?.net_total != null)
+              return `<tr>
+                <td>${p.icon || '•'}</td>
+                <td>
+                  <div style="font-weight:700">${p.name || ''}${ovr ? ' <span style="color:#92400e;font-size:10px">(override)</span>' : ''}</div>
+                  <div style="font-size:10px;color:#64748b">${p.qty ? `${p.qty.adults || 0} взр${p.qty.children ? ' + '+p.qty.children+' дет' : ''}${p.qty.infants ? ' + '+p.qty.infants+' млд' : ''}` : ''}</div>
+                </td>
+                <td style="font-size:10px;color:#64748b">${p.category || ''}</td>
+                <td class="ops-num ops-net">${fmt(c.net)} ฿</td>
+                <td class="ops-num ops-sell">${fmt(c.sell)} ฿</td>
+                <td class="ops-num ${c.margin >= 0 ? 'ops-margin-pos' : 'ops-margin-neg'}">${fmt(c.margin)} ฿</td>
+              </tr>`
+            }).join('')}
+          </tbody>
+        </table>` : `<div class="empty-day">— свободный день / отдых —</div>`}
+        ${day.notes ? `<div style="padding: 8px 14px; background: #fffbeb; border-top: 1px solid #fef3c7; font-size: 11px; color: #92400e">📝 ${day.notes}</div>` : ''}
+      </div>`
+    }).join('')}
+
+    <div class="ops-totals">
+      <div class="ops-tot-card warn"><div class="ops-tot-lbl">Себестоимость</div><div class="ops-tot-val">${fmt(totNet)} ฿</div></div>
+      <div class="ops-tot-card"><div class="ops-tot-lbl">К оплате</div><div class="ops-tot-val">${fmt(totSell)} ฿</div></div>
+      <div class="ops-tot-card profit"><div class="ops-tot-lbl">Маржа</div><div class="ops-tot-val">${fmt(totMargin)} ฿</div></div>
+      <div class="ops-tot-card profit"><div class="ops-tot-lbl">% маржи</div><div class="ops-tot-val">${margin.toFixed(1)}%</div></div>
+    </div>
+
+    <div class="ops-footer">${data.gen} · Внутренний документ · Остров Сокровищ</div>
+  </div>
+  </body></html>`
+
+  document.body.classList.add('printing')
+  const cleanup = () => {
+    document.body.classList.remove('printing')
+    el.innerHTML = ''
+    window.removeEventListener('afterprint', cleanup)
+  }
+  window.addEventListener('afterprint', cleanup)
+  window.print()
+}

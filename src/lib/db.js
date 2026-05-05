@@ -622,6 +622,65 @@ export async function deleteCustomTour(id) {
   }
 }
 
+// ─── VACATION PLANS (календарь отдыха) ──────────────────────
+export async function saveVacationPlan(plan) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('not authenticated')
+    const row = { ...plan, created_by: user.id, updated_at: new Date().toISOString() }
+    if (plan.id) {
+      const { error } = await supabase.from('vacation_plans').update(row).eq('id', plan.id)
+      if (error) throw error
+      return plan.id
+    } else {
+      const { data, error } = await supabase.from('vacation_plans').insert(row).select('id').single()
+      if (error) throw error
+      return data.id
+    }
+  } catch (e) {
+    console.error('saveVacationPlan failed:', e.message)
+    return null
+  }
+}
+
+export async function loadVacationPlan(id) {
+  try {
+    const { data, error } = await supabase.from('vacation_plans').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data
+  } catch (e) {
+    console.warn('loadVacationPlan failed:', e.message)
+    return null
+  }
+}
+
+export async function loadVacationPlans({ status, limit = 50 } = {}) {
+  try {
+    let q = supabase.from('vacation_plans')
+      .select('id,client_name,status,date_from,date_to,total_sell,total_margin,created_at,updated_at,sent_at')
+      .order('updated_at', { ascending: false })
+      .limit(limit)
+    if (status) q = q.eq('status', status)
+    const { data, error } = await q
+    if (error) throw error
+    return data || []
+  } catch (e) {
+    console.warn('loadVacationPlans failed:', e.message)
+    return []
+  }
+}
+
+export async function deleteVacationPlan(id) {
+  try {
+    const { error } = await supabase.from('vacation_plans').delete().eq('id', id)
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('deleteVacationPlan failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase

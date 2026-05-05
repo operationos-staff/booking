@@ -19,6 +19,7 @@ import IndividualTourPage from './IndividualTourPage'
 import AviaTourPage from './AviaTourPage'
 import FishingTourPage from './FishingTourPage'
 import CustomTourPage from './CustomTourPage'
+import VacationPlanPage from './VacationPlanPage'
 import LogsPage from './LogsPage'
 import CalculationsPage from './CalculationsPage'
 import StatsPage from './StatsPage'
@@ -222,6 +223,7 @@ export default function TourApp() {
             if (cat === 'Авиатуры в ЮВА') { setPage('avia'); return }
             if (cat === 'Рыбалка') { setPage('fishing'); return }
             if (cat === 'constructor') { setPage('constructor'); return }
+            if (cat === 'vacation') { setPage('vacation'); return }
             setHubCategory(cat)
             setPage('calculator')
           }}
@@ -247,6 +249,7 @@ export default function TourApp() {
       {page === 'avia'         && user && <AviaTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'fishing'      && user && <FishingTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'constructor'  && user && <CustomTourPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
+      {page === 'vacation'     && user && <VacationPlanPage role={role} toast={toast} user={user} brandSettings={brandSettings} onPage={(p) => setPage(p)} />}
       {page === 'logs'         && user && role === 'booking' && <LogsPage user={user} />}
       {page === 'calculations' && user && <CalculationsPage user={user} role={role} brandSettings={brandSettings} />}
       {page === 'stats'        && user && role === 'booking' && <StatsPage />}
