@@ -5,69 +5,115 @@ import { createPortal } from 'react-dom'
 const ROLE_NAMES = { manager: 'Менеджер', booking: 'Операционный отдел' }
 const ROLE_ICONS = { manager: '👤', booking: '📋' }
 
+const TOUR_TYPES = [
+  { page: 'calculator',  icon: '🚐', label: 'Групповые туры' },
+  { page: 'charter',     icon: '🚤', label: 'Морские туры' },
+  { page: 'land',        icon: '🏔️', label: 'Сухопутные' },
+  { page: 'sights',      icon: '🏛️', label: 'Обзорные' },
+  { page: 'individual',  icon: '👤', label: 'Индивидуальные' },
+  { page: 'avia',        icon: '✈️', label: 'Авиатуры в ЮВА' },
+  { page: 'fishing',     icon: '🎣', label: 'Рыбалка' },
+]
+const TOUR_PAGES = TOUR_TYPES.map(t => t.page)
+
 export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0, theme, onToggleTheme }) {
   const isClient = page === 'client'
-  const [dropOpen, setDropOpen] = useState(false)
-  const [dropPos, setDropPos] = useState({ top: 0, right: 0 })
-  const btnRef = useRef(null)
-  const menuRef = useRef(null)
+
+  // dropdown «Операционный отдел» (правый)
+  const [opsOpen, setOpsOpen] = useState(false)
+  const [opsPos, setOpsPos] = useState({ top: 0, right: 0 })
+  const opsBtnRef = useRef(null)
+  const opsMenuRef = useRef(null)
+
+  // dropdown «Экскурсии» (левый)
+  const [excOpen, setExcOpen] = useState(false)
+  const [excPos, setExcPos] = useState({ top: 0, left: 0 })
+  const excBtnRef = useRef(null)
+  const excMenuRef = useRef(null)
 
   useEffect(() => {
-    if (!dropOpen) return
+    if (!opsOpen && !excOpen) return
     const close = (e) => {
-      if (
-        btnRef.current && !btnRef.current.contains(e.target) &&
-        menuRef.current && !menuRef.current.contains(e.target)
-      ) setDropOpen(false)
+      if (opsOpen && opsBtnRef.current && !opsBtnRef.current.contains(e.target)
+          && opsMenuRef.current && !opsMenuRef.current.contains(e.target)) setOpsOpen(false)
+      if (excOpen && excBtnRef.current && !excBtnRef.current.contains(e.target)
+          && excMenuRef.current && !excMenuRef.current.contains(e.target)) setExcOpen(false)
     }
-    const onScroll = () => setDropOpen(false)
+    const onScroll = () => { setOpsOpen(false); setExcOpen(false) }
     document.addEventListener('mousedown', close)
     window.addEventListener('scroll', onScroll, true)
     return () => {
       document.removeEventListener('mousedown', close)
       window.removeEventListener('scroll', onScroll, true)
     }
-  }, [dropOpen])
+  }, [opsOpen, excOpen])
 
-  const openDrop = () => {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      setDropPos({ top: r.bottom + 8, right: window.innerWidth - r.right })
+  const openOps = () => {
+    if (opsBtnRef.current) {
+      const r = opsBtnRef.current.getBoundingClientRect()
+      setOpsPos({ top: r.bottom + 8, right: window.innerWidth - r.right })
     }
-    setDropOpen(o => !o)
+    setOpsOpen(o => !o)
+    setExcOpen(false)
   }
 
-  const goTo = (p) => { onPage(p); setDropOpen(false) }
+  const openExc = () => {
+    if (excBtnRef.current) {
+      const r = excBtnRef.current.getBoundingClientRect()
+      setExcPos({ top: r.bottom + 8, left: r.left })
+    }
+    setExcOpen(o => !o)
+    setOpsOpen(false)
+  }
+
+  const goToOps = (p) => { onPage(p); setOpsOpen(false) }
+  const goToExc = (p) => { onPage(p); setExcOpen(false) }
 
   const secondaryPages = ['calculations', 'stats', 'logs', 'profile']
   const isSecondaryActive = secondaryPages.includes(page)
+  const isExcursionActive = TOUR_PAGES.includes(page)
+  const activeTourMeta = TOUR_TYPES.find(t => t.page === page)
 
-  const dropMenu = dropOpen ? (
-    <div ref={menuRef} style={{
-      position: 'fixed', top: dropPos.top, right: dropPos.right,
+  const opsMenu = opsOpen ? (
+    <div ref={opsMenuRef} style={{
+      position: 'fixed', top: opsPos.top, right: opsPos.right,
       background: 'var(--bg2)', border: '1px solid var(--brd)',
       borderRadius: '14px', padding: '6px', minWidth: '210px',
       boxShadow: '0 16px 48px rgba(0,0,0,0.45)', zIndex: 99999,
       animation: 'slideUp 0.15s ease',
     }}>
-      <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goTo('calculations')} />
+      <DropItem icon="📂" label="Расчёты" badge={newCalcBadge} active={page === 'calculations'} onClick={() => goToOps('calculations')} />
       {role === 'booking' && (
         <>
-          {/* Конструктор экскурсий (ExcursionBuilder) скрыт из меню — он не интегрирован в калькуляторы.
-              Сухопутные настраиваются в LandTourPage / Морские в CharterPage / Групповые в BookingPage. */}
-          {/* <DropItem icon="🏗️" label="Конструктор" active={page === 'builder'} onClick={() => goTo('builder')} /> */}
-          <DropItem icon="📊" label="Статистика" active={page === 'stats'} onClick={() => goTo('stats')} />
-          <DropItem icon="📋" label="Логи" active={page === 'logs'} onClick={() => goTo('logs')} />
+          <DropItem icon="📊" label="Статистика" active={page === 'stats'} onClick={() => goToOps('stats')} />
+          <DropItem icon="📋" label="Логи" active={page === 'logs'} onClick={() => goToOps('logs')} />
         </>
       )}
-      <DropItem icon="👤" label="Профиль" active={page === 'profile'} onClick={() => goTo('profile')} />
+      <DropItem icon="👤" label="Профиль" active={page === 'profile'} onClick={() => goToOps('profile')} />
       <div style={{ margin: '6px 4px', height: '1px', background: 'var(--brd2)' }} />
       <DropItem
         icon={theme === 'light' ? '🌙' : '☀️'}
         label={theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
-        onClick={() => { onToggleTheme?.(); setDropOpen(false) }}
+        onClick={() => { onToggleTheme?.(); setOpsOpen(false) }}
       />
-      <DropItem icon="🚪" label="Выйти" onClick={() => { onLogout(); setDropOpen(false) }} danger />
+      <DropItem icon="🚪" label="Выйти" onClick={() => { onLogout(); setOpsOpen(false) }} danger />
+    </div>
+  ) : null
+
+  const excMenu = excOpen ? (
+    <div ref={excMenuRef} style={{
+      position: 'fixed', top: excPos.top, left: excPos.left,
+      background: 'var(--bg2)', border: '1px solid var(--brd)',
+      borderRadius: '14px', padding: '6px', minWidth: '240px',
+      boxShadow: '0 16px 48px rgba(0,0,0,0.45)', zIndex: 99999,
+      animation: 'slideUp 0.15s ease',
+    }}>
+      {TOUR_TYPES.map(t => (
+        <DropItem key={t.page} icon={t.icon} label={t.label}
+          active={page === t.page} onClick={() => goToExc(t.page)} />
+      ))}
+      <div style={{ margin: '6px 4px', height: '1px', background: 'var(--brd2)' }} />
+      <DropItem icon="🏝" label="Все категории (Hub)" onClick={() => goToExc('hub')} />
     </div>
   ) : null
 
@@ -89,35 +135,34 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
               <span style={{ fontSize: '11px', opacity: '.8' }}>📄 Расчёт тура</span>
             ) : role ? (
               <>
-                <button className={`btn-nav ${page === 'calculator' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('calculator')}>
-                  🚐 Групповые туры
+                {/* 1. Экскурсии (выпадающий список 7 типов) */}
+                <button
+                  ref={excBtnRef}
+                  onClick={openExc}
+                  className={`btn-nav ${isExcursionActive ? 'btn-nav-a' : 'btn-nav-o'}`}
+                  style={{ gap: '6px' }}
+                >
+                  <span style={{ fontSize: '14px' }}>{activeTourMeta?.icon || '🌴'}</span>
+                  <span>{activeTourMeta ? activeTourMeta.label : 'Экскурсии'}</span>
+                  <span style={{ fontSize: '9px', opacity: 0.5 }}>{excOpen ? '▲' : '▼'}</span>
                 </button>
-                <button className={`btn-nav ${page === 'charter' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('charter')}>
-                  🚤 Морские туры
-                </button>
-                <button className={`btn-nav ${page === 'land' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('land')}>
-                  🏔️ Сухопутные
-                </button>
-                <button className={`btn-nav ${page === 'sights' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('sights')}>
-                  🏛️ Обзорные
-                </button>
-                <button className={`btn-nav ${page === 'individual' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('individual')}>
-                  👤 Индивидуальные
-                </button>
-                <button className={`btn-nav ${page === 'avia' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('avia')}>
-                  ✈️ Авиатуры
-                </button>
-                <button className={`btn-nav ${page === 'fishing' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('fishing')}>
-                  🎣 Рыбалка
-                </button>
-                <button className={`btn-nav ${page === 'constructor' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('constructor')} style={{ background: page === 'constructor' ? undefined : 'rgba(245,158,11,0.10)', borderColor: '#f59e0b' }}>
+
+                {/* 2. Конструктор */}
+                <button
+                  className={`btn-nav ${page === 'constructor' ? 'btn-nav-a' : 'btn-nav-o'}`}
+                  onClick={() => onPage('constructor')}
+                  style={{
+                    background: page === 'constructor' ? undefined : 'rgba(245,158,11,0.10)',
+                    borderColor: page === 'constructor' ? undefined : '#f59e0b',
+                  }}
+                >
                   🧩 Конструктор
                 </button>
 
-                {/* User dropdown trigger */}
+                {/* 3. Операционный отдел / Менеджер (правый dropdown) */}
                 <button
-                  ref={btnRef}
-                  onClick={openDrop}
+                  ref={opsBtnRef}
+                  onClick={openOps}
                   className={`btn-nav ${isSecondaryActive ? 'btn-nav-a' : 'btn-nav-o'}`}
                   style={{ gap: '8px', paddingRight: '10px' }}
                 >
@@ -133,11 +178,11 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                       {newCalcBadge > 9 ? '9+' : newCalcBadge}
                     </span>
                   )}
-                  <span style={{ fontSize: '9px', opacity: 0.5 }}>{dropOpen ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: '9px', opacity: 0.5 }}>{opsOpen ? '▲' : '▼'}</span>
                 </button>
 
-                {/* Dropdown rendered via Portal at document.body */}
-                {typeof document !== 'undefined' && createPortal(dropMenu, document.body)}
+                {typeof document !== 'undefined' && createPortal(opsMenu, document.body)}
+                {typeof document !== 'undefined' && createPortal(excMenu, document.body)}
               </>
             ) : null}
           </nav>
@@ -147,33 +192,13 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
       {/* Mobile bottom navigation bar */}
       {!isClient && role && (
         <nav className="mob-bottom-nav no-print">
-          <button className={`mob-bottom-btn ${page === 'calculator' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('calculator')}>
-            <span className="mob-bottom-icon">🚐</span>
-            <span className="mob-bottom-label">Группы</span>
+          <button className={`mob-bottom-btn ${page === 'hub' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('hub')}>
+            <span className="mob-bottom-icon">🏝</span>
+            <span className="mob-bottom-label">Hub</span>
           </button>
-          <button className={`mob-bottom-btn ${page === 'charter' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('charter')}>
-            <span className="mob-bottom-icon">🚤</span>
-            <span className="mob-bottom-label">Морские</span>
-          </button>
-          <button className={`mob-bottom-btn ${page === 'land' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('land')}>
-            <span className="mob-bottom-icon">🏔️</span>
-            <span className="mob-bottom-label">Сухопут.</span>
-          </button>
-          <button className={`mob-bottom-btn ${page === 'sights' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('sights')}>
-            <span className="mob-bottom-icon">🏛️</span>
-            <span className="mob-bottom-label">Обзорные</span>
-          </button>
-          <button className={`mob-bottom-btn ${page === 'individual' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('individual')}>
-            <span className="mob-bottom-icon">👤</span>
-            <span className="mob-bottom-label">Индивид.</span>
-          </button>
-          <button className={`mob-bottom-btn ${page === 'avia' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('avia')}>
-            <span className="mob-bottom-icon">✈️</span>
-            <span className="mob-bottom-label">Авиатуры</span>
-          </button>
-          <button className={`mob-bottom-btn ${page === 'fishing' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('fishing')}>
-            <span className="mob-bottom-icon">🎣</span>
-            <span className="mob-bottom-label">Рыбалка</span>
+          <button className={`mob-bottom-btn ${isExcursionActive ? 'mob-bottom-active' : ''}`} onClick={openExc} ref={excBtnRef}>
+            <span className="mob-bottom-icon">{activeTourMeta?.icon || '🌴'}</span>
+            <span className="mob-bottom-label">{activeTourMeta ? 'Тип' : 'Экскур.'}</span>
           </button>
           <button className={`mob-bottom-btn ${page === 'constructor' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('constructor')}>
             <span className="mob-bottom-icon">🧩</span>
