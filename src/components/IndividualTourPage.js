@@ -578,7 +578,7 @@ export default function IndividualTourPage({ role, toast: externalToast, user, b
                     }
                 } catch { }
             }
-            setDb(DEFAULT_DB);
+            setDb(DEFAULT_DB); localStorage.setItem('individual_db', JSON.stringify(DEFAULT_DB));
             setDbLoaded(true);
         };
         loadData();
@@ -615,7 +615,7 @@ export default function IndividualTourPage({ role, toast: externalToast, user, b
 
     const resetDB = async () => {
         if (!confirm('Сбросить все изменения и вернуть к заводским настройкам?')) return;
-        setDb(DEFAULT_DB);
+        setDb(DEFAULT_DB); localStorage.setItem('individual_db', JSON.stringify(DEFAULT_DB));
         localStorage.setItem('individual_db', JSON.stringify(DEFAULT_DB));
         if (isAdmin) await saveIndividualToDB(DEFAULT_DB);
         showToast('База сброшена к заводским настройкам', 'ok');

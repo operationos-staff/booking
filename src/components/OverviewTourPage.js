@@ -316,7 +316,7 @@ export default function OverviewTourPage({ role, toast: externalToast, user, bra
                     }
                 } catch { }
             }
-            setDb(DEFAULT_DB);
+            setDb(DEFAULT_DB); localStorage.setItem('sights_db', JSON.stringify(DEFAULT_DB));
             setDbLoaded(true);
         };
         loadData();
@@ -353,7 +353,7 @@ export default function OverviewTourPage({ role, toast: externalToast, user, bra
 
     const resetDB = async () => {
         if (!confirm('Сбросить все изменения и вернуть к заводским настройкам?')) return;
-        setDb(DEFAULT_DB);
+        setDb(DEFAULT_DB); localStorage.setItem('sights_db', JSON.stringify(DEFAULT_DB));
         localStorage.setItem('sights_db', JSON.stringify(DEFAULT_DB));
         if (isAdmin) await saveSightsToDB(DEFAULT_DB);
         showToast('База сброшена к заводским настройкам', 'ok');

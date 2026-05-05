@@ -212,7 +212,7 @@ export default function FishingTourPage({ role, toast: externalToast, user, bran
                     }
                 } catch { }
             }
-            setDb(DEFAULT_DB);
+            setDb(DEFAULT_DB); localStorage.setItem('fishing_db', JSON.stringify(DEFAULT_DB));
             setDbLoaded(true);
         };
         loadData();
@@ -249,7 +249,7 @@ export default function FishingTourPage({ role, toast: externalToast, user, bran
 
     const resetDB = async () => {
         if (!confirm('Сбросить все изменения и вернуть к заводским настройкам?')) return;
-        setDb(DEFAULT_DB);
+        setDb(DEFAULT_DB); localStorage.setItem('fishing_db', JSON.stringify(DEFAULT_DB));
         localStorage.setItem('fishing_db', JSON.stringify(DEFAULT_DB));
         if (isAdmin) await saveFishingToDB(DEFAULT_DB);
         showToast('База сброшена к заводским настройкам', 'ok');
