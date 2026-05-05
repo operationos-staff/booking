@@ -438,7 +438,7 @@ export function doPrintCharter(data) {
   window.print()
 }
 
-// ─── PRINT LAND TOUR ─────────────────────────────────────────
+// ─── PRINT LAND TOUR (also reused by Overview/Sights tours) ─
 export function doPrintLand(data) {
   if (!data) return
   const el = document.getElementById('print-area')
@@ -448,6 +448,8 @@ export function doPrintLand(data) {
   const programLines = Array.isArray(data.program) ? data.program : []
   const included = Array.isArray(data.included) ? data.included : []
   const items = Array.isArray(data.items) ? data.items : []
+  const printTitle = data.printTitle || 'Смета сухопутной экскурсии'
+  const routeBadge = data.routeBadge || '🏔️ Маршрут'
 
   el.innerHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PDF_STYLES}</style></head><body>
   <div class="pdf-wrap">
@@ -460,7 +462,7 @@ export function doPrintLand(data) {
           <div class="pdf-logo-sub">Премиальные экскурсии · Пхукет</div>
         </div>
         <div>
-          <div class="pdf-doc-title">Смета сухопутной экскурсии</div>
+          <div class="pdf-doc-title">${printTitle}</div>
           <div class="pdf-doc-date">${data.gen}</div>
         </div>
       </div>
@@ -474,7 +476,7 @@ export function doPrintLand(data) {
       </div>` : ''}
 
       <div class="pdf-route-card">
-        <div class="pdf-route-label">🏔️ Маршрут</div>
+        <div class="pdf-route-label">${routeBadge}</div>
         <div class="pdf-route-name">${data.tourName || ''}</div>
         ${meta.duration || meta.days || meta.transport || meta.guide || meta.meals ? `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px;font-size:11px;color:#e5e5e5">

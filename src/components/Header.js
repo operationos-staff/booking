@@ -98,6 +98,9 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
                 <button className={`btn-nav ${page === 'land' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('land')}>
                   🏔️ Сухопутные
                 </button>
+                <button className={`btn-nav ${page === 'sights' ? 'btn-nav-a' : 'btn-nav-o'}`} onClick={() => onPage('sights')}>
+                  🏛️ Обзорные
+                </button>
 
                 {/* User dropdown trigger */}
                 <button
@@ -143,6 +146,10 @@ export default function Header({ role, page, onPage, onLogout, newCalcBadge = 0,
           <button className={`mob-bottom-btn ${page === 'land' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('land')}>
             <span className="mob-bottom-icon">🏔️</span>
             <span className="mob-bottom-label">Сухопут.</span>
+          </button>
+          <button className={`mob-bottom-btn ${page === 'sights' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('sights')}>
+            <span className="mob-bottom-icon">🏛️</span>
+            <span className="mob-bottom-label">Обзорные</span>
           </button>
           <button className={`mob-bottom-btn ${page === 'calculations' ? 'mob-bottom-active' : ''}`} onClick={() => onPage('calculations')}>
             <span className="mob-bottom-icon">📂</span>

@@ -16,8 +16,11 @@ export default function ClientPage({ data }) {
   const brand = data._brand || {}
   const isExpired = data._savedAt && (Date.now() - new Date(data._savedAt).getTime()) > 7 * 24 * 60 * 60 * 1000
   const isLand = data._kind === 'land'
-  const routeIcon = isLand ? '🏔️' : '🚤'
-  const routeBaseLabel = isLand ? 'Сухопутная экскурсия по программе' : 'Аренда катера по маршруту'
+  const isSights = data._kind === 'sights'
+  const routeIcon = isSights ? '🏛️' : isLand ? '🏔️' : '🚤'
+  const routeBaseLabel = isSights ? 'Обзорная экскурсия по программе'
+                       : isLand ? 'Сухопутная экскурсия по программе'
+                       : 'Аренда катера по маршруту'
 
   return (
     <div className="cp" style={{ position: 'relative' }}>

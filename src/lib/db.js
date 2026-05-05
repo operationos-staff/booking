@@ -245,6 +245,42 @@ export async function saveLandToDB(landData) {
   }
 }
 
+// ─── SIGHTS / OVERVIEW TOUR CONFIG ──────────────────────────
+// Обзорные экскурсии — отдельный ключ в той же таблице charter_config
+const SIGHTS_CONFIG_KEY = 'sights_main_config'
+
+export async function loadSightsFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('charter_config')
+      .select('payload')
+      .eq('config_key', SIGHTS_CONFIG_KEY)
+      .maybeSingle()
+    if (error) throw error
+    return data?.payload ?? null
+  } catch (e) {
+    console.warn('sights_config load failed:', e.message)
+    return null
+  }
+}
+
+export async function saveSightsToDB(sightsData) {
+  try {
+    const { error } = await supabase
+      .from('charter_config')
+      .upsert({
+        config_key: SIGHTS_CONFIG_KEY,
+        payload: sightsData,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'config_key' })
+    if (error) throw error
+    return true
+  } catch (e) {
+    console.error('sights_config save failed:', e.message)
+    return false
+  }
+}
+
 // ─── CALCULATIONS ─────────────────────────────────────────────
 export async function saveCalculation(userId, clientName, tourDate, payload) {
   const { data, error } = await supabase
