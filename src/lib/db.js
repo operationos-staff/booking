@@ -389,44 +389,33 @@ export async function saveFishingToDB(fishingData) {
   }
 }
 
-// ─── UNIFIED CATALOG (Materialized View catalog_items) ─────
-// Возвращает унифицированный список всех 110+ туров/опций из 7 источников.
-// Если view ещё не создано в БД — fallback: грузим 7 источников параллельно
-// и собираем каталог в памяти на клиенте.
+// ─── UNIFIED CATALOG ────────────────────────────────────────
+// Грузим параллельно все 7 источников и собираем каталог на клиенте.
+// Это надёжнее чем materialized view: данные актуальные даже если что-то
+// живёт пока в localStorage и ещё не попало в БД.
 export async function getCatalogItems({ source, category, search } = {}) {
-  // 1. Сначала пробуем view
   try {
-    let query = supabase.from('catalog_items').select('*')
-    if (source)   query = query.eq('source', source)
-    if (category) query = query.eq('category', category)
-    if (search)   query = query.ilike('name', `%${search}%`)
-    const { data, error } = await query.order('category').order('name').limit(500)
-    if (!error && data) return data
-    if (error) console.warn('catalog_items view not available:', error.message)
-  } catch (e) {
-    console.warn('catalog_items query failed, falling back:', e.message)
-  }
-  // 2. Fallback — собираем из 7 источников
-  try {
-    const [pkgs, opts, land, sights, indiv, avia, fish] = await Promise.all([
+    const [pkgs, opts, land, sights, indiv, avia, fish, charter] = await Promise.all([
       loadPackagesFromDB(), loadOptionsFromDB(),
       loadLandFromDB(), loadSightsFromDB(),
       loadIndividualFromDB(), loadAviaFromDB(), loadFishingFromDB(),
+      loadCharterFromDB(),
     ])
-    return buildCatalogFallback({ pkgs, opts, land, sights, indiv, avia, fish })
+    return buildCatalogFallback({ pkgs, opts, land, sights, indiv, avia, fish, charter })
       .filter(it => !source   || it.source === source)
       .filter(it => !category || it.category === category)
       .filter(it => !search   || (it.name || '').toLowerCase().includes(search.toLowerCase()))
   } catch (e) {
-    console.error('catalog fallback failed:', e.message)
+    console.error('catalog build failed:', e.message)
     return []
   }
 }
 
-// In-memory fallback builder
-function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia, fish }) {
+// In-memory fallback builder — собирает все 7 источников + items как доплаты.
+function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia, fish, charter }) {
   const list = []
-  // packages
+
+  // ── packages (8 пакетов Минивэн/Альфард)
   for (const p of (pkgs || [])) {
     list.push({
       global_id: 'packages:' + p.id,
@@ -441,7 +430,8 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
       meta: { hours: p.hours, type: p.type, note: p.note }
     })
   }
-  // options
+
+  // ── options (21 опция-локация)
   for (const o of (opts || [])) {
     list.push({
       global_id: 'options:' + o.id,
@@ -456,7 +446,48 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
       meta: { only_8h: o.only8h, note: o.note }
     })
   }
-  // JSONB категории (5)
+
+  // ── charter (морские маршруты — tours[] + items[])
+  if (charter?.tours) {
+    for (const t of charter.tours) {
+      list.push({
+        global_id: 'charter:' + t.id,
+        source: 'charter', source_id: String(t.id),
+        name: t.name, icon: t.icon || '🚤',
+        category: 'Морские туры',
+        pricing_model: 'per_vehicle',
+        net_base: t.net || 0, sell_base: t.sell || t.mgrPrice || 0,
+        extra_pax_sell: 0, extra_pax_net: 0, inclusive_pax: 0,
+        sell_adult: 0, sell_child: 0, sell_infant: 0,
+        net_adult: 0, net_child: 0, net_infant: 0,
+        meta: { bType: t.bType, color: t.color }
+      })
+    }
+  }
+  if (charter?.items) {
+    for (const i of charter.items) {
+      // Чартерные доплаты как опции
+      list.push({
+        global_id: 'charter_addon:' + i.id,
+        source: 'options', source_id: String(i.id),
+        name: i.name, icon: i.icon || '➕',
+        category: 'Опции (чартер)',
+        pricing_model: i.type === 'per_pax' ? 'per_pax' : 'per_vehicle',
+        net_base: i.type === 'per_pax' ? 0 : (i.net || 0),
+        sell_base: i.type === 'per_pax' ? 0 : (i.sell || i.mgrPrice || 0),
+        extra_pax_sell: 0, extra_pax_net: 0, inclusive_pax: 0,
+        sell_adult: i.type === 'per_pax' ? (i.sell || i.mgrPrice || 0) : 0,
+        sell_child: i.type === 'per_pax' ? (i.sell || i.mgrPrice || 0) : 0,
+        sell_infant: 0,
+        net_adult: i.type === 'per_pax' ? (i.net || 0) : 0,
+        net_child: i.type === 'per_pax' ? (i.net || 0) : 0,
+        net_infant: 0,
+        meta: { tId: i.tId, note: i.note, type: i.type }
+      })
+    }
+  }
+
+  // ── 5 JSONB-категорий (Land/Sights/Individual/Avia/Fishing)
   const jsonSources = [
     { src: 'land',       cat: 'Сухопутные',     data: land },
     { src: 'sights',     cat: 'Обзорные',       data: sights },
@@ -465,8 +496,9 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
     { src: 'fishing',    cat: 'Рыбалка',        data: fish },
   ]
   for (const { src, cat, data } of jsonSources) {
-    if (!data?.routes) continue
-    for (const r of data.routes) {
+    if (!data) continue
+    // routes (маршруты этой категории)
+    for (const r of (data.routes || [])) {
       list.push({
         global_id: src + ':' + r.id,
         source: src, source_id: String(r.id),
@@ -486,7 +518,28 @@ function buildCatalogFallback({ pkgs = [], opts = [], land, sights, indiv, avia,
                 description: r.description, group: r.group, icon: r.icon }
       })
     }
+    // items этой категории (трансферы, отели, входы и т.п.) — все в общий пул «Опции»
+    for (const i of (data.items || [])) {
+      list.push({
+        global_id: src + '_addon:' + i.id,
+        source: 'options', source_id: String(i.id),
+        name: i.name, icon: i.icon || '➕',
+        category: 'Опции (' + cat + ')',
+        pricing_model: i.type === 'per_pax' ? 'per_pax' : 'per_vehicle',
+        net_base: i.type === 'per_pax' ? 0 : (i.net || 0),
+        sell_base: i.type === 'per_pax' ? 0 : (i.sell || i.mgrPrice || 0),
+        extra_pax_sell: 0, extra_pax_net: 0, inclusive_pax: 0,
+        sell_adult: i.type === 'per_pax' ? (i.sell || i.mgrPrice || 0) : 0,
+        sell_child: i.type === 'per_pax' ? (i.sell || i.mgrPrice || 0) : 0,
+        sell_infant: 0,
+        net_adult: i.type === 'per_pax' ? (i.net || 0) : 0,
+        net_child: i.type === 'per_pax' ? (i.net || 0) : 0,
+        net_infant: 0,
+        meta: { tId: i.tId, note: i.note, type: i.type, cat: i.cat, parentSource: src }
+      })
+    }
   }
+
   return list
 }
 
