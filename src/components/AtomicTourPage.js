@@ -60,6 +60,7 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
     const [partners, setPartners] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterGroup, setFilterGroup] = useState('all');
+    const [filterPartner, setFilterPartner] = useState('all');
     const [searchQ, setSearchQ] = useState('');
 
     // Выбранные атомы (id → { qty, override })
@@ -88,6 +89,14 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
                 setAtoms(as || []);
                 setPartners(ps || []);
                 setLoading(false);
+                // Если из PartnersPage пришли с pre-filter — применить и очистить
+                if (typeof sessionStorage !== 'undefined') {
+                    const pre = sessionStorage.getItem('atomic_filter_partner');
+                    if (pre) {
+                        setFilterPartner(pre);
+                        sessionStorage.removeItem('atomic_filter_partner');
+                    }
+                }
             }
         })();
         return () => { cancelled = true; };
@@ -109,10 +118,24 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
         const q = (searchQ || '').toLowerCase().trim();
         return atoms.filter(a => {
             if (filterGroup !== 'all' && a.group !== filterGroup) return false;
+            if (filterPartner !== 'all') {
+                if (filterPartner === 'none') {
+                    if (a.partner_id) return false;
+                } else if (a.partner_id !== filterPartner) return false;
+            }
             if (q && !(a.name || '').toLowerCase().includes(q)) return false;
             return true;
         });
-    }, [atoms, filterGroup, searchQ]);
+    }, [atoms, filterGroup, filterPartner, searchQ]);
+
+    // Счётчик атомов на каждого партнёра (для бейджей)
+    const atomsByPartner = useMemo(() => {
+        const m = new Map();
+        for (const a of atoms) {
+            if (a.partner_id) m.set(a.partner_id, (m.get(a.partner_id) || 0) + 1);
+        }
+        return m;
+    }, [atoms]);
 
     const groupedAtoms = useMemo(() => {
         const g = {};
@@ -322,6 +345,37 @@ export default function AtomicTourPage({ role, toast: externalToast, user, brand
                             </button>
                         ))}
                     </div>
+
+                    {/* Фильтр по партнёру (только для booking) */}
+                    {isAdmin && partners.length > 0 && (
+                        <div style={{ marginBottom: '10px' }}>
+                            <div style={{ fontSize: '10px', color: 'var(--txl)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
+                                👥 Партнёр:
+                                {filterPartner !== 'all' && (
+                                    <button onClick={() => setFilterPartner('all')} style={{
+                                        marginLeft: '6px', background: 'transparent', border: 'none',
+                                        color: '#ef4444', cursor: 'pointer', fontSize: '10px', fontWeight: 700,
+                                    }}>✕ сброс</button>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap' }}>
+                                <button onClick={() => setFilterPartner('all')} style={chipStyle(filterPartner === 'all')}>Все</button>
+                                <button onClick={() => setFilterPartner('none')} style={chipStyle(filterPartner === 'none')}>— Без поставщика</button>
+                                {partners.filter(p => atomsByPartner.get(p.id)).map(p => (
+                                    <button key={p.id} onClick={() => setFilterPartner(p.id)} style={{
+                                        padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 700,
+                                        border: `1px solid ${filterPartner === p.id ? p.color : 'var(--brd2)'}`,
+                                        background: filterPartner === p.id ? `${p.color}22` : 'transparent',
+                                        color: filterPartner === p.id ? p.color : 'var(--txm)',
+                                        cursor: 'pointer', fontFamily: 'inherit',
+                                    }}>
+                                        {p.icon} {p.short_name || p.name}
+                                        <span style={{ marginLeft: '4px', opacity: 0.7 }}>· {atomsByPartner.get(p.id)}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px' }}>
                         {loading ? (

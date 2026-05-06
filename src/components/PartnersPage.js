@@ -18,6 +18,13 @@ const CATEGORY_LABELS = {
 
 const COLOR_PRESETS = ['#f59e0b','#10b981','#22d3ee','#8b5cf6','#a78bfa','#ec4899','#fb923c','#0ea5e9','#84cc16','#fbbf24'];
 
+function openAtomsByPartner(partnerId, onPage) {
+    if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('atomic_filter_partner', partnerId);
+    }
+    onPage && onPage('atomic');
+}
+
 export default function PartnersPage({ role, toast: externalToast, onPage }) {
     const isAdmin = role === 'booking';
     const showToast = externalToast || ((m) => alert(m));
@@ -129,12 +136,16 @@ export default function PartnersPage({ role, toast: externalToast, onPage }) {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-                    {filtered.map(p => (
-                        <div key={p.id} onClick={() => openEdit(p)} style={{
+                    {filtered.map(p => {
+                        const cnt = atomCount.get(p.id) || 0;
+                        return (
+                        <div key={p.id} style={{
                             background: 'var(--bg2)', border: `1px solid ${p.color || 'var(--brd)'}55`,
-                            borderRadius: '12px', padding: '14px', cursor: 'pointer',
+                            borderRadius: '12px', padding: '14px',
                             borderLeft: `4px solid ${p.color || '#8b5cf6'}`,
+                            display: 'flex', flexDirection: 'column',
                         }}>
+                            <div onClick={() => openEdit(p)} style={{ cursor: 'pointer' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                                 <span style={{ fontSize: '24px' }}>{p.icon || '🏢'}</span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -147,7 +158,7 @@ export default function PartnersPage({ role, toast: externalToast, onPage }) {
                                     fontSize: '11px', fontWeight: 700, color: p.color, opacity: 0.9,
                                     background: `${p.color}22`, padding: '2px 8px', borderRadius: '6px',
                                 }}>
-                                    {atomCount.get(p.id) || 0} атом.
+                                    {cnt} атом.
                                 </span>
                             </div>
                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px' }}>
@@ -172,8 +183,29 @@ export default function PartnersPage({ role, toast: externalToast, onPage }) {
                                     {p.notes.length > 80 ? p.notes.slice(0, 80) + '…' : p.notes}
                                 </div>
                             )}
+                            </div>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); openAtomsByPartner(p.id, onPage); }}
+                                disabled={cnt === 0}
+                                style={{
+                                    marginTop: '10px',
+                                    padding: '7px 10px',
+                                    borderRadius: '8px',
+                                    border: `1px solid ${cnt > 0 ? (p.color || '#8b5cf6') + '55' : 'var(--brd2)'}`,
+                                    background: cnt > 0 ? (p.color || '#8b5cf6') + '18' : 'transparent',
+                                    color: cnt > 0 ? (p.color || '#8b5cf6') : 'var(--txl)',
+                                    fontSize: '12px', fontWeight: 700,
+                                    cursor: cnt > 0 ? 'pointer' : 'not-allowed',
+                                    fontFamily: 'inherit',
+                                    opacity: cnt > 0 ? 1 : 0.6,
+                                }}
+                                title={cnt > 0 ? 'Открыть атомы этого партнёра в Атомном туре' : 'У партнёра пока нет атомов'}
+                            >
+                                🧬 Открыть атомы ({cnt})
+                            </button>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
